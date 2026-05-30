@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useContext, createContext } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -48,7 +48,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -87,45 +87,116 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header data={data} />
-      <main className="container mx-auto max-w-7xl space-y-6 px-4 py-6">
-        <PresaleCountdown />
-        <KpiRow data={data} />
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-7">
-            <TabsTrigger value="overview">Visão geral</TabsTrigger>
-            <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
-            <TabsTrigger value="coupons">Cupom</TabsTrigger>
-            <TabsTrigger value="trends">Tendências</TabsTrigger>
-            <TabsTrigger value="violations">Violações</TabsTrigger>
-            <TabsTrigger value="history">Histórico</TabsTrigger>
-            <TabsTrigger value="social">Social</TabsTrigger>
-          </TabsList>
-          <TabsContent value="overview">
-            <RetailerGrid data={data} />
-          </TabsContent>
-          <TabsContent value="marketplace">
-            <MarketplacePanel />
-          </TabsContent>
-          <TabsContent value="coupons">
-            <CouponsPanel />
-          </TabsContent>
-          <TabsContent value="trends">
-            <TrendsPanel />
-          </TabsContent>
-          <TabsContent value="violations">
-            <ViolationsTable data={data} />
-          </TabsContent>
-          <TabsContent value="history">
-            <HistoryChart data={data} />
-          </TabsContent>
-          <TabsContent value="social">
-            <SocialFeed data={data} />
-          </TabsContent>
-        </Tabs>
-      </main>
+    <ThemeProvider>
+      <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
+        <ThemeBackdrop />
+        <Header data={data} />
+        <main className="container relative mx-auto max-w-7xl space-y-6 px-4 py-6">
+          <PresaleCountdown />
+          <Tabs defaultValue="overview" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-7">
+              <TabsTrigger value="overview">Visão geral</TabsTrigger>
+              <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
+              <TabsTrigger value="coupons">Cupom</TabsTrigger>
+              <TabsTrigger value="trends">Tendências</TabsTrigger>
+              <TabsTrigger value="violations">Violações</TabsTrigger>
+              <TabsTrigger value="history">Histórico</TabsTrigger>
+              <TabsTrigger value="social">Social</TabsTrigger>
+            </TabsList>
+            <TabsContent value="overview">
+              <OverviewSummary data={data} />
+            </TabsContent>
+            <TabsContent value="marketplace">
+              <MarketplacePanel />
+            </TabsContent>
+            <TabsContent value="coupons">
+              <CouponsPanel />
+            </TabsContent>
+            <TabsContent value="trends">
+              <TrendsPanel />
+            </TabsContent>
+            <TabsContent value="violations">
+              <ViolationsTable data={data} />
+            </TabsContent>
+            <TabsContent value="history">
+              <HistoryChart data={data} />
+            </TabsContent>
+            <TabsContent value="social">
+              <SocialFeed data={data} />
+            </TabsContent>
+          </Tabs>
+        </main>
+      </div>
+    </ThemeProvider>
+  );
+}
+
+// ===================== Theming =====================
+type ThemeName = "corporate" | "wolverine";
+const ThemeCtx = createContext<{ theme: ThemeName; setTheme: (t: ThemeName) => void }>({
+  theme: "corporate",
+  setTheme: () => {},
+});
+
+function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<ThemeName>(() => {
+    if (typeof window === "undefined") return "corporate";
+    return (localStorage.getItem("wlv-theme") as ThemeName) || "corporate";
+  });
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("theme-corporate", "theme-wolverine");
+    root.classList.add(`theme-${theme}`);
+    localStorage.setItem("wlv-theme", theme);
+  }, [theme]);
+  return <ThemeCtx.Provider value={{ theme, setTheme }}>{children}</ThemeCtx.Provider>;
+}
+
+function ThemeToggle() {
+  const { theme, setTheme } = useContext(ThemeCtx);
+  return (
+    <div className="inline-flex rounded-md border bg-card p-0.5 text-xs">
+      <button
+        onClick={() => setTheme("corporate")}
+        className={`rounded px-2.5 py-1 font-medium transition ${
+          theme === "corporate" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+        }`}
+      >
+        Corporate
+      </button>
+      <button
+        onClick={() => setTheme("wolverine")}
+        className={`rounded px-2.5 py-1 font-medium transition ${
+          theme === "wolverine" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+        }`}
+      >
+        Wolverine
+      </button>
     </div>
+  );
+}
+
+function ThemeBackdrop() {
+  const { theme } = useContext(ThemeCtx);
+  if (theme !== "wolverine") return null;
+  return (
+    <>
+      <div
+        className="pointer-events-none absolute inset-0 opacity-40"
+        style={{ background: "var(--hero-noise)" }}
+      />
+      <svg
+        className="pointer-events-none absolute -right-32 top-32 h-[520px] w-[520px] opacity-[0.07]"
+        viewBox="0 0 200 200"
+        fill="none"
+      >
+        <g stroke="oklch(0.86 0.19 95)" strokeWidth="3" strokeLinecap="round">
+          <path d="M30 20 Q 100 90 60 180" />
+          <path d="M70 10 Q 130 90 100 190" />
+          <path d="M110 15 Q 170 95 140 185" />
+        </g>
+      </svg>
+    </>
   );
 }
 
@@ -191,31 +262,57 @@ function CountBox({ v, l }: { v: number; l: string }) {
 
 function Header({ data }: { data: DashboardData }) {
   const { product } = data;
+  const { theme } = useContext(ThemeCtx);
   const minAvista = Math.round(product.srp_cents * (1 - product.max_discount_avista_pct / 100));
+  const isWlv = theme === "wolverine";
   return (
-    <header className="border-b bg-card">
-      <div className="container mx-auto max-w-7xl px-4 py-6">
+    <header
+      className="relative overflow-hidden border-b"
+      style={{
+        background:
+          theme === "wolverine"
+            ? "linear-gradient(135deg, oklch(0.13 0.01 80), oklch(0.18 0.02 90))"
+            : "linear-gradient(135deg, var(--card), oklch(0.95 0.04 258))",
+      }}
+    >
+      <div
+        className="pointer-events-none absolute inset-y-0 right-0 w-[60%] opacity-30"
+        style={{ background: "var(--accent-gradient)", maskImage: "linear-gradient(90deg, transparent, black 80%)" }}
+      />
+      <div className="container relative mx-auto max-w-7xl px-4 py-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
-              <Tag className="h-3.5 w-3.5" /> Monitoramento de Lançamento
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em]" style={{ color: "var(--primary)" }}>
+              {isWlv ? "▲▲▲" : "◆"} Monitoramento de Lançamento
             </div>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight">
-              {product.name} <span className="text-muted-foreground">({product.platform})</span>
+            <h1
+              className="mt-2 text-4xl font-black tracking-tight md:text-5xl"
+              style={{
+                fontFamily: isWlv
+                  ? "'Impact', 'Bebas Neue', system-ui, sans-serif"
+                  : "system-ui, sans-serif",
+                letterSpacing: isWlv ? "0.02em" : "-0.02em",
+              }}
+            >
+              {product.name}{" "}
+              <span className="text-muted-foreground">({product.platform})</span>
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-muted-foreground">
               EAN <span className="font-mono">{product.ean}</span> · SRP{" "}
               <strong>{brl(product.srp_cents)}</strong> · Piso à vista{" "}
               <strong>{brl(minAvista)}</strong> ({pct(product.max_discount_avista_pct)} máx)
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant={product.presale_allowed ? "default" : "destructive"}>
-              {product.presale_allowed ? "Pré-venda autorizada" : "Pré-venda NÃO autorizada"}
-            </Badge>
-            <Badge variant="outline" className="gap-1">
-              <Clock className="h-3 w-3" /> Coleta 08h30 & 13h00
-            </Badge>
+          <div className="flex flex-col items-end gap-2">
+            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <Badge variant={product.presale_allowed ? "default" : "destructive"}>
+                {product.presale_allowed ? "Pré-venda autorizada" : "Pré-venda NÃO autorizada"}
+              </Badge>
+              <Badge variant="outline" className="gap-1">
+                <Clock className="h-3 w-3" /> Coleta 08h30 & 13h00
+              </Badge>
+            </div>
           </div>
         </div>
         {product.notes ? (
@@ -1075,5 +1172,437 @@ function TrendCard({ t }: { t: (typeof trendsMock)[number] }) {
         ) : null}
       </CardContent>
     </Card>
+  );
+}
+
+// ===================== Overview (resumo do tudo) =====================
+function OverviewSummary({ data }: { data: DashboardData }) {
+  const latest = useLatestPerListing(data);
+  const total = latest.length;
+  const counts = latest.reduce(
+    (acc, s) => {
+      acc[statusTone[s.status as PriceStatus]]++;
+      return acc;
+    },
+    { green: 0, yellow: 0, red: 0 } as Record<"green" | "yellow" | "red", number>,
+  );
+  const prices = latest.map((s) => s.price_avista_cents).filter((v): v is number => v != null);
+  const minPrice = prices.length ? Math.min(...prices) : 0;
+  const maxPrice = prices.length ? Math.max(...prices) : 0;
+  const avgPrice = prices.length
+    ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length)
+    : 0;
+  const minSeller = latest.find((s) => s.price_avista_cents === minPrice);
+  const maxSeller = latest.find((s) => s.price_avista_cents === maxPrice);
+  const minRetailer = data.retailers.find((r) => r.id === minSeller?.retailer_id);
+  const maxRetailer = data.retailers.find((r) => r.id === maxSeller?.retailer_id);
+  const piso = Math.round(
+    data.product.srp_cents * (1 - data.product.max_discount_avista_pct / 100),
+  );
+
+  const totalSellers = marketplaceMock.reduce((a, m) => a + m.total_sellers, 0);
+  const unauthorizedSellers = marketplaceMock.reduce((a, m) => a + m.unauthorized_count, 0);
+  const presaleListings = latest.filter((s) => s.is_presale).length;
+  const activeCoupons = couponsMock.filter((c) => c.active);
+  const violatingCoupons = activeCoupons.filter((c) => c.triggers_map_violation);
+  const last7dCoupons = couponsMock.filter(
+    (c) => Date.now() - new Date(c.starts_at).getTime() < 7 * 24 * 3600_000,
+  );
+
+  const topTrends = [...trendsMock].sort((a, b) => b.delta_7d_pct - a.delta_7d_pct);
+  const topMentions = data.mentions.slice(0, 3);
+
+  return (
+    <div className="space-y-6">
+      {/* Hero KPIs */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <HeroKpi
+          label="Listagens monitoradas"
+          value={String(total)}
+          sub={`${data.retailers.length} varejistas · ${totalSellers} sellers`}
+          icon={<TrendingUp className="h-4 w-4" />}
+          accent
+        />
+        <HeroKpi
+          label="Violações críticas"
+          value={String(counts.red)}
+          sub={`${counts.yellow} em atenção · ${counts.green} ok`}
+          icon={<AlertTriangle className="h-4 w-4" />}
+          danger
+        />
+        <HeroKpi
+          label="Menor preço"
+          value={brl(minPrice)}
+          sub={
+            minSeller
+              ? `${minRetailer?.name ?? "?"} · ${minSeller.seller_name ?? "1P"}`
+              : "—"
+          }
+          icon={<Trophy className="h-4 w-4" />}
+        />
+        <HeroKpi
+          label="Preço médio"
+          value={brl(avgPrice)}
+          sub={`Maior: ${brl(maxPrice)} (${maxRetailer?.name ?? "?"})`}
+          icon={<Tag className="h-4 w-4" />}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* Pré-venda + piso */}
+        <Card className="claw-cut">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <ShieldCheck className="h-4 w-4" /> Conformidade
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <ConfBar
+              label="Em pré-venda"
+              value={presaleListings}
+              total={total}
+              tone={data.product.presale_allowed ? "green" : "red"}
+              hint={data.product.presale_allowed ? "permitida" : "embargada"}
+            />
+            <ConfBar
+              label="Abaixo do piso"
+              value={latest.filter((s) => (s.price_avista_cents ?? Infinity) < piso).length}
+              total={total}
+              tone="red"
+              hint={`piso ${brl(piso)}`}
+            />
+            <ConfBar
+              label="Acima do SRP"
+              value={latest.filter((s) => (s.price_avista_cents ?? 0) > data.product.srp_cents).length}
+              total={total}
+              tone="red"
+              hint={`SRP ${brl(data.product.srp_cents)}`}
+            />
+            <ConfBar
+              label="Sellers não autorizados"
+              value={unauthorizedSellers}
+              total={totalSellers}
+              tone="yellow"
+              hint="3P sem permissão"
+            />
+          </CardContent>
+        </Card>
+
+        {/* Sellers por marketplace */}
+        <Card className="claw-cut">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <Store className="h-4 w-4" /> Sellers por marketplace
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {marketplaceMock.map((m) => (
+              <div key={m.retailer_id} className="space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">{m.retailer_name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {m.total_sellers} sellers · {m.authorized_count} ok
+                  </span>
+                </div>
+                <div className="flex h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="bg-emerald-500"
+                    style={{ width: `${(m.authorized_count / m.total_sellers) * 100}%` }}
+                  />
+                  <div
+                    className="bg-rose-500"
+                    style={{ width: `${(m.unauthorized_count / m.total_sellers) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Cupons */}
+        <Card className="claw-cut">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <Ticket className="h-4 w-4" /> Cupons
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <MiniStat n={activeCoupons.length} l="ativos hoje" tone="green" />
+              <MiniStat n={violatingCoupons.length} l="violam MAP" tone="red" />
+              <MiniStat n={last7dCoupons.length} l="últimos 7d" tone="neutral" />
+            </div>
+            <ul className="space-y-1.5 text-sm">
+              {activeCoupons.slice(0, 4).map((c) => (
+                <li
+                  key={c.id}
+                  className="flex items-center justify-between rounded-md border bg-card/50 px-2 py-1"
+                >
+                  <span className="flex items-center gap-2">
+                    <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px]">
+                      {c.code}
+                    </code>
+                    <span className="text-xs text-muted-foreground">{c.retailer_name}</span>
+                  </span>
+                  <span
+                    className={`text-[11px] ${
+                      c.triggers_map_violation ? "text-rose-500" : "text-emerald-600"
+                    }`}
+                  >
+                    {c.discount_pct ? `-${c.discount_pct}%` : brl(c.discount_cents ?? 0)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* Top sellers ranking */}
+        <Card className="claw-cut lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <Trophy className="h-4 w-4" /> Ranking de preço (à vista)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1.5">
+              {[...latest]
+                .filter((s) => s.price_avista_cents != null)
+                .sort((a, b) => (a.price_avista_cents ?? 0) - (b.price_avista_cents ?? 0))
+                .slice(0, 8)
+                .map((s, i) => {
+                  const retailer = data.retailers.find((r) => r.id === s.retailer_id);
+                  const tone = statusTone[s.status as PriceStatus];
+                  const range = maxPrice - minPrice || 1;
+                  const w = ((s.price_avista_cents! - minPrice) / range) * 100;
+                  return (
+                    <div key={s.id} className="grid grid-cols-[20px_1fr_auto] items-center gap-3">
+                      <span className="text-xs font-bold text-muted-foreground">{i + 1}</span>
+                      <div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium">{retailer?.name ?? "?"}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {s.is_first_party ? "1P" : `· ${s.seller_name ?? "?"}`}
+                          </span>
+                        </div>
+                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className={`h-full ${
+                              tone === "red"
+                                ? "bg-rose-500"
+                                : tone === "yellow"
+                                  ? "bg-amber-500"
+                                  : "bg-emerald-500"
+                            }`}
+                            style={{ width: `${Math.max(8, 100 - w)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span className="tabular-nums font-semibold">
+                        {brl(s.price_avista_cents)}
+                      </span>
+                    </div>
+                  );
+                })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tendências */}
+        <Card className="claw-cut">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <Flame className="h-4 w-4" /> Tendências (7d)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {topTrends.map((t) => (
+              <div
+                key={t.source}
+                className="flex items-center justify-between rounded-md border bg-card/50 px-3 py-2"
+              >
+                <div>
+                  <div className="text-sm font-medium">{t.source_name}</div>
+                  <div className="text-xs text-muted-foreground">índice {t.current_score}/100</div>
+                </div>
+                <div
+                  className={`text-sm font-semibold ${
+                    t.delta_7d_pct >= 0 ? "text-emerald-600" : "text-rose-500"
+                  }`}
+                >
+                  {t.delta_7d_pct >= 0 ? "▲" : "▼"} {t.delta_7d_pct.toFixed(0)}%
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Violações destaque */}
+        <Card className="claw-cut">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <AlertTriangle className="h-4 w-4 text-rose-500" /> Violações em destaque
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const bad = latest
+                .filter((s) => statusTone[s.status as PriceStatus] === "red")
+                .slice(0, 5);
+              if (bad.length === 0)
+                return (
+                  <p className="text-sm text-muted-foreground">
+                    Tudo conforme. 🟢 Continue de olho.
+                  </p>
+                );
+              return (
+                <ul className="space-y-2 text-sm">
+                  {bad.map((s) => {
+                    const r = data.retailers.find((x) => x.id === s.retailer_id);
+                    return (
+                      <li
+                        key={s.id}
+                        className="flex items-start justify-between gap-3 rounded-md border border-rose-500/20 bg-rose-500/5 p-2"
+                      >
+                        <div>
+                          <div className="font-medium">
+                            {r?.name} · {s.seller_name ?? "1P"}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {statusLabel[s.status as PriceStatus]} · {brl(s.price_avista_cents)}
+                          </div>
+                        </div>
+                        {s.product_url ? (
+                          <a href={s.product_url} target="_blank" rel="noreferrer">
+                            <ExternalLink className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                          </a>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+        {/* Social destaque */}
+        <Card className="claw-cut">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <MessageSquare className="h-4 w-4" /> Social em destaque
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {topMentions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Sem menções ainda.</p>
+            ) : (
+              <ul className="space-y-2 text-sm">
+                {topMentions.map((m) => (
+                  <li key={m.id} className="rounded-md border bg-card/50 p-2">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>
+                        {m.source_name ?? m.source} · {m.author ?? "—"}
+                      </span>
+                      {m.engagement ? <span>{m.engagement.toLocaleString("pt-BR")} eng.</span> : null}
+                    </div>
+                    <div className="mt-1 font-medium">{m.title ?? "(sem título)"}</div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function HeroKpi({
+  label,
+  value,
+  sub,
+  icon,
+  accent,
+  danger,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  icon: React.ReactNode;
+  accent?: boolean;
+  danger?: boolean;
+}) {
+  return (
+    <Card
+      className="claw-cut relative overflow-hidden"
+      style={
+        accent
+          ? { background: "var(--accent-gradient)", color: "var(--primary-foreground)" }
+          : danger
+            ? { borderColor: "oklch(0.6 0.24 27 / 0.4)" }
+            : undefined
+      }
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-wider opacity-80">
+          {icon}
+          {label}
+        </div>
+        <div className="mt-2 text-3xl font-black tabular-nums">{value}</div>
+        {sub ? <div className="mt-1 text-xs opacity-75">{sub}</div> : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ConfBar({
+  label,
+  value,
+  total,
+  tone,
+  hint,
+}: {
+  label: string;
+  value: number;
+  total: number;
+  tone: "green" | "yellow" | "red";
+  hint?: string;
+}) {
+  const pctv = total ? (value / total) * 100 : 0;
+  const color = tone === "red" ? "bg-rose-500" : tone === "yellow" ? "bg-amber-500" : "bg-emerald-500";
+  return (
+    <div>
+      <div className="flex items-center justify-between text-sm">
+        <span>{label}</span>
+        <span className="tabular-nums">
+          <strong>{value}</strong>
+          <span className="text-muted-foreground">/{total}</span>
+          {hint ? <span className="ml-2 text-xs text-muted-foreground">· {hint}</span> : null}
+        </span>
+      </div>
+      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+        <div className={`h-full ${color}`} style={{ width: `${pctv}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ n, l, tone }: { n: number; l: string; tone: "green" | "red" | "neutral" }) {
+  const color =
+    tone === "red"
+      ? "text-rose-500"
+      : tone === "green"
+        ? "text-emerald-600"
+        : "text-foreground";
+  return (
+    <div className="rounded-md border bg-card/50 p-2">
+      <div className={`text-xl font-bold tabular-nums ${color}`}>{n}</div>
+      <div className="text-[10px] uppercase text-muted-foreground">{l}</div>
+    </div>
   );
 }
