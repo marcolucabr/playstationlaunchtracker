@@ -262,31 +262,57 @@ function CountBox({ v, l }: { v: number; l: string }) {
 
 function Header({ data }: { data: DashboardData }) {
   const { product } = data;
+  const { theme } = useContext(ThemeCtx);
   const minAvista = Math.round(product.srp_cents * (1 - product.max_discount_avista_pct / 100));
+  const isWlv = theme === "wolverine";
   return (
-    <header className="border-b bg-card">
-      <div className="container mx-auto max-w-7xl px-4 py-6">
+    <header
+      className="relative overflow-hidden border-b"
+      style={{
+        background:
+          theme === "wolverine"
+            ? "linear-gradient(135deg, oklch(0.13 0.01 80), oklch(0.18 0.02 90))"
+            : "linear-gradient(135deg, var(--card), oklch(0.95 0.04 258))",
+      }}
+    >
+      <div
+        className="pointer-events-none absolute inset-y-0 right-0 w-[60%] opacity-30"
+        style={{ background: "var(--accent-gradient)", maskImage: "linear-gradient(90deg, transparent, black 80%)" }}
+      />
+      <div className="container relative mx-auto max-w-7xl px-4 py-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
-              <Tag className="h-3.5 w-3.5" /> Monitoramento de Lançamento
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em]" style={{ color: "var(--primary)" }}>
+              {isWlv ? "▲▲▲" : "◆"} Monitoramento de Lançamento
             </div>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight">
-              {product.name} <span className="text-muted-foreground">({product.platform})</span>
+            <h1
+              className="mt-2 text-4xl font-black tracking-tight md:text-5xl"
+              style={{
+                fontFamily: isWlv
+                  ? "'Impact', 'Bebas Neue', system-ui, sans-serif"
+                  : "system-ui, sans-serif",
+                letterSpacing: isWlv ? "0.02em" : "-0.02em",
+              }}
+            >
+              {product.name}{" "}
+              <span className="text-muted-foreground">({product.platform})</span>
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-muted-foreground">
               EAN <span className="font-mono">{product.ean}</span> · SRP{" "}
               <strong>{brl(product.srp_cents)}</strong> · Piso à vista{" "}
               <strong>{brl(minAvista)}</strong> ({pct(product.max_discount_avista_pct)} máx)
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant={product.presale_allowed ? "default" : "destructive"}>
-              {product.presale_allowed ? "Pré-venda autorizada" : "Pré-venda NÃO autorizada"}
-            </Badge>
-            <Badge variant="outline" className="gap-1">
-              <Clock className="h-3 w-3" /> Coleta 08h30 & 13h00
-            </Badge>
+          <div className="flex flex-col items-end gap-2">
+            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <Badge variant={product.presale_allowed ? "default" : "destructive"}>
+                {product.presale_allowed ? "Pré-venda autorizada" : "Pré-venda NÃO autorizada"}
+              </Badge>
+              <Badge variant="outline" className="gap-1">
+                <Clock className="h-3 w-3" /> Coleta 08h30 & 13h00
+              </Badge>
+            </div>
           </div>
         </div>
         {product.notes ? (
