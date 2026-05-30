@@ -20,9 +20,21 @@ import {
   TrendingUp,
   Clock,
   Tag,
+  Trophy,
+  Ticket,
+  Flame,
+  Store,
+  XCircle,
 } from "lucide-react";
 
 import { fetchDashboard, type DashboardData } from "@/lib/dashboard-data";
+import {
+  marketplaceMock,
+  couponsMock,
+  trendsMock,
+  PRESALE_START_ISO,
+  type MarketplaceSeller,
+} from "@/lib/mock-extra";
 import {
   brl,
   dotClass,
@@ -36,6 +48,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
