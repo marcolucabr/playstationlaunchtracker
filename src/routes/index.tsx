@@ -1174,3 +1174,435 @@ function TrendCard({ t }: { t: (typeof trendsMock)[number] }) {
     </Card>
   );
 }
+
+// ===================== Overview (resumo do tudo) =====================
+function OverviewSummary({ data }: { data: DashboardData }) {
+  const latest = useLatestPerListing(data);
+  const total = latest.length;
+  const counts = latest.reduce(
+    (acc, s) => {
+      acc[statusTone[s.status as PriceStatus]]++;
+      return acc;
+    },
+    { green: 0, yellow: 0, red: 0 } as Record<"green" | "yellow" | "red", number>,
+  );
+  const prices = latest.map((s) => s.price_avista_cents).filter((v): v is number => v != null);
+  const minPrice = prices.length ? Math.min(...prices) : 0;
+  const maxPrice = prices.length ? Math.max(...prices) : 0;
+  const avgPrice = prices.length
+    ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length)
+    : 0;
+  const minSeller = latest.find((s) => s.price_avista_cents === minPrice);
+  const maxSeller = latest.find((s) => s.price_avista_cents === maxPrice);
+  const minRetailer = data.retailers.find((r) => r.id === minSeller?.retailer_id);
+  const maxRetailer = data.retailers.find((r) => r.id === maxSeller?.retailer_id);
+  const piso = Math.round(
+    data.product.srp_cents * (1 - data.product.max_discount_avista_pct / 100),
+  );
+
+  const totalSellers = marketplaceMock.reduce((a, m) => a + m.total_sellers, 0);
+  const unauthorizedSellers = marketplaceMock.reduce((a, m) => a + m.unauthorized_count, 0);
+  const presaleListings = latest.filter((s) => s.is_presale).length;
+  const activeCoupons = couponsMock.filter((c) => c.active);
+  const violatingCoupons = activeCoupons.filter((c) => c.triggers_map_violation);
+  const last7dCoupons = couponsMock.filter(
+    (c) => Date.now() - new Date(c.starts_at).getTime() < 7 * 24 * 3600_000,
+  );
+
+  const topTrends = [...trendsMock].sort((a, b) => b.delta_7d_pct - a.delta_7d_pct);
+  const topMentions = data.mentions.slice(0, 3);
+
+  return (
+    <div className="space-y-6">
+      {/* Hero KPIs */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <HeroKpi
+          label="Listagens monitoradas"
+          value={String(total)}
+          sub={`${data.retailers.length} varejistas · ${totalSellers} sellers`}
+          icon={<TrendingUp className="h-4 w-4" />}
+          accent
+        />
+        <HeroKpi
+          label="Violações críticas"
+          value={String(counts.red)}
+          sub={`${counts.yellow} em atenção · ${counts.green} ok`}
+          icon={<AlertTriangle className="h-4 w-4" />}
+          danger
+        />
+        <HeroKpi
+          label="Menor preço"
+          value={brl(minPrice)}
+          sub={
+            minSeller
+              ? `${minRetailer?.name ?? "?"} · ${minSeller.seller_name ?? "1P"}`
+              : "—"
+          }
+          icon={<Trophy className="h-4 w-4" />}
+        />
+        <HeroKpi
+          label="Preço médio"
+          value={brl(avgPrice)}
+          sub={`Maior: ${brl(maxPrice)} (${maxRetailer?.name ?? "?"})`}
+          icon={<Tag className="h-4 w-4" />}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* Pré-venda + piso */}
+        <Card className="claw-cut">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <ShieldCheck className="h-4 w-4" /> Conformidade
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <ConfBar
+              label="Em pré-venda"
+              value={presaleListings}
+              total={total}
+              tone={data.product.presale_allowed ? "green" : "red"}
+              hint={data.product.presale_allowed ? "permitida" : "embargada"}
+            />
+            <ConfBar
+              label="Abaixo do piso"
+              value={latest.filter((s) => (s.price_avista_cents ?? Infinity) < piso).length}
+              total={total}
+              tone="red"
+              hint={`piso ${brl(piso)}`}
+            />
+            <ConfBar
+              label="Acima do SRP"
+              value={latest.filter((s) => (s.price_avista_cents ?? 0) > data.product.srp_cents).length}
+              total={total}
+              tone="red"
+              hint={`SRP ${brl(data.product.srp_cents)}`}
+            />
+            <ConfBar
+              label="Sellers não autorizados"
+              value={unauthorizedSellers}
+              total={totalSellers}
+              tone="yellow"
+              hint="3P sem permissão"
+            />
+          </CardContent>
+        </Card>
+
+        {/* Sellers por marketplace */}
+        <Card className="claw-cut">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <Store className="h-4 w-4" /> Sellers por marketplace
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {marketplaceMock.map((m) => (
+              <div key={m.retailer_id} className="space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">{m.retailer_name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {m.total_sellers} sellers · {m.authorized_count} ok
+                  </span>
+                </div>
+                <div className="flex h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="bg-emerald-500"
+                    style={{ width: `${(m.authorized_count / m.total_sellers) * 100}%` }}
+                  />
+                  <div
+                    className="bg-rose-500"
+                    style={{ width: `${(m.unauthorized_count / m.total_sellers) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Cupons */}
+        <Card className="claw-cut">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <Ticket className="h-4 w-4" /> Cupons
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <MiniStat n={activeCoupons.length} l="ativos hoje" tone="green" />
+              <MiniStat n={violatingCoupons.length} l="violam MAP" tone="red" />
+              <MiniStat n={last7dCoupons.length} l="últimos 7d" tone="neutral" />
+            </div>
+            <ul className="space-y-1.5 text-sm">
+              {activeCoupons.slice(0, 4).map((c) => (
+                <li
+                  key={c.id}
+                  className="flex items-center justify-between rounded-md border bg-card/50 px-2 py-1"
+                >
+                  <span className="flex items-center gap-2">
+                    <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px]">
+                      {c.code}
+                    </code>
+                    <span className="text-xs text-muted-foreground">{c.retailer_name}</span>
+                  </span>
+                  <span
+                    className={`text-[11px] ${
+                      c.triggers_map_violation ? "text-rose-500" : "text-emerald-600"
+                    }`}
+                  >
+                    {c.discount_pct ? `-${c.discount_pct}%` : brl(c.discount_cents ?? 0)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* Top sellers ranking */}
+        <Card className="claw-cut lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <Trophy className="h-4 w-4" /> Ranking de preço (à vista)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1.5">
+              {[...latest]
+                .filter((s) => s.price_avista_cents != null)
+                .sort((a, b) => (a.price_avista_cents ?? 0) - (b.price_avista_cents ?? 0))
+                .slice(0, 8)
+                .map((s, i) => {
+                  const retailer = data.retailers.find((r) => r.id === s.retailer_id);
+                  const tone = statusTone[s.status as PriceStatus];
+                  const range = maxPrice - minPrice || 1;
+                  const w = ((s.price_avista_cents! - minPrice) / range) * 100;
+                  return (
+                    <div key={s.id} className="grid grid-cols-[20px_1fr_auto] items-center gap-3">
+                      <span className="text-xs font-bold text-muted-foreground">{i + 1}</span>
+                      <div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium">{retailer?.name ?? "?"}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {s.is_first_party ? "1P" : `· ${s.seller_name ?? "?"}`}
+                          </span>
+                        </div>
+                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className={`h-full ${
+                              tone === "red"
+                                ? "bg-rose-500"
+                                : tone === "yellow"
+                                  ? "bg-amber-500"
+                                  : "bg-emerald-500"
+                            }`}
+                            style={{ width: `${Math.max(8, 100 - w)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span className="tabular-nums font-semibold">
+                        {brl(s.price_avista_cents)}
+                      </span>
+                    </div>
+                  );
+                })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tendências */}
+        <Card className="claw-cut">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <Flame className="h-4 w-4" /> Tendências (7d)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {topTrends.map((t) => (
+              <div
+                key={t.source}
+                className="flex items-center justify-between rounded-md border bg-card/50 px-3 py-2"
+              >
+                <div>
+                  <div className="text-sm font-medium">{t.source_name}</div>
+                  <div className="text-xs text-muted-foreground">índice {t.current_score}/100</div>
+                </div>
+                <div
+                  className={`text-sm font-semibold ${
+                    t.delta_7d_pct >= 0 ? "text-emerald-600" : "text-rose-500"
+                  }`}
+                >
+                  {t.delta_7d_pct >= 0 ? "▲" : "▼"} {t.delta_7d_pct.toFixed(0)}%
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Violações destaque */}
+        <Card className="claw-cut">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <AlertTriangle className="h-4 w-4 text-rose-500" /> Violações em destaque
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const bad = latest
+                .filter((s) => statusTone[s.status as PriceStatus] === "red")
+                .slice(0, 5);
+              if (bad.length === 0)
+                return (
+                  <p className="text-sm text-muted-foreground">
+                    Tudo conforme. 🟢 Continue de olho.
+                  </p>
+                );
+              return (
+                <ul className="space-y-2 text-sm">
+                  {bad.map((s) => {
+                    const r = data.retailers.find((x) => x.id === s.retailer_id);
+                    return (
+                      <li
+                        key={s.id}
+                        className="flex items-start justify-between gap-3 rounded-md border border-rose-500/20 bg-rose-500/5 p-2"
+                      >
+                        <div>
+                          <div className="font-medium">
+                            {r?.name} · {s.seller_name ?? "1P"}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {statusLabel[s.status as PriceStatus]} · {brl(s.price_avista_cents)}
+                          </div>
+                        </div>
+                        {s.product_url ? (
+                          <a href={s.product_url} target="_blank" rel="noreferrer">
+                            <ExternalLink className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                          </a>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+        {/* Social destaque */}
+        <Card className="claw-cut">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+              <MessageSquare className="h-4 w-4" /> Social em destaque
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {topMentions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Sem menções ainda.</p>
+            ) : (
+              <ul className="space-y-2 text-sm">
+                {topMentions.map((m) => (
+                  <li key={m.id} className="rounded-md border bg-card/50 p-2">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>
+                        {m.source_name ?? m.source} · {m.author ?? "—"}
+                      </span>
+                      {m.engagement ? <span>{m.engagement.toLocaleString("pt-BR")} eng.</span> : null}
+                    </div>
+                    <div className="mt-1 font-medium">{m.title ?? "(sem título)"}</div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function HeroKpi({
+  label,
+  value,
+  sub,
+  icon,
+  accent,
+  danger,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  icon: React.ReactNode;
+  accent?: boolean;
+  danger?: boolean;
+}) {
+  return (
+    <Card
+      className="claw-cut relative overflow-hidden"
+      style={
+        accent
+          ? { background: "var(--accent-gradient)", color: "var(--primary-foreground)" }
+          : danger
+            ? { borderColor: "oklch(0.6 0.24 27 / 0.4)" }
+            : undefined
+      }
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-wider opacity-80">
+          {icon}
+          {label}
+        </div>
+        <div className="mt-2 text-3xl font-black tabular-nums">{value}</div>
+        {sub ? <div className="mt-1 text-xs opacity-75">{sub}</div> : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ConfBar({
+  label,
+  value,
+  total,
+  tone,
+  hint,
+}: {
+  label: string;
+  value: number;
+  total: number;
+  tone: "green" | "yellow" | "red";
+  hint?: string;
+}) {
+  const pctv = total ? (value / total) * 100 : 0;
+  const color = tone === "red" ? "bg-rose-500" : tone === "yellow" ? "bg-amber-500" : "bg-emerald-500";
+  return (
+    <div>
+      <div className="flex items-center justify-between text-sm">
+        <span>{label}</span>
+        <span className="tabular-nums">
+          <strong>{value}</strong>
+          <span className="text-muted-foreground">/{total}</span>
+          {hint ? <span className="ml-2 text-xs text-muted-foreground">· {hint}</span> : null}
+        </span>
+      </div>
+      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+        <div className={`h-full ${color}`} style={{ width: `${pctv}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ n, l, tone }: { n: number; l: string; tone: "green" | "red" | "neutral" }) {
+  const color =
+    tone === "red"
+      ? "text-rose-500"
+      : tone === "green"
+        ? "text-emerald-600"
+        : "text-foreground";
+  return (
+    <div className="rounded-md border bg-card/50 p-2">
+      <div className={`text-xl font-bold tabular-nums ${color}`}>{n}</div>
+      <div className="text-[10px] uppercase text-muted-foreground">{l}</div>
+    </div>
+  );
+}
