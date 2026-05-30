@@ -90,17 +90,29 @@ function Dashboard() {
     <div className="min-h-screen bg-background">
       <Header data={data} />
       <main className="container mx-auto max-w-7xl space-y-6 px-4 py-6">
+        <PresaleCountdown />
         <KpiRow data={data} />
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-7">
             <TabsTrigger value="overview">Visão geral</TabsTrigger>
+            <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
+            <TabsTrigger value="coupons">Cupom</TabsTrigger>
+            <TabsTrigger value="trends">Tendências</TabsTrigger>
             <TabsTrigger value="violations">Violações</TabsTrigger>
             <TabsTrigger value="history">Histórico</TabsTrigger>
             <TabsTrigger value="social">Social</TabsTrigger>
-            <TabsTrigger value="sellers">Sellers</TabsTrigger>
           </TabsList>
           <TabsContent value="overview">
             <RetailerGrid data={data} />
+          </TabsContent>
+          <TabsContent value="marketplace">
+            <MarketplacePanel />
+          </TabsContent>
+          <TabsContent value="coupons">
+            <CouponsPanel />
+          </TabsContent>
+          <TabsContent value="trends">
+            <TrendsPanel />
           </TabsContent>
           <TabsContent value="violations">
             <ViolationsTable data={data} />
@@ -111,11 +123,68 @@ function Dashboard() {
           <TabsContent value="social">
             <SocialFeed data={data} />
           </TabsContent>
-          <TabsContent value="sellers">
-            <SellersPanel data={data} />
-          </TabsContent>
         </Tabs>
       </main>
+    </div>
+  );
+}
+
+function PresaleCountdown() {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const target = new Date(PRESALE_START_ISO).getTime();
+  const diff = target - now;
+  const past = diff <= 0;
+  const abs = Math.abs(diff);
+  const d = Math.floor(abs / 86_400_000);
+  const h = Math.floor((abs % 86_400_000) / 3_600_000);
+  const m = Math.floor((abs % 3_600_000) / 60_000);
+  const s = Math.floor((abs % 60_000) / 1000);
+
+  return (
+    <Card className={past ? "border-emerald-500/40" : "border-rose-500/40"}>
+      <CardContent className="flex flex-wrap items-center justify-between gap-4 p-4">
+        <div className="flex items-center gap-3">
+          <div
+            className={`flex h-10 w-10 items-center justify-center rounded-md ${
+              past ? "bg-emerald-500/15 text-emerald-600" : "bg-rose-500/15 text-rose-600"
+            }`}
+          >
+            {past ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+          </div>
+          <div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">
+              Pré-venda oficial
+            </div>
+            <div className="text-sm font-medium">
+              {past
+                ? "Pré-venda LIBERADA — apenas sellers autorizados podem listar"
+                : "Qualquer listing ativo agora = violação de embargo"}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Início: terça 02/06 às 19h00 (BRT)
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 font-mono text-xl tabular-nums">
+          <CountBox v={d} l="d" />
+          <CountBox v={h} l="h" />
+          <CountBox v={m} l="m" />
+          <CountBox v={s} l="s" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CountBox({ v, l }: { v: number; l: string }) {
+  return (
+    <div className="rounded-md border bg-muted/40 px-3 py-1.5 text-center">
+      <div className="text-lg font-semibold leading-tight">{String(v).padStart(2, "0")}</div>
+      <div className="text-[10px] uppercase text-muted-foreground">{l}</div>
     </div>
   );
 }
