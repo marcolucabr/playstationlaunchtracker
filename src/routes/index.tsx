@@ -649,3 +649,431 @@ function SellersPanel({ data }: { data: DashboardData }) {
     </Card>
   );
 }
+
+// ===================== Marketplace =====================
+function MarketplacePanel() {
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="flex flex-wrap items-center gap-4 p-4 text-sm">
+          <div className="flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-amber-500" />
+            <span>
+              <strong>BuyBox</strong> = vendedor que aparece por padrão no botão "Comprar"
+            </span>
+          </div>
+          <div className="text-muted-foreground">
+            Dados mockados — Sprint 1 conecta o robô para coleta real 2x/dia.
+          </div>
+        </CardContent>
+      </Card>
+      {marketplaceMock.map((r) => (
+        <MarketplaceRetailerCard key={r.retailer_id} r={r} />
+      ))}
+    </div>
+  );
+}
+
+function MarketplaceRetailerCard({
+  r,
+}: {
+  r: (typeof marketplaceMock)[number];
+}) {
+  const buybox = r.sellers.find((s) => s.is_buybox);
+  const sorted = [...r.sellers].sort((a, b) => a.price_avista_cents - b.price_avista_cents);
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Store className="h-4 w-4" />
+            {r.retailer_name}
+          </CardTitle>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <Badge variant="outline">{r.total_sellers} sellers ativos</Badge>
+            <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">
+              {r.authorized_count} autorizados
+            </Badge>
+            <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30">
+              {r.unauthorized_count} não autorizados
+            </Badge>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {buybox ? <BuyBoxCard s={buybox} /> : null}
+
+        <div>
+          <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Todos os sellers (ordenados por preço)
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-left text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="py-2 pr-3">Seller</th>
+                  <th className="py-2 pr-3">À vista</th>
+                  <th className="py-2 pr-3">Parcelamento</th>
+                  <th className="py-2 pr-3">Frete</th>
+                  <th className="py-2 pr-3">Reputação</th>
+                  <th className="py-2 pr-3">Estoque</th>
+                  <th className="py-2 pr-3">Idade</th>
+                  <th className="py-2 pr-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((s) => (
+                  <tr
+                    key={s.seller}
+                    className={`border-t ${s.is_buybox ? "bg-amber-500/5" : ""}`}
+                  >
+                    <td className="py-2 pr-3">
+                      <div className="flex items-center gap-2 font-medium">
+                        {s.is_buybox ? (
+                          <Trophy className="h-3.5 w-3.5 text-amber-500" />
+                        ) : null}
+                        {s.seller}
+                        {s.authorized ? (
+                          <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
+                            autorizado
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 text-[10px]">
+                            não autorizado
+                          </Badge>
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-2 pr-3 tabular-nums font-semibold">
+                      {brl(s.price_avista_cents)}
+                    </td>
+                    <td className="py-2 pr-3 text-muted-foreground">{s.installments}</td>
+                    <td className="py-2 pr-3">
+                      <ShippingBadge kind={s.shipping} />
+                    </td>
+                    <td className="py-2 pr-3 text-muted-foreground">
+                      ★ {s.rating.toFixed(1)} ({s.reviews.toLocaleString("pt-BR")})
+                    </td>
+                    <td className="py-2 pr-3">
+                      <StockBadge stock={s.stock} />
+                    </td>
+                    <td className="py-2 pr-3 text-muted-foreground">{s.listing_age_days}d</td>
+                    <td className="py-2 pr-3">
+                      {s.url ? (
+                        <a
+                          href={s.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Quem ganhou a BuyBox nas últimas 24h
+          </div>
+          <div className="flex h-6 w-full overflow-hidden rounded-md border">
+            {r.buybox_history_24h.map((h, i) => (
+              <div
+                key={i}
+                title={`${h.seller} — ${h.hours}h`}
+                style={{ width: `${(h.hours / 24) * 100}%` }}
+                className={`flex items-center justify-center text-[10px] font-medium text-white ${
+                  h.authorized ? "bg-emerald-500" : "bg-rose-500"
+                }`}
+              >
+                {h.hours >= 3 ? `${h.seller} · ${h.hours}h` : ""}
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function BuyBoxCard({ s }: { s: MarketplaceSeller }) {
+  return (
+    <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-amber-700 dark:text-amber-400">
+            <Trophy className="h-3.5 w-3.5" /> BuyBox atual
+          </div>
+          <div className="mt-1 flex items-center gap-2 text-lg font-semibold">
+            {s.seller}
+            {s.authorized ? (
+              <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">
+                autorizado
+              </Badge>
+            ) : (
+              <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30">
+                <XCircle className="mr-1 h-3 w-3" /> não autorizado
+              </Badge>
+            )}
+          </div>
+          <div className="text-2xl font-bold tabular-nums">{brl(s.price_avista_cents)}</div>
+        </div>
+        <div className="min-w-[260px] flex-1">
+          <div className="mb-1 text-xs font-medium uppercase text-muted-foreground">
+            Por que ganhou a BuyBox
+          </div>
+          <ul className="space-y-1 text-sm">
+            {(s.buybox_reasons ?? []).map((r, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-emerald-500" />
+                {r}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShippingBadge({ kind }: { kind: MarketplaceSeller["shipping"] }) {
+  const map = {
+    gratis: { label: "grátis", cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" },
+    pago: { label: "pago", cls: "bg-muted text-muted-foreground" },
+    full: { label: "Full", cls: "bg-yellow-400/20 text-yellow-700 dark:text-yellow-400" },
+    prime: { label: "Prime", cls: "bg-sky-500/15 text-sky-700 dark:text-sky-400" },
+  } as const;
+  const m = map[kind];
+  return <span className={`rounded px-1.5 py-0.5 text-[11px] ${m.cls}`}>{m.label}</span>;
+}
+
+function StockBadge({ stock }: { stock: MarketplaceSeller["stock"] }) {
+  const map = {
+    alto: { label: "alto", tone: "green" as const },
+    medio: { label: "médio", tone: "yellow" as const },
+    baixo: { label: "baixo", tone: "yellow" as const },
+    sem: { label: "esgotado", tone: "red" as const },
+  };
+  const m = map[stock];
+  return (
+    <span className={`inline-flex rounded-md border px-1.5 py-0.5 text-[10px] ${toneClass[m.tone]}`}>
+      {m.label}
+    </span>
+  );
+}
+
+// ===================== Cupom =====================
+function CouponsPanel() {
+  const active = couponsMock.filter((c) => c.active);
+  const inactive = couponsMock.filter((c) => !c.active);
+  const violating = active.filter((c) => c.triggers_map_violation);
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <KpiCard
+          icon={<Ticket className="h-4 w-4" />}
+          label="Cupons ativos"
+          value={String(active.length)}
+          hint="aplicáveis ao Wolverine"
+        />
+        <KpiCard
+          icon={<AlertTriangle className="h-4 w-4 text-rose-500" />}
+          label="Geram violação MAP"
+          value={String(violating.length)}
+          hint="preço efetivo abaixo do piso"
+        />
+        <KpiCard
+          icon={<Store className="h-4 w-4" />}
+          label="Varejistas com cupom"
+          value={String(new Set(active.map((c) => c.retailer_id)).size)}
+        />
+        <KpiCard
+          icon={<Clock className="h-4 w-4" />}
+          label="Encerram em 48h"
+          value={String(
+            active.filter(
+              (c) =>
+                new Date(c.expires_at).getTime() - Date.now() < 48 * 3600_000,
+            ).length,
+          )}
+        />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Ticket className="h-4 w-4" /> Cupons ativos agora
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CouponTable list={active} />
+        </CardContent>
+      </Card>
+
+      {inactive.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base text-muted-foreground">Encerrados (histórico)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CouponTable list={inactive} />
+          </CardContent>
+        </Card>
+      ) : null}
+    </div>
+  );
+}
+
+function CouponTable({ list }: { list: typeof couponsMock }) {
+  if (list.length === 0)
+    return <p className="text-sm text-muted-foreground">Nenhum cupom no momento.</p>;
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className="text-left text-xs uppercase text-muted-foreground">
+          <tr>
+            <th className="py-2 pr-3">Varejista</th>
+            <th className="py-2 pr-3">Código</th>
+            <th className="py-2 pr-3">Descrição</th>
+            <th className="py-2 pr-3">Desconto</th>
+            <th className="py-2 pr-3">Vigência</th>
+            <th className="py-2 pr-3">Onde aparece</th>
+            <th className="py-2 pr-3">Preço efetivo</th>
+            <th className="py-2 pr-3">MAP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {list.map((c) => (
+            <tr key={c.id} className="border-t">
+              <td className="py-2 pr-3 font-medium">{c.retailer_name}</td>
+              <td className="py-2 pr-3">
+                <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{c.code}</code>
+              </td>
+              <td className="py-2 pr-3 text-muted-foreground">{c.description}</td>
+              <td className="py-2 pr-3 tabular-nums">
+                {c.discount_pct ? `${c.discount_pct}%` : brl(c.discount_cents ?? 0)}
+              </td>
+              <td className="py-2 pr-3 text-muted-foreground">
+                {fmt(c.starts_at)} → {fmt(c.expires_at)}
+              </td>
+              <td className="py-2 pr-3">
+                <Badge variant="outline" className="text-[10px] uppercase">
+                  {c.source}
+                </Badge>
+              </td>
+              <td className="py-2 pr-3 tabular-nums font-semibold">
+                {brl(c.effective_price_cents)}
+              </td>
+              <td className="py-2 pr-3">
+                {c.triggers_map_violation ? (
+                  <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30">
+                    <AlertTriangle className="mr-1 h-3 w-3" /> viola
+                  </Badge>
+                ) : (
+                  <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">
+                    ok
+                  </Badge>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ===================== Tendências =====================
+function TrendsPanel() {
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-4 text-sm text-muted-foreground">
+          Placeholder com dados mockados. Sprint 2 conecta Google Trends, YouTube Data API e Reddit
+          API (todas gratuitas).
+        </CardContent>
+      </Card>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {trendsMock.map((t) => (
+          <TrendCard key={t.source} t={t} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TrendCard({ t }: { t: (typeof trendsMock)[number] }) {
+  const up = t.delta_7d_pct >= 0;
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center justify-between text-base">
+          <span className="flex items-center gap-2">
+            <Flame className="h-4 w-4 text-orange-500" />
+            {t.source_name}
+          </span>
+          <Badge
+            className={
+              up
+                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                : "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30"
+            }
+          >
+            {up ? "▲" : "▼"} {t.delta_7d_pct.toFixed(1)}% / 7d
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-baseline gap-2">
+          <div className="text-3xl font-bold">{t.current_score}</div>
+          <div className="text-xs text-muted-foreground">índice 0–100</div>
+        </div>
+        <div className="h-24">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={t.series}>
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="var(--primary)"
+                strokeWidth={2}
+                dot={false}
+              />
+              <XAxis dataKey="date" hide />
+              <YAxis hide />
+              <Tooltip />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        {t.top_items ? (
+          <div>
+            <div className="mb-1 text-xs font-medium uppercase text-muted-foreground">
+              Em destaque
+            </div>
+            <ul className="space-y-1.5 text-sm">
+              {t.top_items.map((it, i) => (
+                <li key={i} className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="truncate font-medium">{it.title}</div>
+                    <div className="text-xs text-muted-foreground">{it.author}</div>
+                  </div>
+                  <div className="whitespace-nowrap text-xs text-muted-foreground">
+                    {it.metric}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
