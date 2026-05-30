@@ -419,7 +419,7 @@ function HistoryChart({ data }: { data: DashboardData }) {
                 type="monotone"
                 dataKey="avista"
                 name="Média à vista"
-                stroke="hsl(var(--primary))"
+                stroke="var(--primary)"
                 strokeWidth={2}
                 dot={false}
               />
