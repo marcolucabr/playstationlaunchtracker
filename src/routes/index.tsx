@@ -87,45 +87,116 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header data={data} />
-      <main className="container mx-auto max-w-7xl space-y-6 px-4 py-6">
-        <PresaleCountdown />
-        <KpiRow data={data} />
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-7">
-            <TabsTrigger value="overview">Visão geral</TabsTrigger>
-            <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
-            <TabsTrigger value="coupons">Cupom</TabsTrigger>
-            <TabsTrigger value="trends">Tendências</TabsTrigger>
-            <TabsTrigger value="violations">Violações</TabsTrigger>
-            <TabsTrigger value="history">Histórico</TabsTrigger>
-            <TabsTrigger value="social">Social</TabsTrigger>
-          </TabsList>
-          <TabsContent value="overview">
-            <RetailerGrid data={data} />
-          </TabsContent>
-          <TabsContent value="marketplace">
-            <MarketplacePanel />
-          </TabsContent>
-          <TabsContent value="coupons">
-            <CouponsPanel />
-          </TabsContent>
-          <TabsContent value="trends">
-            <TrendsPanel />
-          </TabsContent>
-          <TabsContent value="violations">
-            <ViolationsTable data={data} />
-          </TabsContent>
-          <TabsContent value="history">
-            <HistoryChart data={data} />
-          </TabsContent>
-          <TabsContent value="social">
-            <SocialFeed data={data} />
-          </TabsContent>
-        </Tabs>
-      </main>
+    <ThemeProvider>
+      <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
+        <ThemeBackdrop />
+        <Header data={data} />
+        <main className="container relative mx-auto max-w-7xl space-y-6 px-4 py-6">
+          <PresaleCountdown />
+          <Tabs defaultValue="overview" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-7">
+              <TabsTrigger value="overview">Visão geral</TabsTrigger>
+              <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
+              <TabsTrigger value="coupons">Cupom</TabsTrigger>
+              <TabsTrigger value="trends">Tendências</TabsTrigger>
+              <TabsTrigger value="violations">Violações</TabsTrigger>
+              <TabsTrigger value="history">Histórico</TabsTrigger>
+              <TabsTrigger value="social">Social</TabsTrigger>
+            </TabsList>
+            <TabsContent value="overview">
+              <OverviewSummary data={data} />
+            </TabsContent>
+            <TabsContent value="marketplace">
+              <MarketplacePanel />
+            </TabsContent>
+            <TabsContent value="coupons">
+              <CouponsPanel />
+            </TabsContent>
+            <TabsContent value="trends">
+              <TrendsPanel />
+            </TabsContent>
+            <TabsContent value="violations">
+              <ViolationsTable data={data} />
+            </TabsContent>
+            <TabsContent value="history">
+              <HistoryChart data={data} />
+            </TabsContent>
+            <TabsContent value="social">
+              <SocialFeed data={data} />
+            </TabsContent>
+          </Tabs>
+        </main>
+      </div>
+    </ThemeProvider>
+  );
+}
+
+// ===================== Theming =====================
+type ThemeName = "corporate" | "wolverine";
+const ThemeCtx = createContext<{ theme: ThemeName; setTheme: (t: ThemeName) => void }>({
+  theme: "corporate",
+  setTheme: () => {},
+});
+
+function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<ThemeName>(() => {
+    if (typeof window === "undefined") return "corporate";
+    return (localStorage.getItem("wlv-theme") as ThemeName) || "corporate";
+  });
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("theme-corporate", "theme-wolverine");
+    root.classList.add(`theme-${theme}`);
+    localStorage.setItem("wlv-theme", theme);
+  }, [theme]);
+  return <ThemeCtx.Provider value={{ theme, setTheme }}>{children}</ThemeCtx.Provider>;
+}
+
+function ThemeToggle() {
+  const { theme, setTheme } = useContext(ThemeCtx);
+  return (
+    <div className="inline-flex rounded-md border bg-card p-0.5 text-xs">
+      <button
+        onClick={() => setTheme("corporate")}
+        className={`rounded px-2.5 py-1 font-medium transition ${
+          theme === "corporate" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+        }`}
+      >
+        Corporate
+      </button>
+      <button
+        onClick={() => setTheme("wolverine")}
+        className={`rounded px-2.5 py-1 font-medium transition ${
+          theme === "wolverine" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+        }`}
+      >
+        Wolverine
+      </button>
     </div>
+  );
+}
+
+function ThemeBackdrop() {
+  const { theme } = useContext(ThemeCtx);
+  if (theme !== "wolverine") return null;
+  return (
+    <>
+      <div
+        className="pointer-events-none absolute inset-0 opacity-40"
+        style={{ background: "var(--hero-noise)" }}
+      />
+      <svg
+        className="pointer-events-none absolute -right-32 top-32 h-[520px] w-[520px] opacity-[0.07]"
+        viewBox="0 0 200 200"
+        fill="none"
+      >
+        <g stroke="oklch(0.86 0.19 95)" strokeWidth="3" strokeLinecap="round">
+          <path d="M30 20 Q 100 90 60 180" />
+          <path d="M70 10 Q 130 90 100 190" />
+          <path d="M110 15 Q 170 95 140 185" />
+        </g>
+      </svg>
+    </>
   );
 }
 
