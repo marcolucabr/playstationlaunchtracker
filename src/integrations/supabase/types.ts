@@ -14,7 +14,336 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      authorized_sellers: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          product_id: string
+          retailer_id: string
+          seller_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id: string
+          retailer_id: string
+          seller_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id?: string
+          retailer_id?: string
+          seller_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "authorized_sellers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "authorized_sellers_retailer_id_fkey"
+            columns: ["retailer_id"]
+            isOneToOne: false
+            referencedRelation: "retailers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collection_runs: {
+        Row: {
+          errors: Json | null
+          finished_at: string | null
+          id: string
+          mentions_inserted: number
+          product_id: string | null
+          retailers_checked: number
+          snapshots_inserted: number
+          started_at: string
+          status: Database["public"]["Enums"]["run_status"]
+          trigger: Database["public"]["Enums"]["run_trigger"]
+        }
+        Insert: {
+          errors?: Json | null
+          finished_at?: string | null
+          id?: string
+          mentions_inserted?: number
+          product_id?: string | null
+          retailers_checked?: number
+          snapshots_inserted?: number
+          started_at?: string
+          status?: Database["public"]["Enums"]["run_status"]
+          trigger?: Database["public"]["Enums"]["run_trigger"]
+        }
+        Update: {
+          errors?: Json | null
+          finished_at?: string | null
+          id?: string
+          mentions_inserted?: number
+          product_id?: string | null
+          retailers_checked?: number
+          snapshots_inserted?: number
+          started_at?: string
+          status?: Database["public"]["Enums"]["run_status"]
+          trigger?: Database["public"]["Enums"]["run_trigger"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_runs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentions: {
+        Row: {
+          author: string | null
+          captured_at: string
+          engagement: number | null
+          excerpt: string | null
+          id: string
+          posted_at: string | null
+          product_id: string
+          sentiment: Database["public"]["Enums"]["sentiment"] | null
+          source: Database["public"]["Enums"]["mention_source"]
+          source_name: string | null
+          title: string | null
+          url: string | null
+        }
+        Insert: {
+          author?: string | null
+          captured_at?: string
+          engagement?: number | null
+          excerpt?: string | null
+          id?: string
+          posted_at?: string | null
+          product_id: string
+          sentiment?: Database["public"]["Enums"]["sentiment"] | null
+          source: Database["public"]["Enums"]["mention_source"]
+          source_name?: string | null
+          title?: string | null
+          url?: string | null
+        }
+        Update: {
+          author?: string | null
+          captured_at?: string
+          engagement?: number | null
+          excerpt?: string | null
+          id?: string
+          posted_at?: string | null
+          product_id?: string
+          sentiment?: Database["public"]["Enums"]["sentiment"] | null
+          source?: Database["public"]["Enums"]["mention_source"]
+          source_name?: string | null
+          title?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      price_snapshots: {
+        Row: {
+          captured_at: string
+          id: string
+          in_stock: boolean | null
+          installment_count: number | null
+          installment_total_cents: number | null
+          installment_value_cents: number | null
+          is_first_party: boolean
+          is_presale: boolean
+          price_avista_cents: number | null
+          price_full_cents: number | null
+          product_id: string
+          product_url: string | null
+          raw_payload: Json | null
+          retailer_id: string
+          seller_name: string | null
+          status: Database["public"]["Enums"]["price_status"]
+        }
+        Insert: {
+          captured_at?: string
+          id?: string
+          in_stock?: boolean | null
+          installment_count?: number | null
+          installment_total_cents?: number | null
+          installment_value_cents?: number | null
+          is_first_party: boolean
+          is_presale?: boolean
+          price_avista_cents?: number | null
+          price_full_cents?: number | null
+          product_id: string
+          product_url?: string | null
+          raw_payload?: Json | null
+          retailer_id: string
+          seller_name?: string | null
+          status?: Database["public"]["Enums"]["price_status"]
+        }
+        Update: {
+          captured_at?: string
+          id?: string
+          in_stock?: boolean | null
+          installment_count?: number | null
+          installment_total_cents?: number | null
+          installment_value_cents?: number | null
+          is_first_party?: boolean
+          is_presale?: boolean
+          price_avista_cents?: number | null
+          price_full_cents?: number | null
+          product_id?: string
+          product_url?: string | null
+          raw_payload?: Json | null
+          retailer_id?: string
+          seller_name?: string | null
+          status?: Database["public"]["Enums"]["price_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_snapshots_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_snapshots_retailer_id_fkey"
+            columns: ["retailer_id"]
+            isOneToOne: false
+            referencedRelation: "retailers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_aliases: {
+        Row: {
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["alias_kind"]
+          product_id: string
+          scope: string | null
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["alias_kind"]
+          product_id: string
+          scope?: string | null
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["alias_kind"]
+          product_id?: string
+          scope?: string | null
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_aliases_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          active: boolean
+          created_at: string
+          ean: string | null
+          id: string
+          max_discount_avista_pct: number
+          name: string
+          notes: string | null
+          platform: string | null
+          presale_allowed: boolean
+          presale_starts_at: string | null
+          release_date: string | null
+          srp_cents: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          ean?: string | null
+          id?: string
+          max_discount_avista_pct?: number
+          name: string
+          notes?: string | null
+          platform?: string | null
+          presale_allowed?: boolean
+          presale_starts_at?: string | null
+          release_date?: string | null
+          srp_cents: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          ean?: string | null
+          id?: string
+          max_discount_avista_pct?: number
+          name?: string
+          notes?: string | null
+          platform?: string | null
+          presale_allowed?: boolean
+          presale_starts_at?: string | null
+          release_date?: string | null
+          srp_cents?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      retailers: {
+        Row: {
+          active: boolean
+          created_at: string
+          display_order: number
+          id: string
+          kind: Database["public"]["Enums"]["retailer_kind"]
+          name: string
+          slug: string
+          website: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          display_order?: number
+          id?: string
+          kind: Database["public"]["Enums"]["retailer_kind"]
+          name: string
+          slug: string
+          website?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          display_order?: number
+          id?: string
+          kind?: Database["public"]["Enums"]["retailer_kind"]
+          name?: string
+          slug?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +352,34 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      alias_kind:
+        | "ean"
+        | "asin"
+        | "keyword"
+        | "hashtag"
+        | "url"
+        | "concept_id"
+        | "other"
+      mention_source:
+        | "twitter"
+        | "reddit"
+        | "youtube"
+        | "tiktok"
+        | "instagram"
+        | "forum"
+        | "blog"
+        | "other"
+      price_status:
+        | "ok"
+        | "abaixo_piso"
+        | "acima_srp"
+        | "vendedor_nao_autorizado"
+        | "pre_venda_nao_permitida"
+        | "sem_desconto"
+      retailer_kind: "1p" | "3p" | "both"
+      run_status: "running" | "success" | "partial" | "failed"
+      run_trigger: "manual" | "cron"
+      sentiment: "positive" | "neutral" | "negative"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +506,38 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      alias_kind: [
+        "ean",
+        "asin",
+        "keyword",
+        "hashtag",
+        "url",
+        "concept_id",
+        "other",
+      ],
+      mention_source: [
+        "twitter",
+        "reddit",
+        "youtube",
+        "tiktok",
+        "instagram",
+        "forum",
+        "blog",
+        "other",
+      ],
+      price_status: [
+        "ok",
+        "abaixo_piso",
+        "acima_srp",
+        "vendedor_nao_autorizado",
+        "pre_venda_nao_permitida",
+        "sem_desconto",
+      ],
+      retailer_kind: ["1p", "3p", "both"],
+      run_status: ["running", "success", "partial", "failed"],
+      run_trigger: ["manual", "cron"],
+      sentiment: ["positive", "neutral", "negative"],
+    },
   },
 } as const
