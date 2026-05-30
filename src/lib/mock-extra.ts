@@ -14,7 +14,7 @@ export type MarketplaceSeller = {
   reviews: number;
   stock: "alto" | "medio" | "baixo" | "sem";
   listing_age_days: number;
-  is_buybox: boolean;
+  is_buybox?: boolean;
   buybox_reasons?: string[];
   url?: string;
 };
