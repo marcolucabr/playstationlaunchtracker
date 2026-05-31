@@ -957,7 +957,7 @@ function MarketplacePanel() {
                   type="monotone"
                   dataKey="min_price"
                   name="Menor preço (R$)"
-                  stroke="var(--destructive)"
+                  stroke="var(--chart-3)"
                   strokeWidth={2}
                   strokeDasharray="4 4"
                 />
