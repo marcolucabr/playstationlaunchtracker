@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, Rocket } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import psLogo from "@/assets/playstation-logo.png";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — Launch Tracking" }] }),
@@ -48,10 +49,11 @@ function LoginPage() {
       <Card className="w-full max-w-md shadow-xl border border-slate-200">
         <CardContent className="p-8">
           <div className="flex flex-col items-center mb-6">
-            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center shadow-lg">
-              <Rocket className="h-7 w-7 text-white" />
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center shadow-lg p-3">
+              <img src={psLogo} alt="PlayStation" className="h-full w-full object-contain" style={{ filter: "brightness(0) invert(1)" }} draggable={false} />
             </div>
-            <h1 className="mt-4 text-2xl font-bold">
+            <p className="mt-3 text-xs tracking-[0.3em] uppercase text-slate-500 font-mono">PlayStation</p>
+            <h1 className="text-2xl font-bold">
               <span className="text-blue-600">Launch</span>
               <span className="text-slate-900">Tracking</span>
             </h1>
