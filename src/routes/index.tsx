@@ -245,6 +245,7 @@ function ThemeBackdrop() {
 }
 
 function PresaleCountdown() {
+  const tr = useT();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -272,15 +273,13 @@ function PresaleCountdown() {
           </div>
           <div>
             <div className="text-xs uppercase tracking-wider text-muted-foreground">
-              Pré-venda oficial
+              {tr("presale_official")}
             </div>
             <div className="text-sm font-medium">
-              {past
-                ? "Pré-venda LIBERADA — apenas sellers autorizados podem listar"
-                : "Qualquer listing ativo agora = violação de embargo"}
+              {past ? tr("presale_liberated") : tr("presale_embargo")}
             </div>
             <div className="text-xs text-muted-foreground">
-              Início: terça 02/06 às 19h00 (BRT)
+              {tr("presale_start_date")}
             </div>
           </div>
         </div>
@@ -294,6 +293,8 @@ function PresaleCountdown() {
     </Card>
   );
 }
+
+
 
 function CountBox({ v, l }: { v: number; l: string }) {
   return (
