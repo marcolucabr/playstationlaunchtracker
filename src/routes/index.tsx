@@ -424,7 +424,7 @@ function Header({ data }: { data: DashboardData }) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-4">
-              <div className="flex w-[68px] justify-start md:w-[80px]">
+              <div className="flex w-[44px] justify-start md:w-[52px]">
                 <PsIcon className="h-auto w-full" />
               </div>
               <div
