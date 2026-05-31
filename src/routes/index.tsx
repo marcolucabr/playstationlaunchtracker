@@ -749,24 +749,50 @@ function HistoryChart({ data }: { data: DashboardData }) {
   const slots = Array.from(new Set(data.snapshots.map((s) => s.captured_at))).sort();
   const retailers = data.retailers;
 
-  // Stable color palette per retailer
+  // Stable color palette per retailer (1P = solid, 3P = dashed of same color)
   const palette = [
     "hsl(210 90% 55%)", "hsl(142 71% 45%)", "hsl(0 72% 51%)", "hsl(38 92% 50%)",
     "hsl(280 70% 55%)", "hsl(170 70% 40%)", "hsl(330 75% 55%)", "hsl(20 85% 55%)",
     "hsl(190 75% 45%)", "hsl(260 60% 55%)", "hsl(100 50% 45%)", "hsl(350 70% 55%)",
   ];
 
+  // Build unique series per (retailer, party) actually present in snapshots
+  const seriesKeys = Array.from(
+    new Set(
+      data.snapshots.map((s) => `${s.retailer_id}::${s.is_first_party ? "1p" : "3p"}`)
+    )
+  );
+
+  const lines = seriesKeys
+    .map((key) => {
+      const [retailerId, party] = key.split("::") as [string, "1p" | "3p"];
+      const retailer = retailers.find((r) => r.id === retailerId);
+      if (!retailer) return null;
+      const colorIdx = retailers.findIndex((r) => r.id === retailerId);
+      return {
+        key: `${retailer.slug}_${party}`,
+        retailerId,
+        party,
+        name: `${retailer.name} · ${party.toUpperCase()}`,
+        color: palette[colorIdx % palette.length],
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x != null);
+
   const series = slots.map((iso) => {
     const row: Record<string, number | string | null> = {
       label: new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }),
     };
-    for (const r of retailers) {
-      const snap = data.snapshots.find((s) => s.captured_at === iso && s.retailer_id === r.id);
+    for (const l of lines) {
+      const snap = data.snapshots.find(
+        (s) => s.captured_at === iso && s.retailer_id === l.retailerId && (s.is_first_party ? "1p" : "3p") === l.party
+      );
       const cents = snap ? (mode === "avista" ? snap.price_avista_cents : snap.price_full_cents) : null;
-      row[r.slug] = cents != null ? Math.round(cents / 100) : null;
+      row[l.key] = cents != null ? Math.round(cents / 100) : null;
     }
     return row;
   });
+
 
   return (
     <Card>
