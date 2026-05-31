@@ -55,6 +55,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import psLogo from "@/assets/playstation-logo.png";
 import wolverineCover from "@/assets/wolverine-cover.png";
+import wolverineHero from "@/assets/wolverine-hero.jpg";
 
 
 
@@ -371,8 +372,31 @@ function Header({ data }: { data: DashboardData }) {
             : "linear-gradient(135deg, var(--card), oklch(0.95 0.04 258))",
       }}
     >
+      {/* Hero photographic backdrop — anchored right, faded into the theme bg */}
       <div
-        className="pointer-events-none absolute inset-y-0 right-0 w-[60%] opacity-30"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: `url(${wolverineHero})`,
+          backgroundSize: "cover",
+          backgroundPosition: "right center",
+          opacity: isWlv ? 0.55 : 0.28,
+          maskImage:
+            "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.25) 35%, rgba(0,0,0,1) 70%)",
+          WebkitMaskImage:
+            "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.25) 35%, rgba(0,0,0,1) 70%)",
+        }}
+      />
+      {/* Legibility gradient over the photo — darker for wolverine, lighter for light theme */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: isWlv
+            ? "linear-gradient(90deg, rgba(15,15,18,0.92) 0%, rgba(15,15,18,0.65) 45%, rgba(15,15,18,0.15) 100%)"
+            : "linear-gradient(90deg, var(--card) 0%, rgba(255,255,255,0.85) 45%, rgba(255,255,255,0.35) 100%)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-y-0 right-0 w-[60%] opacity-20"
         style={{ background: "var(--accent-gradient)", maskImage: "linear-gradient(90deg, transparent, black 80%)" }}
       />
       <div className="container relative mx-auto max-w-7xl px-4 py-6">
