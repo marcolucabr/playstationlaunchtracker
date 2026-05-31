@@ -25,6 +25,7 @@ import {
   Flame,
   Store,
   XCircle,
+  Languages,
 } from "lucide-react";
 
 import { fetchDashboard, type DashboardData } from "@/lib/dashboard-data";
@@ -44,6 +45,7 @@ import {
   toneClass,
   type PriceStatus,
 } from "@/lib/format";
+import { LangCtx, useT, type Lang } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -87,47 +89,89 @@ function Dashboard() {
   }
 
   return (
-    <ThemeProvider>
-      <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
-        <ThemeBackdrop />
-        <Header data={data} />
-        <main className="container relative mx-auto max-w-7xl space-y-6 px-4 py-6">
-          <PresaleCountdown />
-          <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-7">
-              <TabsTrigger value="overview">Visão geral</TabsTrigger>
-              <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
-              <TabsTrigger value="coupons">Cupom</TabsTrigger>
-              <TabsTrigger value="trends">Tendências</TabsTrigger>
-              <TabsTrigger value="violations">Violações</TabsTrigger>
-              <TabsTrigger value="history">Histórico</TabsTrigger>
-              <TabsTrigger value="social">Social</TabsTrigger>
-            </TabsList>
-            <TabsContent value="overview">
-              <OverviewSummary data={data} />
-            </TabsContent>
-            <TabsContent value="marketplace">
-              <MarketplacePanel />
-            </TabsContent>
-            <TabsContent value="coupons">
-              <CouponsPanel />
-            </TabsContent>
-            <TabsContent value="trends">
-              <TrendsPanel />
-            </TabsContent>
-            <TabsContent value="violations">
-              <ViolationsTable data={data} />
-            </TabsContent>
-            <TabsContent value="history">
-              <HistoryChart data={data} />
-            </TabsContent>
-            <TabsContent value="social">
-              <SocialFeed data={data} />
-            </TabsContent>
-          </Tabs>
-        </main>
-      </div>
-    </ThemeProvider>
+    <LangProvider>
+      <ThemeProvider>
+        <DashboardInner data={data} />
+      </ThemeProvider>
+    </LangProvider>
+  );
+}
+
+function LangProvider({ children }: { children: React.ReactNode }) {
+  const [lang, setLang] = useState<Lang>(() => {
+    if (typeof window === "undefined") return "pt";
+    return (localStorage.getItem("wlv-lang") as Lang) || "pt";
+  });
+  useEffect(() => {
+    localStorage.setItem("wlv-lang", lang);
+  }, [lang]);
+  return <LangCtx.Provider value={{ lang, setLang }}>{children}</LangCtx.Provider>;
+}
+
+function LangToggle() {
+  const { lang, setLang } = useContext(LangCtx);
+  return (
+    <div className="inline-flex items-center rounded-md border bg-card p-0.5 text-xs">
+      <Languages className="ml-1 h-3 w-3 text-muted-foreground" />
+      <button
+        onClick={() => setLang("pt")}
+        className={`rounded px-2 py-1 font-medium transition ${lang === "pt" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+      >
+        PT-BR
+      </button>
+      <button
+        onClick={() => setLang("en")}
+        className={`rounded px-2 py-1 font-medium transition ${lang === "en" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+      >
+        EN
+      </button>
+    </div>
+  );
+}
+
+function DashboardInner({ data }: { data: DashboardData }) {
+  const t = useT();
+  const [tab, setTab] = useState("overview");
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
+      <ThemeBackdrop />
+      <Header data={data} />
+      <main className="container relative mx-auto max-w-7xl space-y-6 px-4 py-6">
+        <PresaleCountdown />
+        <Tabs value={tab} onValueChange={setTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-7">
+            <TabsTrigger value="overview">{t("tab_overview")}</TabsTrigger>
+            <TabsTrigger value="marketplace">{t("tab_marketplace")}</TabsTrigger>
+            <TabsTrigger value="coupons">{t("tab_coupons")}</TabsTrigger>
+            <TabsTrigger value="trends">{t("tab_trends")}</TabsTrigger>
+            <TabsTrigger value="social">{t("tab_social")}</TabsTrigger>
+            <TabsTrigger value="violations">{t("tab_violations")}</TabsTrigger>
+            <TabsTrigger value="history">{t("tab_history")}</TabsTrigger>
+          </TabsList>
+          <TabsContent value="overview">
+            <OverviewSummary data={data} onNavigate={setTab} />
+          </TabsContent>
+          <TabsContent value="marketplace">
+            <MarketplacePanel />
+          </TabsContent>
+          <TabsContent value="coupons">
+            <CouponsPanel />
+          </TabsContent>
+          <TabsContent value="trends">
+            <TrendsPanel />
+          </TabsContent>
+          <TabsContent value="social">
+            <SocialFeed data={data} />
+          </TabsContent>
+          <TabsContent value="violations">
+            <ViolationsTable data={data} />
+          </TabsContent>
+          <TabsContent value="history">
+            <HistoryChart data={data} />
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
   );
 }
 
@@ -154,6 +198,7 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 function ThemeToggle() {
   const { theme, setTheme } = useContext(ThemeCtx);
+  const t = useT();
   return (
     <div className="inline-flex rounded-md border bg-card p-0.5 text-xs">
       <button
@@ -162,7 +207,7 @@ function ThemeToggle() {
           theme === "corporate" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
         }`}
       >
-        Corporate
+        {t("theme_light")}
       </button>
       <button
         onClick={() => setTheme("wolverine")}
@@ -170,7 +215,7 @@ function ThemeToggle() {
           theme === "wolverine" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
         }`}
       >
-        Wolverine
+        {t("theme_wolverine")}
       </button>
     </div>
   );
@@ -304,7 +349,10 @@ function Header({ data }: { data: DashboardData }) {
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <LangToggle />
+              <ThemeToggle />
+            </div>
             <div className="flex items-center gap-2">
               <Badge variant={product.presale_allowed ? "default" : "destructive"}>
                 {product.presale_allowed ? "Pré-venda autorizada" : "Pré-venda NÃO autorizada"}
@@ -749,6 +797,27 @@ function SellersPanel({ data }: { data: DashboardData }) {
 
 // ===================== Marketplace =====================
 function MarketplacePanel() {
+  // Ranking global cross-plataforma (todos sellers)
+  const allSellers = marketplaceMock.flatMap((r) =>
+    r.sellers.map((s) => ({ ...s, retailer_name: r.retailer_name, retailer_id: r.retailer_id })),
+  );
+  const ranked = [...allSellers].sort((a, b) => a.price_avista_cents - b.price_avista_cents);
+
+  // Sellers x preço médio por plataforma
+  const scatterData = marketplaceMock.map((r) => {
+    const avg = Math.round(
+      r.sellers.reduce((a, s) => a + s.price_avista_cents, 0) / r.sellers.length / 100,
+    );
+    const min = Math.min(...r.sellers.map((s) => s.price_avista_cents)) / 100;
+    return {
+      retailer: r.retailer_name,
+      sellers: r.total_sellers,
+      avg_price: avg,
+      min_price: Math.round(min),
+      unauthorized: r.unauthorized_count,
+    };
+  });
+
   return (
     <div className="space-y-4">
       <Card>
@@ -764,6 +833,111 @@ function MarketplacePanel() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Grid: ranking global + gráfico */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Trophy className="h-4 w-4 text-amber-500" />
+              Ranking global de sellers (todas plataformas)
+            </CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              menor preço primeiro — útil para identificar onde está a pressão de preço
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-left text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th className="py-2 pr-2">#</th>
+                    <th className="py-2 pr-2">Seller</th>
+                    <th className="py-2 pr-2">Plataforma</th>
+                    <th className="py-2 pr-2 text-right">À vista</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ranked.slice(0, 10).map((s, i) => (
+                    <tr key={`${s.retailer_id}-${s.seller}`} className="border-t">
+                      <td className="py-1.5 pr-2 font-bold text-muted-foreground">{i + 1}</td>
+                      <td className="py-1.5 pr-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{s.seller}</span>
+                          {!s.authorized && (
+                            <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 text-[10px]">
+                              não autorizado
+                            </Badge>
+                          )}
+                          {s.is_buybox && (
+                            <Trophy className="h-3 w-3 text-amber-500" />
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-1.5 pr-2 text-xs text-muted-foreground">
+                        {s.retailer_name}
+                      </td>
+                      <td className="py-1.5 pr-2 text-right tabular-nums font-semibold">
+                        {brl(s.price_avista_cents)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Store className="h-4 w-4" />
+              Sellers por plataforma vs preço médio
+            </CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              barra = quantidade de sellers · linha = preço médio à vista (R$)
+            </p>
+          </CardHeader>
+          <CardContent className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={scatterData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis dataKey="retailer" className="text-xs" />
+                <YAxis yAxisId="left" className="text-xs" />
+                <YAxis yAxisId="right" orientation="right" className="text-xs" />
+                <Tooltip />
+                <Legend />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="sellers"
+                  name="Sellers ativos"
+                  stroke="var(--chart-2)"
+                  strokeWidth={2}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="avg_price"
+                  name="Preço médio (R$)"
+                  stroke="var(--primary)"
+                  strokeWidth={2}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="min_price"
+                  name="Menor preço (R$)"
+                  stroke="var(--destructive)"
+                  strokeWidth={2}
+                  strokeDasharray="4 4"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
       {marketplaceMock.map((r) => (
         <MarketplaceRetailerCard key={r.retailer_id} r={r} />
       ))}
@@ -1176,7 +1350,7 @@ function TrendCard({ t }: { t: (typeof trendsMock)[number] }) {
 }
 
 // ===================== Overview (resumo do tudo) =====================
-function OverviewSummary({ data }: { data: DashboardData }) {
+function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate: (tab: string) => void }) {
   const latest = useLatestPerListing(data);
   const total = latest.length;
   const counts = latest.reduce(
@@ -1214,7 +1388,7 @@ function OverviewSummary({ data }: { data: DashboardData }) {
 
   return (
     <div className="space-y-6">
-      {/* Hero KPIs */}
+      {/* Hero KPIs — clicáveis */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <HeroKpi
           label="Listagens monitoradas"
@@ -1222,35 +1396,39 @@ function OverviewSummary({ data }: { data: DashboardData }) {
           sub={`${data.retailers.length} varejistas · ${totalSellers} sellers`}
           icon={<TrendingUp className="h-4 w-4" />}
           accent
+          onClick={() => onNavigate("marketplace")}
         />
         <HeroKpi
           label="Violações críticas"
           value={String(counts.red)}
-          sub={`${counts.yellow} em atenção · ${counts.green} ok`}
+          sub={`${counts.yellow} em atenção · ${counts.green} ok · clique para detalhes`}
           icon={<AlertTriangle className="h-4 w-4" />}
           danger
+          onClick={() => onNavigate("violations")}
         />
         <HeroKpi
-          label="Menor preço"
+          label="Menor preço (pressão)"
           value={brl(minPrice)}
           sub={
             minSeller
               ? `${minRetailer?.name ?? "?"} · ${minSeller.seller_name ?? "1P"}`
               : "—"
           }
-          icon={<Trophy className="h-4 w-4" />}
+          icon={<AlertTriangle className="h-4 w-4 text-amber-500" />}
+          onClick={() => onNavigate("marketplace")}
         />
         <HeroKpi
           label="Preço médio"
           value={brl(avgPrice)}
           sub={`Maior: ${brl(maxPrice)} (${maxRetailer?.name ?? "?"})`}
           icon={<Tag className="h-4 w-4" />}
+          onClick={() => onNavigate("history")}
         />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Pré-venda + piso */}
-        <Card className="claw-cut">
+        <ClickCard onClick={() => onNavigate("violations")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
               <ShieldCheck className="h-4 w-4" /> Conformidade
@@ -1286,10 +1464,10 @@ function OverviewSummary({ data }: { data: DashboardData }) {
               hint="3P sem permissão"
             />
           </CardContent>
-        </Card>
+        </ClickCard>
 
         {/* Sellers por marketplace */}
-        <Card className="claw-cut">
+        <ClickCard onClick={() => onNavigate("marketplace")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
               <Store className="h-4 w-4" /> Sellers por marketplace
@@ -1317,10 +1495,10 @@ function OverviewSummary({ data }: { data: DashboardData }) {
               </div>
             ))}
           </CardContent>
-        </Card>
+        </ClickCard>
 
         {/* Cupons */}
-        <Card className="claw-cut">
+        <ClickCard onClick={() => onNavigate("coupons")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
               <Ticket className="h-4 w-4" /> Cupons
@@ -1355,16 +1533,19 @@ function OverviewSummary({ data }: { data: DashboardData }) {
               ))}
             </ul>
           </CardContent>
-        </Card>
+        </ClickCard>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Top sellers ranking */}
-        <Card className="claw-cut lg:col-span-2">
+        {/* Pressão de preço (renomeado — não é ranking positivo) */}
+        <ClickCard onClick={() => onNavigate("marketplace")} className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <Trophy className="h-4 w-4" /> Ranking de preço (à vista)
+              <AlertTriangle className="h-4 w-4 text-amber-500" /> Pressão de preço — listagens mais agressivas (à vista)
             </CardTitle>
+            <p className="mt-1 text-xs font-normal normal-case text-muted-foreground">
+              do menor para o maior preço — preços muito baixos sinalizam risco de quebra de MAP, não vitória comercial
+            </p>
           </CardHeader>
           <CardContent>
             <div className="space-y-1.5">
@@ -1408,10 +1589,10 @@ function OverviewSummary({ data }: { data: DashboardData }) {
                 })}
             </div>
           </CardContent>
-        </Card>
+        </ClickCard>
 
         {/* Tendências */}
-        <Card className="claw-cut">
+        <ClickCard onClick={() => onNavigate("trends")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
               <Flame className="h-4 w-4" /> Tendências (7d)
@@ -1437,12 +1618,12 @@ function OverviewSummary({ data }: { data: DashboardData }) {
               </div>
             ))}
           </CardContent>
-        </Card>
+        </ClickCard>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Violações destaque */}
-        <Card className="claw-cut">
+        <ClickCard onClick={() => onNavigate("violations")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
               <AlertTriangle className="h-4 w-4 text-rose-500" /> Violações em destaque
@@ -1488,10 +1669,10 @@ function OverviewSummary({ data }: { data: DashboardData }) {
               );
             })()}
           </CardContent>
-        </Card>
+        </ClickCard>
 
         {/* Social destaque */}
-        <Card className="claw-cut">
+        <ClickCard onClick={() => onNavigate("social")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
               <MessageSquare className="h-4 w-4" /> Social em destaque
@@ -1516,7 +1697,7 @@ function OverviewSummary({ data }: { data: DashboardData }) {
               </ul>
             )}
           </CardContent>
-        </Card>
+        </ClickCard>
       </div>
     </div>
   );
@@ -1529,6 +1710,7 @@ function HeroKpi({
   icon,
   accent,
   danger,
+  onClick,
 }: {
   label: string;
   value: string;
@@ -1536,10 +1718,23 @@ function HeroKpi({
   icon: React.ReactNode;
   accent?: boolean;
   danger?: boolean;
+  onClick?: () => void;
 }) {
+  const clickable = !!onClick;
   return (
     <Card
-      className="claw-cut relative overflow-hidden"
+      onClick={onClick}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (clickable && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+      className={`claw-cut relative overflow-hidden ${
+        clickable ? "cursor-pointer transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring" : ""
+      }`}
       style={
         accent
           ? { background: "var(--accent-gradient)", color: "var(--primary-foreground)" }
@@ -1604,5 +1799,37 @@ function MiniStat({ n, l, tone }: { n: number; l: string; tone: "green" | "red" 
       <div className={`text-xl font-bold tabular-nums ${color}`}>{n}</div>
       <div className="text-[10px] uppercase text-muted-foreground">{l}</div>
     </div>
+  );
+}
+
+function ClickCard({
+  onClick,
+  className = "",
+  children,
+}: {
+  onClick?: () => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const clickable = !!onClick;
+  return (
+    <Card
+      onClick={onClick}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (clickable && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+      className={`claw-cut ${
+        clickable
+          ? "cursor-pointer transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
+          : ""
+      } ${className}`}
+    >
+      {children}
+    </Card>
   );
 }
