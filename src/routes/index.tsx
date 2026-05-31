@@ -1341,7 +1341,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
         </ClickCard>
 
         {/* Sellers por marketplace */}
-        <Card className="claw-cut">
+        <ClickCard onClick={() => onNavigate("marketplace")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
               <Store className="h-4 w-4" /> Sellers por marketplace
