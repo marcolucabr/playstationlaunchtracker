@@ -354,10 +354,7 @@ function Header({ data }: { data: DashboardData }) {
           <div>
             <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em]" style={{ color: "var(--primary)" }}>
               <PsIcon className="h-3.5 w-3.5" />
-              <span>Launch Commercial Tracking</span>
-            </div>
-            <div className="mt-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              {t("monitoring")}
+              <span>Launch Tracking</span>
             </div>
             <h1
               className="mt-2 text-4xl font-black tracking-tight md:text-5xl"
@@ -387,14 +384,12 @@ function Header({ data }: { data: DashboardData }) {
                 {product.presale_allowed ? "Pré-venda autorizada" : "Pré-venda NÃO autorizada"}
               </Badge>
               <Badge variant="outline" className="gap-1">
-                <Clock className="h-3 w-3" /> Coleta 08h30 & 13h00
+                <Clock className="h-3 w-3" /> Sync 9am &amp; 1pm
               </Badge>
             </div>
           </div>
         </div>
-        {product.notes ? (
-          <p className="mt-3 max-w-3xl text-sm text-muted-foreground">{product.notes}</p>
-        ) : null}
+
       </div>
     </header>
   );
