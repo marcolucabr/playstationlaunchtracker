@@ -1,48 +1,76 @@
-# Painel Wolverine PS5 — Plano de implementação
+## Plano: Conectar dados reais ao painel
 
-## Objetivo
-Painel interno com visibilidade de **preço, parcelamento, sellers autorizados e menções sociais** do título Wolverine (PS5), atualizando 2x/dia (08h30 e 13h00).
+Implementação em **3 etapas**. Cada uma é testável sozinha.
 
-## Fase 1 — Fundação (esta entrega)
+---
 
-### 1.1 Backend (Lovable Cloud)
-Ativar Lovable Cloud e criar as tabelas:
+### Etapa 1 — Cadastro de URLs por (produto, varejista)
 
-- **products** — catálogo (Wolverine PS5: EAN 711719028116, SRP 399,90, max_desc_avista 7%)
-- **product_aliases** — termos/IDs de busca (EAN, ASIN, palavras-chave, hashtags)
-- **retailers** — lista fixa que você passou, com flags `is_1p` / `is_3p`
-- **authorized_sellers** — vendedores 3P autorizados (você cadastra; o resto vira "não autorizado" em vermelho)
-- **price_snapshots** — uma linha por captura: retailer, seller, preço à vista, preço cheio, nº parcelas, valor da parcela, URL, timestamp, status (`ok` / `abaixo_piso` / `acima_srp` / `vendedor_nao_autorizado` / `pre_venda_nao_permitida`)
-- **mentions** — menções sociais/fóruns (fonte, autor, URL, trecho, sentimento, timestamp)
-- **collection_runs** — log de execuções do crawler
+Sem URL cadastrada, o coletor não tem o que ler.
 
-### 1.2 Regras de classificação (semáforo)
-- 🟢 Verde: à vista entre R$ 371,91 e R$ 399,90, parcelamento sobre R$ 399,90, seller autorizado
-- 🟡 Amarelo: à vista no SRP cheio sem desconto, ou parcelamento abaixo de 399,90 (desconto indevido no à prazo)
-- 🔴 Vermelho: abaixo de R$ 371,91, seller 3P não autorizado, ou pré-venda fora do período permitido
+**Banco:** nova tabela `product_retailer_urls`
+- `product_id` (uuid, FK lógica → products)
+- `retailer_id` (uuid, FK lógica → retailers)
+- `url` (text)
+- `active` (boolean, default true)
+- `last_status` (text, nullable — "ok", "blocked", "not_found", "error")
+- `last_checked_at` (timestamptz, nullable)
+- UNIQUE (product_id, retailer_id)
+- RLS: leitura pública (igual products/retailers), escrita só admin
 
-### 1.3 Dashboard (UI)
-- **Header**: card do título com EAN, SRP, regras, próxima coleta
-- **Grid de varejistas**: cada um com 1P e 3P separados, mostrando melhor preço à vista, parcelamento (ex: "10x de R$ 39,99"), seller, status colorido, link
-- **Tabela de violações**: tudo que está 🔴 ou 🟡, ordenado por gravidade
-- **Histórico**: gráfico de preço médio por varejista ao longo do tempo
-- **Aba Social**: feed de menções com filtros por fonte e sentimento
-- **Aba Sellers**: gestão dos vendedores autorizados (CRUD simples)
+**UI:** nova aba "URLs" no painel `/admin`
+- Tabela com linhas = produto × varejista (15 linhas para Wolverine)
+- Input inline para colar URL + toggle ativo
+- Botão "Salvar"
 
-### 1.4 Estrutura de coleta (server functions)
-- `runCollection` — server function disparada manualmente (botão "Coletar agora") que itera sobre retailers + aliases
-- Cron 2x/dia via endpoint `/api/public/cron-collect` (você configura o agendador externo apontando para o URL estável do projeto, ou usamos pg_cron)
-- Integração com **Firecrawl** (search + scrape) para varejistas e fóruns
+---
 
-## Fase 2 — Coleta real (próxima entrega, após pré-venda abrir)
-- Conectar Firecrawl
-- Scrapers por varejista (cada um tem estrutura HTML diferente)
-- Extração de seller name em marketplaces (Amazon 3P, ML 3P, etc.)
-- Social listening (Twitter/X, Reddit, fóruns BR de games — GamerDic, GameVicio, PS5Brasil)
-- Alertas (e-mail/Slack) quando algo vira 🔴
+### Etapa 2 — Coletor de preços (fetch puro + manual)
 
-## Esta entrega cobre
-Fase 1 completa: schema + dashboard funcional com dados de exemplo (seed) para você validar a UX antes da pré-venda abrir. Quando o EAN aparecer no varejo, ligamos a coleta real numa segunda iteração.
+**Server function** `runCollection({ productId? })` em `src/lib/collector.functions.ts`, protegida por `requireSupabaseAuth` + checagem de admin:
 
-## Confirmação
-Pré-cadastro de **sellers autorizados**: você quer já cadastrar agora (me passa a lista) ou deixo a tela vazia para você preencher pelo painel depois?
+1. Cria `collection_runs` (status=running, trigger=manual)
+2. Para cada URL ativa:
+   - `fetch(url, { headers: { 'User-Agent': '...realista...', 'Accept-Language': 'pt-BR' } })`
+   - Extrai preço de 3 fontes nessa ordem (parser próprio, sem dep nova):
+     - **JSON-LD** `<script type="application/ld+json">` com `@type: Product` → `offers.price`, `priceCurrency`, `availability`, `seller`
+     - **Meta tags** `og:price:amount`, `product:price:amount`
+     - **Microdata** `itemprop="price"`
+   - Detecta bloqueio: status 403/503, ou HTML contém "captcha"/"Access Denied" → marca `blocked`
+   - Insere `price_snapshots` (price_avista_cents, price_full_cents quando der, seller_name, in_stock, status, raw_payload com o trecho extraído)
+   - Atualiza `product_retailer_urls.last_status` + `last_checked_at`
+3. Fecha o run (status=success/partial/error, counters preenchidos)
+
+**Aviso visível ao usuário no admin:** "Lojas que renderizam preço via JavaScript (Amazon, ML, Magalu, etc.) provavelmente vão retornar `blocked`. Para essas, ativar Firecrawl depois (Etapa 3)."
+
+**UI:** botão **"Coletar agora"** no topo do `/admin`
+- Dispara `runCollection({})` (todos os produtos)
+- Mostra toast com counters: "X coletados, Y bloqueados, Z erros"
+- Atualiza tabela de snapshots em tempo real (invalidate query)
+
+**Card novo no AdminDashboard:** "Últimas execuções" lendo `collection_runs` (status, gatilho, contagens, tempo).
+
+---
+
+### Etapa 3 — Agendamento + (futuro) Firecrawl fallback
+
+**Cron diário** via `pg_cron` + `pg_net`:
+- Rota pública `/api/public/hooks/collect-all` valida header `apikey` (anon key)
+- Chama mesma `runCollection({})` com trigger=`scheduled`
+- Roda 1×/dia às 03:00 BRT (06:00 UTC)
+
+**Firecrawl como fallback (preparado, não ativado):**
+- Quando uma URL retorna `blocked`, marcar para retry com Firecrawl
+- Implementação fica comentada/feature-flag até você conectar o Firecrawl
+
+---
+
+### Ordem de execução
+
+1. Migration (tabela + RLS) — você aprova
+2. UI de cadastro de URLs + botão coletar
+3. Server function de coleta + parser
+4. Card "Últimas execuções" no dashboard
+5. Cron + rota pública (Etapa 3)
+
+Posso começar pela migration?
