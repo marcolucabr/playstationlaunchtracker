@@ -432,7 +432,7 @@ export const trendsMock: TrendSource[] = [
     series: days(14).map((date, i) => ({ date, value: Math.round(10 + i * 4) })),
     top_items: [
       { title: "Wolverine PS5: Tudo que sabemos do lançamento", author: "BJ Gamer", metric: "412k views" },
-      { title: "REACT: Trailer final de Marvel's Wolverine", author: "GameVicio", metric: "287k views" },
+      { title: "REACT: Trailer final de Wolverine [PS5]", author: "GameVicio", metric: "287k views" },
       { title: "GAMEPLAY VAZADA?! Wolverine PS5 análise", author: "Coisa de Nerd", metric: "198k views" },
     ],
   },

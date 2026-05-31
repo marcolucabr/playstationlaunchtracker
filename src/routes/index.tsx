@@ -34,6 +34,7 @@ import {
   couponsMock,
   trendsMock,
   PRESALE_START_ISO,
+  RELEASE_DATE_ISO,
   type MarketplaceSeller,
 } from "@/lib/mock-extra";
 import {
@@ -59,7 +60,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Visibilidade completa do título Marvel's Wolverine para PS5: preço, parcelamento, sellers autorizados e menções sociais.",
+          "Visibilidade completa do título Wolverine [PS5]: preço, parcelamento, sellers autorizados e menções sociais.",
       },
     ],
   }),
@@ -138,7 +139,7 @@ function DashboardInner({ data }: { data: DashboardData }) {
       <ThemeBackdrop />
       <Header data={data} />
       <main className="container relative mx-auto max-w-7xl space-y-6 px-4 py-6">
-        <PresaleCountdown />
+        <CountdownRow />
         <Tabs value={tab} onValueChange={setTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-7">
             <TabsTrigger value="overview">{t("tab_overview")}</TabsTrigger>
@@ -244,14 +245,26 @@ function ThemeBackdrop() {
   );
 }
 
-function PresaleCountdown() {
+function CountdownCard({
+  targetIso,
+  titleKey,
+  liveKey,
+  embargoKey,
+  dateKey,
+}: {
+  targetIso: string;
+  titleKey: "presale_official" | "release_official";
+  liveKey: "presale_liberated" | "release_live";
+  embargoKey: "presale_embargo" | "release_countdown";
+  dateKey: "presale_start_date" | "release_date_label";
+}) {
   const tr = useT();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  const target = new Date(PRESALE_START_ISO).getTime();
+  const target = new Date(targetIso).getTime();
   const diff = target - now;
   const past = diff <= 0;
   const abs = Math.abs(diff);
@@ -273,14 +286,12 @@ function PresaleCountdown() {
           </div>
           <div>
             <div className="text-xs uppercase tracking-wider text-muted-foreground">
-              {tr("presale_official")}
+              {tr(titleKey)}
             </div>
             <div className="text-sm font-medium">
-              {past ? tr("presale_liberated") : tr("presale_embargo")}
+              {past ? tr(liveKey) : tr(embargoKey)}
             </div>
-            <div className="text-xs text-muted-foreground">
-              {tr("presale_start_date")}
-            </div>
+            <div className="text-xs text-muted-foreground">{tr(dateKey)}</div>
           </div>
         </div>
         <div className="flex items-center gap-2 font-mono text-xl tabular-nums">
@@ -291,6 +302,27 @@ function PresaleCountdown() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function CountdownRow() {
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      <CountdownCard
+        targetIso={PRESALE_START_ISO}
+        titleKey="presale_official"
+        liveKey="presale_liberated"
+        embargoKey="presale_embargo"
+        dateKey="presale_start_date"
+      />
+      <CountdownCard
+        targetIso={RELEASE_DATE_ISO}
+        titleKey="release_official"
+        liveKey="release_live"
+        embargoKey="release_countdown"
+        dateKey="release_date_label"
+      />
+    </div>
   );
 }
 
@@ -305,10 +337,10 @@ function CountBox({ v, l }: { v: number; l: string }) {
   );
 }
 
-function PsIcon({ className = "" }: { className?: string }) {
+function PsIcon({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
   // PlayStation "PS" mark — stylized two-letter logo path
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-label="PlayStation">
+    <svg viewBox="0 0 24 24" className={className} style={style} fill="currentColor" aria-label="PlayStation">
       <path d="M9.5 3.2v17.5c1.45.42 2.87.59 3.97.33 2.55-.6 2.4-2.34.8-2.94-1.5-.57-3.97-1.46-3.97-1.46V8.05c1.85.55 4.5 1.42 5.92 2.16 1.78.93 1.95 2.95.42 4.04-1.5 1.07-3.78 1.62-3.78 1.62v2.06s2.45-.5 4.62-1.36c2.27-.9 2.95-2.96 2.42-4.62-.55-1.72-2.52-3.07-5.27-4.01-1.95-.67-4.02-1.16-5.13-1.4-.5-.11-.92-.31-.92-.31z" />
       <path d="M3.5 14.5c0 1.05.55 1.95 1.7 2.34 1.05.36 2.55.4 3.83.1v-1.9c-.95.27-2.03.36-2.6.18-.52-.16-.58-.55-.18-.78.4-.24 1.4-.55 2.78-.93v-2c-2 .55-4.05 1.18-4.83 1.84-.45.4-.7.78-.7 1.15z" />
     </svg>
@@ -335,44 +367,37 @@ function Header({ data }: { data: DashboardData }) {
         className="pointer-events-none absolute inset-y-0 right-0 w-[60%] opacity-30"
         style={{ background: "var(--accent-gradient)", maskImage: "linear-gradient(90deg, transparent, black 80%)" }}
       />
-      {/* Wolverine-inspired yellow claw slash — present in both themes for brand consistency */}
-      <div className="wolv-claw-accent opacity-60" />
-      <svg
-        className="pointer-events-none absolute -right-10 -top-6 h-[260px] w-[260px] opacity-20"
-        viewBox="0 0 200 200"
-        fill="none"
-        aria-hidden
-      >
-        <g stroke="oklch(0.86 0.19 95)" strokeWidth="4" strokeLinecap="round">
-          <path d="M20 40 Q 100 100 70 180" />
-          <path d="M60 20 Q 140 100 110 190" />
-          <path d="M110 30 Q 180 110 150 195" />
-        </g>
-      </svg>
       <div className="container relative mx-auto max-w-7xl px-4 py-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em]" style={{ color: "var(--primary)" }}>
-              <PsIcon className="h-3.5 w-3.5" />
-              <span>Launch Tracking</span>
+          <div className="flex items-start gap-4">
+            <PsIcon
+              className="mt-1 h-14 w-14 shrink-0 md:h-16 md:w-16"
+              style={{ color: "var(--primary)" }}
+            />
+            <div>
+              <div
+                className="text-xs font-semibold uppercase tracking-[0.28em] md:text-sm"
+                style={{ color: "var(--primary)" }}
+              >
+                Launch Tracking
+              </div>
+              <h1
+                className="mt-1 text-4xl font-black tracking-tight md:text-5xl"
+                style={{
+                  fontFamily: isWlv
+                    ? "'Impact', 'Bebas Neue', system-ui, sans-serif"
+                    : "system-ui, sans-serif",
+                  letterSpacing: isWlv ? "0.02em" : "-0.02em",
+                }}
+              >
+                Wolverine <span className="text-muted-foreground">[PS5]</span>
+              </h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
+                <strong>{brl(product.srp_cents)}</strong> · {t("floor_avista")}{" "}
+                <strong>{brl(minAvista)}</strong> ({pct(product.max_discount_avista_pct)} {t("max")})
+              </p>
             </div>
-            <h1
-              className="mt-2 text-4xl font-black tracking-tight md:text-5xl"
-              style={{
-                fontFamily: isWlv
-                  ? "'Impact', 'Bebas Neue', system-ui, sans-serif"
-                  : "system-ui, sans-serif",
-                letterSpacing: isWlv ? "0.02em" : "-0.02em",
-              }}
-            >
-              {product.name}{" "}
-              <span className="text-muted-foreground">({product.platform})</span>
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
-              <strong>{brl(product.srp_cents)}</strong> · {t("floor_avista")}{" "}
-              <strong>{brl(minAvista)}</strong> ({pct(product.max_discount_avista_pct)} {t("max")})
-            </p>
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
