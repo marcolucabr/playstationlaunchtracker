@@ -419,14 +419,14 @@ function Header({ data }: { data: DashboardData }) {
         }}
       />
 
-      <div className="relative mx-auto w-full max-w-[1600px] px-6 py-6 lg:px-10">
+      <div className="relative mx-auto w-full max-w-[1600px] px-6 py-6 text-white lg:px-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-4">
               <PsIcon className="h-[63px] w-[63px] shrink-0 md:h-[76px] md:w-[76px]" />
               <div
                 className="text-2xl font-light uppercase tracking-[0.32em] md:text-3xl"
-                style={{ color: "var(--primary)" }}
+                style={{ color: isWlv ? "#f5c842" : "#7ec8ff" }}
               >
                 Launch Tracking
               </div>
@@ -451,10 +451,10 @@ function Header({ data }: { data: DashboardData }) {
                 >
                   Wolverine
                 </h1>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="mt-2 text-sm text-white/75">
                   EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
-                  <strong>{brl(product.srp_cents)}</strong> · {t("floor_avista")}{" "}
-                  <strong>{brl(minAvista)}</strong>
+                  <strong className="text-white">{brl(product.srp_cents)}</strong> · {t("floor_avista")}{" "}
+                  <strong className="text-white">{brl(minAvista)}</strong>
                 </p>
               </div>
             </div>
