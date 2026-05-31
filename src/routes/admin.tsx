@@ -104,38 +104,69 @@ function AdminPage() {
             <Link to="/" className="text-slate-500 hover:text-slate-900"><ArrowLeft className="h-5 w-5" /></Link>
             <h1 className="text-2xl font-bold flex items-center gap-2"><Shield className="h-6 w-6 text-blue-600" /> Admin Panel</h1>
           </div>
-          <Dialog open={open} onOpenChange={(o) => { setOpen(o); setErr(null); }}>
-            <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4 mr-1" /> New user</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Create user</DialogTitle></DialogHeader>
-              <div className="space-y-3">
-                <div><Label>Full name</Label><Input value={form.fullName} onChange={(e) => setForm({...form, fullName: e.target.value})} /></div>
-                <div><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} /></div>
-                <div><Label>Password</Label><Input type="text" value={form.password} onChange={(e) => setForm({...form, password: e.target.value})} placeholder="min 8 chars" /></div>
-                <div>
-                  <Label>Role</Label>
-                  <Select value={form.role} onValueChange={(v: "admin"|"viewer") => setForm({...form, role: v})}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="viewer">Viewer (read-only)</SelectItem>
-                      <SelectItem value="admin">Admin (full access)</SelectItem>
-                    </SelectContent>
-                  </Select>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => collectMut.mutate()}
+              disabled={collectMut.isPending}
+            >
+              <RefreshCw className={`h-4 w-4 mr-1 ${collectMut.isPending ? "animate-spin" : ""}`} />
+              {collectMut.isPending ? "Coletando…" : "Coletar agora"}
+            </Button>
+            <Dialog open={open} onOpenChange={(o) => { setOpen(o); setErr(null); }}>
+              <DialogTrigger asChild>
+                <Button className="bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4 mr-1" /> New user</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Create user</DialogTitle></DialogHeader>
+                <div className="space-y-3">
+                  <div><Label>Full name</Label><Input value={form.fullName} onChange={(e) => setForm({...form, fullName: e.target.value})} /></div>
+                  <div><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} /></div>
+                  <div><Label>Password</Label><Input type="text" value={form.password} onChange={(e) => setForm({...form, password: e.target.value})} placeholder="min 8 chars" /></div>
+                  <div>
+                    <Label>Role</Label>
+                    <Select value={form.role} onValueChange={(v: "admin"|"viewer") => setForm({...form, role: v})}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="viewer">Viewer (read-only)</SelectItem>
+                        <SelectItem value="admin">Admin (full access)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {err && <p className="text-sm text-destructive">{err}</p>}
                 </div>
-                {err && <p className="text-sm text-destructive">{err}</p>}
-              </div>
-              <DialogFooter>
-                <Button onClick={() => createMut.mutate(form)} disabled={createMut.isPending} className="bg-blue-600 hover:bg-blue-700">
-                  {createMut.isPending ? "Creating…" : "Create"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                <DialogFooter>
+                  <Button onClick={() => createMut.mutate(form)} disabled={createMut.isPending} className="bg-blue-600 hover:bg-blue-700">
+                    {createMut.isPending ? "Creating…" : "Create"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
-        <AdminDashboard users={users} />
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <strong>Atenção:</strong> o coletor atual usa <code>fetch</code> puro. Lojas que renderizam preço via JavaScript ou usam anti-bot (Amazon, Mercado Livre, Magalu, Americanas) provavelmente vão retornar <strong>bloqueado</strong>. Para essas, conecte o Firecrawl depois.
+        </div>
+
+        <Tabs defaultValue="dashboard" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="urls">URLs por loja</TabsTrigger>
+            <TabsTrigger value="users">Usuários</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dashboard" className="space-y-4">
+            <AdminDashboard users={users} />
+            <RecentRuns />
+          </TabsContent>
+
+          <TabsContent value="urls">
+            <UrlsManager />
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-4">
+
 
 
 
