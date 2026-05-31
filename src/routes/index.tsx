@@ -1693,30 +1693,53 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[220px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={marketplaceMock.map((m) => ({
-                    name: m.retailer_name,
-                    autorizados: m.authorized_count,
-                    nao_autorizados: m.unauthorized_count,
-                  }))}
-                  margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
-                  barCategoryGap={12}
-                >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} />
-                  <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                  <Tooltip
-                    cursor={{ fill: "hsl(var(--muted) / 0.3)" }}
-                    contentStyle={{ fontSize: 12, borderRadius: 8 }}
-                  />
-                  <Bar dataKey="autorizados" stackId="s" fill="hsl(142 71% 45%)" name={tr("ok_short")} />
-                  <Bar dataKey="nao_autorizados" stackId="s" fill="hsl(0 72% 51%)" name={tr("unauthorized_sellers")} radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            {(() => {
+              const maxTotal = Math.max(...marketplaceMock.map((m) => m.total_sellers));
+              return (
+                <div className="flex h-[200px] items-end justify-between gap-3 px-1">
+                  {marketplaceMock.map((m) => {
+                    const totalH = (m.total_sellers / maxTotal) * 100;
+                    const authPct = m.total_sellers > 0 ? (m.authorized_count / m.total_sellers) * 100 : 0;
+                    return (
+                      <div key={m.retailer_id} className="flex flex-1 flex-col items-center gap-2">
+                        <span className="text-xs font-semibold tabular-nums text-foreground">
+                          {m.total_sellers}
+                        </span>
+                        <div className="flex w-full flex-1 items-end justify-center">
+                          <div
+                            className="relative w-full max-w-[44px] overflow-hidden rounded-t-md bg-muted/40 ring-1 ring-inset ring-border/60 transition-all hover:ring-border"
+                            style={{ height: `${totalH}%` }}
+                            title={`${m.retailer_name}: ${m.authorized_count} autorizados · ${m.unauthorized_count} não autorizados`}
+                          >
+                            <div
+                              className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-rose-600 to-rose-400"
+                              style={{ height: `${100 - authPct}%` }}
+                            />
+                            <div
+                              className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-emerald-600 to-emerald-400"
+                              style={{ height: `${authPct}%` }}
+                            />
+                          </div>
+                        </div>
+                        <span className="w-full truncate text-center text-[11px] text-muted-foreground">
+                          {m.retailer_name}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+            <div className="mt-3 flex items-center justify-center gap-4 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-sm bg-emerald-500" /> {tr("ok_short")}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-sm bg-rose-500" /> {tr("unauthorized_sellers")}
+              </span>
             </div>
           </CardContent>
+
 
         </ClickCard>
 
