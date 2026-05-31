@@ -98,7 +98,7 @@ export const dict = {
     appears_at: "Onde aparece",
     effective_price: "Preço efetivo",
     // theme
-    theme_light: "Light",
+    theme_light: "PlayStation",
     theme_wolverine: "Wolverine",
     // extras
     presale_start_date: "Início: terça 02/06 às 19h00 (BRT)",
@@ -203,7 +203,7 @@ export const dict = {
     validity: "Validity",
     appears_at: "Where shown",
     effective_price: "Effective price",
-    theme_light: "Light",
+    theme_light: "PlayStation",
     theme_wolverine: "Wolverine",
     presale_start_date: "Starts: Tue 06/02 at 7:00pm (BRT)",
     release_official: "Official launch",

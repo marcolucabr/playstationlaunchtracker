@@ -430,7 +430,7 @@ function Header({ data }: { data: DashboardData }) {
               <div
                 className="text-2xl font-light uppercase tracking-[0.32em] text-white md:text-3xl"
               >
-                {isWlv ? "Launch Tracking" : "PlayStation"}
+                Launch Tracking
               </div>
             </div>
             <div className="flex items-end gap-4">
