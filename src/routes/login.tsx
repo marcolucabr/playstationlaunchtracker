@@ -52,13 +52,12 @@ function LoginPage() {
             <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center shadow-lg p-3">
               <img src={psLogo} alt="PlayStation" className="h-full w-full object-contain" style={{ filter: "brightness(0) invert(1)" }} draggable={false} />
             </div>
-            <p className="mt-3 text-lg tracking-[0.2em] uppercase text-slate-600 font-bold">PlayStation</p>
             <h1 className="text-2xl font-bold">
-              <span className="text-blue-600">Launch</span>
-              <span className="text-slate-900">Tracking</span>
+              <span className="text-blue-600">PlayStation</span>
+              <span className="text-slate-900">LaunchTracking</span>
             </h1>
             <p className="mt-1 text-xs tracking-wider text-slate-500 font-mono">
-              Brazil Commercial Project
+              Brazil Commercial Team
             </p>
           </div>
 
