@@ -1659,7 +1659,6 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             <ConfBar
               label={tr("in_presale")}
               value={latest.filter((s) => s.is_presale && (s.price_avista_cents ?? Infinity) <= data.product.srp_cents).length}
-              total={total}
               tone="green"
               hint={`${tr("within_srp")} · ${brl(data.product.srp_cents)}`}
             />
