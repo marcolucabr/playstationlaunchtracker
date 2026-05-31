@@ -92,7 +92,7 @@ export const marketplaceMock: MarketplaceRetailer[] = [
     authorized_count: 1,
     unauthorized_count: 8,
     buybox_history_24h: [
-      { seller: "ShopGames Oficial", hours: 10, authorized: true },
+      { seller: "Webfones", hours: 10, authorized: true },
       { seller: "ImportZone", hours: 8, authorized: false },
       { seller: "BR Games Express", hours: 6, authorized: false },
     ],
