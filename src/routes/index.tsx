@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState, useEffect, useContext, createContext } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { Shield, LogOut } from "lucide-react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -77,13 +79,21 @@ export const Route = createFileRoute("/")({
 });
 
 function Dashboard() {
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authLoading && !user) navigate({ to: "/login" });
+  }, [user, authLoading, navigate]);
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["wolverine-dashboard"],
     queryFn: fetchDashboard,
     refetchInterval: 60_000,
+    enabled: !!user,
   });
 
-  if (isLoading) {
+  if (authLoading || !user || isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-muted-foreground">Carregando painel…</p>
@@ -163,6 +173,29 @@ function LangToggle() {
 
 
 
+
+
+function UserMenu() {
+  const { user, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
+  if (!user) return null;
+  return (
+    <div className="flex items-center gap-2 text-white/90 text-xs">
+      <span className="hidden md:inline opacity-70">{user.email}</span>
+      {isAdmin && (
+        <Link to="/admin" className="inline-flex items-center gap-1 rounded-md border border-white/30 px-2 py-1 hover:bg-white/10">
+          <Shield className="h-3.5 w-3.5" /> Admin
+        </Link>
+      )}
+      <button
+        onClick={async () => { await signOut(); navigate({ to: "/login" }); }}
+        className="inline-flex items-center gap-1 rounded-md border border-white/30 px-2 py-1 hover:bg-white/10"
+      >
+        <LogOut className="h-3.5 w-3.5" /> Sign out
+      </button>
+    </div>
+  );
+}
 
 function DashboardInner({ data }: { data: DashboardData }) {
   const t = useT();
@@ -494,6 +527,7 @@ function Header({ data }: { data: DashboardData }) {
               <Badge variant="outline" className="gap-1">
                 <Clock className="h-3 w-3" /> Last sync {lastSyncLabel}
               </Badge>
+              <UserMenu />
             </div>
 
           </div>
