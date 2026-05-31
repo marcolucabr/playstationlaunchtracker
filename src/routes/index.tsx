@@ -366,12 +366,12 @@ function CountdownRow() {
       />
       <Card>
         <CardHeader className="px-4 pb-1">
-          <CardTitle className="text-[10px] font-bold tracking-wider text-muted-foreground">{tr("mapped_retailers_title")}</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">{tr("mapped_retailers_title")}</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-x-5 gap-y-0.5 p-4 pt-0 sm:grid-cols-2">
           {groups.map((g) => (
             <div key={g.key} className="flex items-baseline gap-2 min-w-0">
-              <span className="w-28 shrink-0 text-[10px] font-bold tracking-wider text-muted-foreground">
+              <span className="w-28 shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 {tr(g.key)}
               </span>
               <span className="flex-1 truncate text-xs text-muted-foreground" title={g.items.map(i => i.sellerNote ? `${i.name} (${i.sellerNote})` : i.name).join(" • ")}>
