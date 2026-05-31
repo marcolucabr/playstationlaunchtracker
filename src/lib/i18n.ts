@@ -119,6 +119,7 @@ export const dict = {
     index_score_label: "índice 0–100",
     featured: "Em destaque",
     mapped_retailers: "Varejos mapeados",
+    mapped_retailers_title: "Varejistas mapeados para o lançamento",
     mapped_retailers_hint: "Verde = varejista autorizado (1P). Amarelo = nome do seller permitido dentro do marketplace (somente 3P).",
     cat_pure_online: "Pure Online",
     cat_hybrid_retail: "Hybrid Retail",
