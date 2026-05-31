@@ -274,8 +274,8 @@ export const marketplaceMock: MarketplaceRetailer[] = [
     retailer_id: "kabum",
     retailer_name: "KaBuM!",
     total_sellers: 1,
-    authorized_count: 1,
-    unauthorized_count: 0,
+    authorized_count: 0,
+    unauthorized_count: 1,
     buybox_history_24h: [{ seller: "KaBuM! (1P)", hours: 24, authorized: true }],
     sellers: [
       {
