@@ -423,18 +423,17 @@ function Header({ data }: { data: DashboardData }) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-4">
-              <div className="flex w-[84px] justify-start md:w-[104px]">
-                <PsIcon className="h-[69px] w-[69px] md:h-[84px] md:w-[84px]" />
+              <div className="flex w-[68px] justify-start md:w-[80px]">
+                <PsIcon className="h-auto w-full" />
               </div>
               <div
-                className="text-2xl font-light uppercase tracking-[0.32em] md:text-3xl"
-                style={{ color: isWlv ? "#f5c842" : "#7ec8ff" }}
+                className="text-2xl font-light uppercase tracking-[0.32em] text-white md:text-3xl"
               >
-                Launch Tracking
+                {isWlv ? "Launch Tracking" : "PlayStation"}
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex w-[84px] justify-start md:w-[104px]">
+            <div className="flex items-end gap-4">
+              <div className="flex w-[68px] justify-start md:w-[80px]">
                 <img
                   src={wolverineCover}
                   alt="Capa Wolverine PS5"
@@ -446,11 +445,10 @@ function Header({ data }: { data: DashboardData }) {
                 <h1
                   className="text-4xl font-black tracking-tight md:text-6xl"
                   style={{
-                    fontFamily: isWlv
-                      ? "'Impact', 'Bebas Neue', system-ui, sans-serif"
-                      : "system-ui, sans-serif",
-                    letterSpacing: isWlv ? "0.02em" : "-0.02em",
+                    fontFamily: "system-ui, sans-serif",
+                    letterSpacing: "-0.02em",
                     lineHeight: 1,
+                    color: isWlv ? "#f5c842" : "#7ec8ff",
                   }}
                 >
                   Wolverine
