@@ -34,8 +34,8 @@ export const marketplaceMock: MarketplaceRetailer[] = [
     retailer_id: "mercadolivre",
     retailer_name: "Mercado Livre",
     total_sellers: 12,
-    authorized_count: 3,
-    unauthorized_count: 9,
+    authorized_count: 0,
+    unauthorized_count: 12,
     buybox_history_24h: [
       { seller: "PlayLoja Oficial", hours: 18, authorized: true },
       { seller: "GameImport SP", hours: 4, authorized: false },
