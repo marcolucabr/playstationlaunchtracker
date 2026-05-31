@@ -366,21 +366,18 @@ function CountdownRow() {
           dateKey="release_date_label"
         />
       </div>
-      <Card className="flex flex-col justify-center">
-        <CardContent className="grid grid-cols-1 gap-x-6 gap-y-1 p-4 sm:grid-cols-2">
+      <Card>
+        <CardContent className="grid grid-cols-1 gap-x-5 gap-y-1.5 p-4 sm:grid-cols-2">
           {groups.map((g) => (
-            <div key={g.key} className="flex flex-wrap items-baseline gap-x-2">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
-                {tr(g.key)}:
+            <div key={g.key} className="flex items-baseline gap-2 min-w-0">
+              <span className="w-28 shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {tr(g.key)}
               </span>
-              <span className="flex flex-wrap items-baseline gap-x-1 text-xs text-muted-foreground">
+              <span className="flex-1 truncate text-xs text-muted-foreground" title={g.items.map(i => i.sellerNote ? `${i.name} (${i.sellerNote})` : i.name).join(" • ")}>
                 {g.items.map((it, idx) => (
-                  <span key={it.name} className="inline-flex items-center gap-1">
-                    <span>{it.name}</span>
-                    {it.sellerNote && <span>({it.sellerNote})</span>}
-                    {idx < g.items.length - 1 && (
-                      <span className="text-muted-foreground/60">•</span>
-                    )}
+                  <span key={it.name}>
+                    {it.name}{it.sellerNote ? ` (${it.sellerNote})` : ""}
+                    {idx < g.items.length - 1 && <span className="text-muted-foreground/50"> • </span>}
                   </span>
                 ))}
               </span>
