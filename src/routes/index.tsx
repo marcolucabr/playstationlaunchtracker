@@ -5,6 +5,8 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
+  BarChart,
+  Bar,
   CartesianGrid,
   XAxis,
   YAxis,
@@ -846,6 +848,12 @@ function SellersPanel({ data }: { data: DashboardData }) {
 }
 
 // ===================== Marketplace =====================
+function is1P(sellerName: string, retailerName: string): boolean {
+  if (/\(1P\)/i.test(sellerName)) return true;
+  if (retailerName === "Amazon" && /^Amazon/i.test(sellerName)) return true;
+  return false;
+}
+
 function MarketplacePanel() {
   // Ranking global cross-plataforma (todos sellers)
   const allSellers = marketplaceMock.flatMap((r) =>
@@ -867,6 +875,25 @@ function MarketplacePanel() {
       unauthorized: r.unauthorized_count,
     };
   });
+
+  // 1P vs 3P por varejista — usa os sellers do mock para inferir presença/preço de cada categoria
+  const firstThirdData = marketplaceMock.map((r) => {
+    const oneP = r.sellers.filter((s) => is1P(s.seller, r.retailer_name));
+    const threeP = r.sellers.filter((s) => !is1P(s.seller, r.retailer_name));
+    const avg = (arr: typeof r.sellers) =>
+      arr.length
+        ? Math.round(arr.reduce((a, s) => a + s.price_avista_cents, 0) / arr.length / 100)
+        : 0;
+    return {
+      retailer: r.retailer_name,
+      "1P": oneP.length,
+      "3P": threeP.length,
+      avg_1p: avg(oneP),
+      avg_3p: avg(threeP),
+    };
+  });
+  const total1P = firstThirdData.reduce((a, r) => a + r["1P"], 0);
+  const total3P = firstThirdData.reduce((a, r) => a + r["3P"], 0);
 
   return (
     <div className="space-y-4">
@@ -987,6 +1014,78 @@ function MarketplacePanel() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 1P vs 3P por varejista */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Store className="h-4 w-4" />
+                1P vs 3P por varejista
+              </CardTitle>
+              <p className="mt-1 text-xs text-muted-foreground">
+                1P = venda direta do varejista · 3P = sellers do marketplace. Ajuda a
+                identificar onde a operação do próprio varejo concorre (ou não) com 3Ps.
+              </p>
+            </div>
+            <div className="flex gap-2 text-xs">
+              <Badge className="border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
+                {total1P} sellers 1P
+              </Badge>
+              <Badge className="border-sky-500/30 bg-sky-500/15 text-sky-700 dark:text-sky-400">
+                {total3P} sellers 3P
+              </Badge>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="h-72 lg:col-span-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={firstThirdData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis dataKey="retailer" className="text-xs" />
+                  <YAxis className="text-xs" allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="1P" name="1P (varejista)" stackId="a" fill="var(--chart-2)" />
+                  <Bar dataKey="3P" name="3P (sellers)" stackId="a" fill="var(--chart-3)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-left text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th className="py-2 pr-2">Varejista</th>
+                    <th className="py-2 pr-2 text-right">1P</th>
+                    <th className="py-2 pr-2 text-right">3P</th>
+                    <th className="py-2 pr-2 text-right">À vista (1P)</th>
+                    <th className="py-2 pr-2 text-right">À vista (3P médio)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {firstThirdData.map((row) => (
+                    <tr key={row.retailer} className="border-t">
+                      <td className="py-1.5 pr-2 font-medium">{row.retailer}</td>
+                      <td className="py-1.5 pr-2 text-right tabular-nums">{row["1P"]}</td>
+                      <td className="py-1.5 pr-2 text-right tabular-nums">{row["3P"]}</td>
+                      <td className="py-1.5 pr-2 text-right tabular-nums">
+                        {row.avg_1p ? `R$ ${row.avg_1p}` : "—"}
+                      </td>
+                      <td className="py-1.5 pr-2 text-right tabular-nums">
+                        {row.avg_3p ? `R$ ${row.avg_3p}` : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
 
       {marketplaceMock.map((r) => (
         <MarketplaceRetailerCard key={r.retailer_id} r={r} />
