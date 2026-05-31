@@ -257,7 +257,8 @@ export const runCollection = createServerFn({ method: "POST" })
         .eq("id", u.id);
     }
 
-    const finalStatus = okCount > 0 && (blockedCount + errorCount) === 0 ? "success" : okCount > 0 ? "partial" : "error";
+    const finalStatus: "success" | "partial" | "failed" =
+      okCount > 0 && blockedCount + errorCount === 0 ? "success" : okCount > 0 ? "partial" : "failed";
     await admin
       .from("collection_runs")
       .update({
