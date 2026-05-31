@@ -201,26 +201,24 @@ function ThemeToggle() {
   const { theme, setTheme } = useContext(ThemeCtx);
   const t = useT();
   return (
-    <div className="inline-flex rounded-md border bg-card p-0.5 text-xs">
+    <div className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider">
       <button
         onClick={() => setTheme("corporate")}
-        className={`rounded px-2.5 py-1 font-medium transition ${
-          theme === "corporate" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-        }`}
+        className={theme === "corporate" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
       >
         {t("theme_light")}
       </button>
+      <span className="text-muted-foreground/40">/</span>
       <button
         onClick={() => setTheme("wolverine")}
-        className={`rounded px-2.5 py-1 font-medium transition ${
-          theme === "wolverine" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-        }`}
+        className={theme === "wolverine" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
       >
         {t("theme_wolverine")}
       </button>
     </div>
   );
 }
+
 
 function ThemeBackdrop() {
   const { theme } = useContext(ThemeCtx);
