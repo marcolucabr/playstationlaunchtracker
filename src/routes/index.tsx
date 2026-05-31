@@ -402,7 +402,7 @@ function Header({ data }: { data: DashboardData }) {
         className="pointer-events-none absolute inset-y-0 right-0 w-[60%] opacity-20"
         style={{ background: "var(--accent-gradient)", maskImage: "linear-gradient(90deg, transparent, black 80%)" }}
       />
-      <div className="container relative mx-auto max-w-7xl px-4 py-6">
+      <div className="relative mx-auto w-full max-w-[1600px] px-6 py-6 lg:px-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-4">
