@@ -1571,7 +1571,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
               </ul>
             )}
           </CardContent>
-        </Card>
+        </ClickCard>
       </div>
     </div>
   );
