@@ -8,10 +8,12 @@ export const dict = {
     monitoring: "Monitoramento de Lançamento",
     presale_ok: "Pré-venda autorizada",
     presale_block: "Pré-venda NÃO autorizada",
-    collect_schedule: "Coleta 08h30 & 13h00",
+    collect_schedule: "Sync 9am & 1pm",
     srp: "SRP",
     floor_avista: "Piso à vista",
     max: "máx",
+    ean: "EAN",
+
     // countdown
     presale_official: "Pré-venda oficial",
     presale_liberated: "Pré-venda LIBERADA — apenas sellers autorizados podem listar",
