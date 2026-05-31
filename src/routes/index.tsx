@@ -462,9 +462,6 @@ function Header({ data }: { data: DashboardData }) {
               <ThemeToggle />
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant={product.presale_allowed ? "default" : "destructive"}>
-                {product.presale_allowed ? t("presale_ok") : t("presale_block")}
-              </Badge>
               <Badge variant="outline" className="gap-1">
                 <Clock className="h-3 w-3" /> Last sync {lastSyncLabel}
               </Badge>
