@@ -444,7 +444,7 @@ function Header({ data }: { data: DashboardData }) {
           </div>
 
           <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-6">
               <LangToggle />
               <ThemeToggle />
             </div>
