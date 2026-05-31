@@ -12,6 +12,7 @@ import {
   YAxis,
   Tooltip,
   Legend,
+  LabelList,
 } from "recharts";
 import {
   AlertTriangle,
@@ -1719,19 +1720,24 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                     dataKey="nao_autorizados"
                     stroke="hsl(0 72% 51%)"
                     strokeWidth={2.5}
-                    dot={{ r: 4, strokeWidth: 2, fill: "hsl(var(--background))" }}
-                    activeDot={{ r: 6 }}
+                    dot={{ r: 4, strokeWidth: 2, fill: "transparent" }}
+                    activeDot={{ r: 6, fill: "transparent", strokeWidth: 2 }}
                     name={tr("unauthorized_sellers")}
-                  />
+                  >
+                    <LabelList dataKey="nao_autorizados" position="top" offset={10} style={{ fontSize: 11, fontWeight: 600, fill: "hsl(0 72% 51%)" }} />
+                  </Line>
                   <Line
                     type="monotone"
                     dataKey="autorizados"
                     stroke="hsl(142 71% 45%)"
                     strokeWidth={2.5}
-                    dot={{ r: 4, strokeWidth: 2, fill: "hsl(var(--background))" }}
-                    activeDot={{ r: 6 }}
+                    dot={{ r: 4, strokeWidth: 2, fill: "transparent" }}
+                    activeDot={{ r: 6, fill: "transparent", strokeWidth: 2 }}
                     name={tr("ok_short")}
-                  />
+                  >
+                    <LabelList dataKey="autorizados" position="top" offset={10} style={{ fontSize: 11, fontWeight: 600, fill: "hsl(142 71% 45%)" }} />
+                  </Line>
+
                 </LineChart>
               </ResponsiveContainer>
             </div>
