@@ -1665,7 +1665,6 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             <ConfBar
               label={tr("below_floor")}
               value={latest.filter((s) => (s.price_avista_cents ?? Infinity) < piso).length}
-              total={total}
               tone="red"
               hint={`${tr("floor")} ${brl(piso)}`}
             />
@@ -1673,15 +1672,13 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             <ConfBar
               label={tr("above_srp")}
               value={latest.filter((s) => (s.price_avista_cents ?? 0) > data.product.srp_cents).length}
-              total={total}
-              tone="red"
+              tone="yellow"
               hint={`${tr("srp")} ${brl(data.product.srp_cents)}`}
             />
             <ConfBar
               label={tr("unauthorized_sellers")}
               value={unauthorizedSellers}
-              total={totalSellers}
-              tone="yellow"
+              tone="red"
               hint={tr("no_permission_3p")}
             />
           </CardContent>
