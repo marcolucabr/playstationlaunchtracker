@@ -1693,7 +1693,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[200px] w-full">
+            <div className="h-[220px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={marketplaceMock.map((m) => ({
@@ -1701,23 +1701,23 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                     autorizados: m.authorized_count,
                     nao_autorizados: m.unauthorized_count,
                   }))}
-                  layout="vertical"
-                  margin={{ top: 4, right: 12, left: 4, bottom: 4 }}
-                  barCategoryGap={6}
+                  margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+                  barCategoryGap={12}
                 >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted" />
-                  <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={90} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} />
+                  <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                   <Tooltip
                     cursor={{ fill: "hsl(var(--muted) / 0.3)" }}
                     contentStyle={{ fontSize: 12, borderRadius: 8 }}
                   />
-                  <Bar dataKey="autorizados" stackId="s" fill="hsl(142 71% 45%)" name={tr("ok_short")} radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="nao_autorizados" stackId="s" fill="hsl(0 72% 51%)" name={tr("unauthorized_sellers")} radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="autorizados" stackId="s" fill="hsl(142 71% 45%)" name={tr("ok_short")} />
+                  <Bar dataKey="nao_autorizados" stackId="s" fill="hsl(0 72% 51%)" name={tr("unauthorized_sellers")} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
+
         </ClickCard>
 
 
