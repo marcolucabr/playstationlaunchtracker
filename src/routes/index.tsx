@@ -1224,7 +1224,7 @@ function TrendCard({ t }: { t: (typeof trendsMock)[number] }) {
 }
 
 // ===================== Overview (resumo do tudo) =====================
-function OverviewSummary({ data }: { data: DashboardData }) {
+function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate: (tab: string) => void }) {
   const latest = useLatestPerListing(data);
   const total = latest.length;
   const counts = latest.reduce(
