@@ -396,11 +396,9 @@ function CountdownRow() {
 
 function CountBox({ v, l }: { v: number; l: string }) {
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-xl border bg-muted/60 text-3xl sm:text-4xl font-bold leading-none shadow-sm">
-        {String(v).padStart(2, "0")}
-      </div>
-      <div className="text-[10px] sm:text-xs font-medium uppercase tracking-wider text-muted-foreground">{l}</div>
+    <div className="rounded-md border bg-muted/40 px-3 py-1.5 text-center">
+      <div className="text-lg font-semibold leading-tight">{String(v).padStart(2, "0")}</div>
+      <div className="text-[10px] uppercase text-muted-foreground">{l}</div>
     </div>
   );
 }
