@@ -364,7 +364,7 @@ function CountdownRow() {
         embargoKey="release_countdown"
         dateKey="release_date_label"
       />
-      <Card>
+      <Card className="border-sky-500/70">
         <CardHeader className="px-4 pb-1 pt-2">
           <CardTitle className="flex items-center gap-2 text-sm tracking-wider">{tr("mapped_retailers_title")}</CardTitle>
         </CardHeader>
