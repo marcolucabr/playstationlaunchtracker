@@ -34,8 +34,8 @@ export const marketplaceMock: MarketplaceRetailer[] = [
     retailer_id: "mercadolivre",
     retailer_name: "Mercado Livre",
     total_sellers: 12,
-    authorized_count: 3,
-    unauthorized_count: 9,
+    authorized_count: 0,
+    unauthorized_count: 12,
     buybox_history_24h: [
       { seller: "PlayLoja Oficial", hours: 18, authorized: true },
       { seller: "GameImport SP", hours: 4, authorized: false },
@@ -154,8 +154,8 @@ export const marketplaceMock: MarketplaceRetailer[] = [
     retailer_id: "amazon",
     retailer_name: "Amazon",
     total_sellers: 7,
-    authorized_count: 2,
-    unauthorized_count: 5,
+    authorized_count: 0,
+    unauthorized_count: 7,
     buybox_history_24h: [
       { seller: "Amazon.com.br", hours: 14, authorized: true },
       { seller: "GameStop BR", hours: 6, authorized: false },
@@ -231,8 +231,8 @@ export const marketplaceMock: MarketplaceRetailer[] = [
     retailer_id: "magalu",
     retailer_name: "Magalu",
     total_sellers: 4,
-    authorized_count: 1,
-    unauthorized_count: 3,
+    authorized_count: 0,
+    unauthorized_count: 4,
     buybox_history_24h: [
       { seller: "Magalu (1P)", hours: 20, authorized: true },
       { seller: "GameWorld", hours: 4, authorized: false },
@@ -274,8 +274,8 @@ export const marketplaceMock: MarketplaceRetailer[] = [
     retailer_id: "kabum",
     retailer_name: "KaBuM!",
     total_sellers: 1,
-    authorized_count: 1,
-    unauthorized_count: 0,
+    authorized_count: 0,
+    unauthorized_count: 1,
     buybox_history_24h: [{ seller: "KaBuM! (1P)", hours: 24, authorized: true }],
     sellers: [
       {

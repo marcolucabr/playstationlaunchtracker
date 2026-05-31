@@ -1657,10 +1657,10 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
           <CardContent className="space-y-3">
             <ConfBar
               label={tr("in_presale")}
-              value={presaleListings}
+              value={latest.filter((s) => s.is_presale && (s.price_avista_cents ?? Infinity) < data.product.srp_cents).length}
               total={total}
               tone={data.product.presale_allowed ? "green" : "red"}
-              hint={data.product.presale_allowed ? tr("permitted") : tr("embargoed")}
+              hint={`${tr("srp")} ${brl(data.product.srp_cents)}`}
             />
             <ConfBar
               label={tr("below_floor")}
@@ -1669,6 +1669,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
               tone="red"
               hint={`${tr("floor")} ${brl(piso)}`}
             />
+
             <ConfBar
               label={tr("above_srp")}
               value={latest.filter((s) => (s.price_avista_cents ?? 0) > data.product.srp_cents).length}
@@ -1691,29 +1692,34 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider"> {tr("sellers_by_marketplace")}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {marketplaceMock.map((m) => (
-              <div key={m.retailer_id} className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{m.retailer_name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {m.total_sellers} {tr("kpi_sellers")} · {m.authorized_count} {tr("ok_short")}
-                  </span>
-                </div>
-                <div className="flex h-2 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="bg-emerald-500"
-                    style={{ width: `${(m.authorized_count / m.total_sellers) * 100}%` }}
+          <CardContent>
+            <div className="h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={marketplaceMock.map((m) => ({
+                    name: m.retailer_name,
+                    autorizados: m.authorized_count,
+                    nao_autorizados: m.unauthorized_count,
+                  }))}
+                  layout="vertical"
+                  margin={{ top: 4, right: 12, left: 4, bottom: 4 }}
+                  barCategoryGap={6}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted" />
+                  <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={90} />
+                  <Tooltip
+                    cursor={{ fill: "hsl(var(--muted) / 0.3)" }}
+                    contentStyle={{ fontSize: 12, borderRadius: 8 }}
                   />
-                  <div
-                    className="bg-rose-500"
-                    style={{ width: `${(m.unauthorized_count / m.total_sellers) * 100}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+                  <Bar dataKey="autorizados" stackId="s" fill="hsl(142 71% 45%)" name={tr("ok_short")} radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="nao_autorizados" stackId="s" fill="hsl(0 72% 51%)" name={tr("unauthorized_sellers")} radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </ClickCard>
+
 
         <ClickCard onClick={() => onNavigate("coupons")}>
           <CardHeader className="pb-2">
