@@ -523,12 +523,11 @@ function KpiRow({ data }: { data: DashboardData }) {
 }
 
 function KpiCard({
-  icon,
   label,
   value,
   hint,
 }: {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   label: string;
   value: string;
   hint?: string;
