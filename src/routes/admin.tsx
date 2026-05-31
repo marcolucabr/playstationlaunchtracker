@@ -2,11 +2,13 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Trash2, Plus, Shield, User as UserIcon } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, Shield, User as UserIcon, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import {
   adminListUsers, adminCreateUser, adminDeleteUser, adminUpdateRole,
 } from "@/lib/admin.functions";
+import { runCollection } from "@/lib/collector.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,10 +20,13 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { UrlsManager } from "@/components/admin/UrlsManager";
+import { RecentRuns } from "@/components/admin/RecentRuns";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Panel" }] }),
