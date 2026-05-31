@@ -743,44 +743,77 @@ function ViolationsTable({ data }: { data: DashboardData }) {
 }
 
 function HistoryChart({ data }: { data: DashboardData }) {
-  // Aggregate avg avista per day across retailers
-  const byDay = new Map<string, { sum: number; n: number }>();
-  for (const s of data.snapshots) {
-    if (s.price_avista_cents == null) continue;
-    const day = s.captured_at.slice(0, 10);
-    const cur = byDay.get(day) ?? { sum: 0, n: 0 };
-    cur.sum += s.price_avista_cents;
-    cur.n += 1;
-    byDay.set(day, cur);
-  }
-  const series = Array.from(byDay.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([day, v]) => ({ day, avista: Math.round(v.sum / v.n / 100) }));
+  const [mode, setMode] = useState<"avista" | "prazo">("avista");
+
+  // Each captured_at slot is a column (the 2 daily collections kept as-is)
+  const slots = Array.from(new Set(data.snapshots.map((s) => s.captured_at))).sort();
+  const retailers = data.retailers;
+
+  // Stable color palette per retailer
+  const palette = [
+    "hsl(210 90% 55%)", "hsl(142 71% 45%)", "hsl(0 72% 51%)", "hsl(38 92% 50%)",
+    "hsl(280 70% 55%)", "hsl(170 70% 40%)", "hsl(330 75% 55%)", "hsl(20 85% 55%)",
+    "hsl(190 75% 45%)", "hsl(260 60% 55%)", "hsl(100 50% 45%)", "hsl(350 70% 55%)",
+  ];
+
+  const series = slots.map((iso) => {
+    const row: Record<string, number | string | null> = {
+      label: new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }),
+    };
+    for (const r of retailers) {
+      const snap = data.snapshots.find((s) => s.captured_at === iso && s.retailer_id === r.id);
+      const cents = snap ? (mode === "avista" ? snap.price_avista_cents : snap.price_full_cents) : null;
+      row[r.slug] = cents != null ? Math.round(cents / 100) : null;
+    }
+    return row;
+  });
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Preço médio à vista (R$) — todos os varejistas</CardTitle>
+      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+        <div>
+          <CardTitle>Preço mapeado por varejista</CardTitle>
+          <p className="mt-1 text-xs text-muted-foreground">Coletas diárias mantidas no histórico</p>
+        </div>
+        <div className="flex rounded-md border bg-muted/40 p-0.5 text-xs">
+          <button
+            onClick={() => setMode("avista")}
+            className={`rounded px-3 py-1 transition ${mode === "avista" ? "bg-background font-semibold shadow-sm" : "text-muted-foreground"}`}
+          >
+            à vista
+          </button>
+          <button
+            onClick={() => setMode("prazo")}
+            className={`rounded px-3 py-1 transition ${mode === "prazo" ? "bg-background font-semibold shadow-sm" : "text-muted-foreground"}`}
+          >
+            a prazo
+          </button>
+        </div>
       </CardHeader>
-      <CardContent className="h-80">
+      <CardContent className="h-[420px]">
         {series.length === 0 ? (
           <p className="text-sm text-muted-foreground">Sem histórico suficiente ainda.</p>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={series}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis dataKey="day" className="text-xs" />
-              <YAxis className="text-xs" />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="avista"
-                name="Média à vista"
-                stroke="var(--primary)"
-                strokeWidth={2}
-                dot={false}
-              />
+            <LineChart data={series} margin={{ top: 12, right: 16, left: 0, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
+              <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+              <YAxis tick={{ fontSize: 11 }} width={50} tickFormatter={(v) => `R$${v}`} />
+              <Tooltip formatter={(v: number) => brl(v * 100)} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              {retailers.map((r, i) => (
+                <Line
+                  key={r.id}
+                  type="monotone"
+                  dataKey={r.slug}
+                  name={r.name}
+                  stroke={palette[i % palette.length]}
+                  strokeWidth={2}
+                  dot={{ r: 3, strokeWidth: 2, fill: "transparent" }}
+                  activeDot={{ r: 5, fill: "transparent", strokeWidth: 2 }}
+                  connectNulls
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         )}
