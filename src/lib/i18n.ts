@@ -8,10 +8,12 @@ export const dict = {
     monitoring: "Monitoramento de Lançamento",
     presale_ok: "Pré-venda autorizada",
     presale_block: "Pré-venda NÃO autorizada",
-    collect_schedule: "Coleta 08h30 & 13h00",
+    collect_schedule: "Sync 9am & 1pm",
     srp: "SRP",
     floor_avista: "Piso à vista",
     max: "máx",
+    // (ean omitted — same in both langs)
+
     // countdown
     presale_official: "Pré-venda oficial",
     presale_liberated: "Pré-venda LIBERADA — apenas sellers autorizados podem listar",
@@ -98,12 +100,27 @@ export const dict = {
     // theme
     theme_light: "Light",
     theme_wolverine: "Wolverine",
+    // extras
+    presale_start_date: "Início: terça 02/06 às 19h00 (BRT)",
+    monitored: "monitoradas",
+    pressure_low: "Menor preço (pressão)",
+    click_for_details: "clique para detalhes",
+    in_attention: "em atenção",
+    ok_short: "ok",
+    highest: "Maior",
+    most_aggressive_subtitle: "do menor para o maior preço — preços muito baixos sinalizam risco de quebra de MAP, não vitória comercial",
+    all_clear_keep_watch: "Tudo conforme. 🟢 Continue de olho.",
+    no_mentions_yet: "Sem menções ainda.",
+    pressure_title: "Pressão de preço — listagens mais agressivas (à vista)",
+    index_score_label: "índice 0–100",
+    featured: "Em destaque",
   },
   en: {
     monitoring: "Launch Monitoring",
     presale_ok: "Pre-sale authorized",
     presale_block: "Pre-sale NOT authorized",
-    collect_schedule: "Collected 8:30am & 1:00pm",
+    collect_schedule: "Sync 9am & 1pm",
+
     srp: "SRP",
     floor_avista: "Cash floor",
     max: "max",
@@ -184,7 +201,21 @@ export const dict = {
     effective_price: "Effective price",
     theme_light: "Light",
     theme_wolverine: "Wolverine",
+    presale_start_date: "Starts: Tue 06/02 at 7:00pm (BRT)",
+    monitored: "monitored",
+    pressure_low: "Lowest price (pressure)",
+    click_for_details: "click for details",
+    in_attention: "in warning",
+    ok_short: "ok",
+    highest: "Highest",
+    most_aggressive_subtitle: "low to high — very low prices signal MAP breakage risk, not a commercial win",
+    all_clear_keep_watch: "All clear. 🟢 Keep watching.",
+    no_mentions_yet: "No mentions yet.",
+    pressure_title: "Price pressure — most aggressive listings (cash)",
+    index_score_label: "score 0–100",
+    featured: "Featured",
   },
+
 } as const;
 
 export type DictKey = keyof typeof dict.pt;
