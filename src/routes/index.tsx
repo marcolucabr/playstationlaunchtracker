@@ -367,9 +367,9 @@ function CountdownRow() {
         />
       </div>
       <Card className="flex flex-col justify-center">
-        <CardContent className="space-y-1.5 p-4">
+        <CardContent className="grid grid-cols-1 gap-x-6 gap-y-1 p-4 sm:grid-cols-2">
           {groups.map((g) => (
-            <div key={g.key} className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <div key={g.key} className="flex flex-wrap items-baseline gap-x-2">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
                 {tr(g.key)}:
               </span>
@@ -377,9 +377,7 @@ function CountdownRow() {
                 {g.items.map((it, idx) => (
                   <span key={it.name} className="inline-flex items-center gap-1">
                     <span>{it.name}</span>
-                    {it.sellerNote && (
-                      <span>({it.sellerNote})</span>
-                    )}
+                    {it.sellerNote && <span>({it.sellerNote})</span>}
                     {idx < g.items.length - 1 && (
                       <span className="text-muted-foreground/60">•</span>
                     )}
