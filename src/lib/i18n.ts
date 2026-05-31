@@ -201,7 +201,21 @@ export const dict = {
     effective_price: "Effective price",
     theme_light: "Light",
     theme_wolverine: "Wolverine",
+    presale_start_date: "Starts: Tue 06/02 at 7:00pm (BRT)",
+    monitored: "monitored",
+    pressure_low: "Lowest price (pressure)",
+    click_for_details: "click for details",
+    in_attention: "in warning",
+    ok_short: "ok",
+    highest: "Highest",
+    most_aggressive_subtitle: "low to high — very low prices signal MAP breakage risk, not a commercial win",
+    all_clear_keep_watch: "All clear. 🟢 Keep watching.",
+    no_mentions_yet: "No mentions yet.",
+    pressure_title: "Price pressure — most aggressive listings (cash)",
+    index_score_label: "score 0–100",
+    featured: "Featured",
   },
+
 } as const;
 
 export type DictKey = keyof typeof dict.pt;
