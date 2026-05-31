@@ -308,6 +308,7 @@ function CountBox({ v, l }: { v: number; l: string }) {
 function Header({ data }: { data: DashboardData }) {
   const { product } = data;
   const { theme } = useContext(ThemeCtx);
+  const t = useT();
   const minAvista = Math.round(product.srp_cents * (1 - product.max_discount_avista_pct / 100));
   const isWlv = theme === "wolverine";
   return (
