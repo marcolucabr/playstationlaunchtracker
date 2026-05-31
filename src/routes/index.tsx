@@ -1947,7 +1947,6 @@ function HeroKpi({
     >
       <CardContent className="p-4">
         <div className="flex items-center gap-2 text-xs uppercase tracking-wider opacity-80">
-          {icon}
           {label}
         </div>
         <div className="mt-2 text-3xl font-black tabular-nums">{value}</div>
