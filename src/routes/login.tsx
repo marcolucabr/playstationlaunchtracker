@@ -49,7 +49,7 @@ function LoginPage() {
     <div className="relative min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <div
         aria-hidden
-        className="absolute inset-0 bg-cover bg-center opacity-30 pointer-events-none"
+        className="absolute inset-0 bg-cover bg-center opacity-50 pointer-events-none"
         style={{ backgroundImage: `url(${psBg})` }}
       />
       <Card className="relative w-full max-w-md shadow-xl border border-slate-200 bg-white/90 backdrop-blur-sm">
