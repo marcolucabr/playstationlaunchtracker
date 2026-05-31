@@ -401,43 +401,45 @@ function Header({ data }: { data: DashboardData }) {
       />
       <div className="container relative mx-auto max-w-7xl px-4 py-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <PsIcon className="mt-1 h-14 w-14 shrink-0 md:h-16 md:w-16" />
-            <div>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-4">
+              <PsIcon className="h-10 w-10 shrink-0 md:h-12 md:w-12" />
               <div
-                className="text-xs font-semibold uppercase tracking-[0.28em] md:text-sm"
+                className="text-2xl font-light uppercase tracking-[0.32em] md:text-3xl"
                 style={{ color: "var(--primary)" }}
               >
                 Launch Tracking
               </div>
-              <h1
-                className="mt-1 text-4xl font-black tracking-tight md:text-5xl"
-                style={{
-                  fontFamily: isWlv
-                    ? "'Impact', 'Bebas Neue', system-ui, sans-serif"
-                    : "system-ui, sans-serif",
-                  letterSpacing: isWlv ? "0.02em" : "-0.02em",
-                }}
-              >
-                <span className="inline-flex items-center gap-3 align-middle">
-                  <img
-                    src={wolverineCover}
-                    alt="Capa Wolverine PS5"
-                    className="h-12 w-auto rounded-sm shadow-md ring-1 ring-border md:h-14"
-                    draggable={false}
-                  />
-                  <span>
-                    Wolverine <span className="text-muted-foreground">[PS5]</span>
-                  </span>
-                </span>
-              </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
-                <strong>{brl(product.srp_cents)}</strong> · {t("floor_avista")}{" "}
-                <strong>{brl(minAvista)}</strong> ({pct(product.max_discount_avista_pct)} {t("max")})
-              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <img
+                src={wolverineCover}
+                alt="Capa Wolverine PS5"
+                className="h-16 w-auto rounded-sm shadow-md ring-1 ring-border md:h-20"
+                draggable={false}
+              />
+              <div>
+                <h1
+                  className="text-4xl font-black tracking-tight md:text-6xl"
+                  style={{
+                    fontFamily: isWlv
+                      ? "'Impact', 'Bebas Neue', system-ui, sans-serif"
+                      : "system-ui, sans-serif",
+                    letterSpacing: isWlv ? "0.02em" : "-0.02em",
+                    lineHeight: 1,
+                  }}
+                >
+                  Wolverine <span className="text-muted-foreground">[PS5]</span>
+                </h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
+                  <strong>{brl(product.srp_cents)}</strong> · {t("floor_avista")}{" "}
+                  <strong>{brl(minAvista)}</strong> ({pct(product.max_discount_avista_pct)} {t("max")})
+                </p>
+              </div>
             </div>
           </div>
+
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
               <LangToggle />
