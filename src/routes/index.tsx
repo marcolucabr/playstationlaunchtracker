@@ -462,9 +462,6 @@ function Header({ data }: { data: DashboardData }) {
               <ThemeToggle />
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant={product.presale_allowed ? "default" : "destructive"}>
-                {product.presale_allowed ? t("presale_ok") : t("presale_block")}
-              </Badge>
               <Badge variant="outline" className="gap-1">
                 <Clock className="h-3 w-3" /> Last sync {lastSyncLabel}
               </Badge>
@@ -773,8 +770,7 @@ function SocialFeed({ data }: { data: DashboardData }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4" /> Menções nas redes & fóruns
+        <CardTitle className="flex items-center gap-2"> Menções nas redes & fóruns
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -863,8 +859,7 @@ function SellersPanel({ data }: { data: DashboardData }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4" /> Sellers 3P autorizados
+        <CardTitle className="flex items-center gap-2"> Sellers 3P autorizados
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -970,9 +965,7 @@ function MarketplacePanel() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Trophy className="h-4 w-4 text-amber-500" />
-              Ranking global de sellers (todas plataformas)
+            <CardTitle className="flex items-center gap-2 text-base"> Ranking global de sellers (todas plataformas)
             </CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">
               menor preço primeiro — útil para identificar onde está a pressão de preço
@@ -1022,9 +1015,7 @@ function MarketplacePanel() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Store className="h-4 w-4" />
-              Sellers por plataforma vs preço médio
+            <CardTitle className="flex items-center gap-2 text-base"> Sellers por plataforma vs preço médio
             </CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">
               barra = quantidade de sellers · linha = preço médio à vista (R$)
@@ -1075,9 +1066,7 @@ function MarketplacePanel() {
         <CardHeader className="pb-2">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Store className="h-4 w-4" />
-                1P vs 3P por varejista
+              <CardTitle className="flex items-center gap-2 text-base"> 1P vs 3P por varejista
               </CardTitle>
               <p className="mt-1 text-xs text-muted-foreground">
                 1P = venda direta do varejista · 3P = sellers do marketplace. Ajuda a
@@ -1161,9 +1150,7 @@ function MarketplaceRetailerCard({
     <Card>
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Store className="h-4 w-4" />
-            {r.retailer_name}
+          <CardTitle className="flex items-center gap-2 text-lg"> {r.retailer_name}
           </CardTitle>
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <Badge variant="outline">{r.total_sellers} sellers ativos</Badge>
@@ -1383,8 +1370,7 @@ function CouponsPanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Ticket className="h-4 w-4" /> Cupons ativos agora
+          <CardTitle className="flex items-center gap-2"> Cupons ativos agora
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -1632,8 +1618,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-            <Store className="h-4 w-4" /> {tr("mapped_retailers")} ({data.retailers.length})
+          <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider"> {tr("mapped_retailers")} ({data.retailers.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -1660,8 +1645,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <ClickCard onClick={() => onNavigate("violations")}>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <ShieldCheck className="h-4 w-4" /> {tr("compliance")}
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider"> {tr("compliance")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -1698,8 +1682,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
 
         <ClickCard onClick={() => onNavigate("marketplace")}>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <Store className="h-4 w-4" /> {tr("sellers_by_marketplace")}
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider"> {tr("sellers_by_marketplace")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -1728,8 +1711,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
 
         <ClickCard onClick={() => onNavigate("coupons")}>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <Ticket className="h-4 w-4" /> {tr("coupons")}
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider"> {tr("coupons")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -1767,8 +1749,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <ClickCard onClick={() => onNavigate("marketplace")} className="lg:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <AlertTriangle className="h-4 w-4 text-amber-500" /> {tr("pressure_title")}
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider"> {tr("pressure_title")}
             </CardTitle>
             <p className="mt-1 text-xs font-normal normal-case text-muted-foreground">
               {tr("most_aggressive_subtitle")}
@@ -1820,8 +1801,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
 
         <ClickCard onClick={() => onNavigate("trends")}>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <Flame className="h-4 w-4" /> {tr("trends_7d")}
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider"> {tr("trends_7d")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -1850,8 +1830,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <ClickCard onClick={() => onNavigate("violations")}>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <AlertTriangle className="h-4 w-4 text-rose-500" /> {tr("violations_highlight")}
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider"> {tr("violations_highlight")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1898,8 +1877,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
 
         <ClickCard onClick={() => onNavigate("social")}>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <MessageSquare className="h-4 w-4" /> {tr("social_highlight")}
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider"> {tr("social_highlight")}
             </CardTitle>
           </CardHeader>
           <CardContent>
