@@ -1302,7 +1302,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Pré-venda + piso */}
-        <Card className="claw-cut">
+        <ClickCard onClick={() => onNavigate("violations")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
               <ShieldCheck className="h-4 w-4" /> Conformidade
