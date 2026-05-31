@@ -848,6 +848,12 @@ function SellersPanel({ data }: { data: DashboardData }) {
 }
 
 // ===================== Marketplace =====================
+function is1P(sellerName: string, retailerName: string): boolean {
+  if (/\(1P\)/i.test(sellerName)) return true;
+  if (retailerName === "Amazon" && /^Amazon/i.test(sellerName)) return true;
+  return false;
+}
+
 function MarketplacePanel() {
   // Ranking global cross-plataforma (todos sellers)
   const allSellers = marketplaceMock.flatMap((r) =>
@@ -869,6 +875,25 @@ function MarketplacePanel() {
       unauthorized: r.unauthorized_count,
     };
   });
+
+  // 1P vs 3P por varejista — usa os sellers do mock para inferir presença/preço de cada categoria
+  const firstThirdData = marketplaceMock.map((r) => {
+    const oneP = r.sellers.filter((s) => is1P(s.seller, r.retailer_name));
+    const threeP = r.sellers.filter((s) => !is1P(s.seller, r.retailer_name));
+    const avg = (arr: typeof r.sellers) =>
+      arr.length
+        ? Math.round(arr.reduce((a, s) => a + s.price_avista_cents, 0) / arr.length / 100)
+        : 0;
+    return {
+      retailer: r.retailer_name,
+      "1P": oneP.length,
+      "3P": threeP.length,
+      avg_1p: avg(oneP),
+      avg_3p: avg(threeP),
+    };
+  });
+  const total1P = firstThirdData.reduce((a, r) => a + r["1P"], 0);
+  const total3P = firstThirdData.reduce((a, r) => a + r["3P"], 0);
 
   return (
     <div className="space-y-4">
