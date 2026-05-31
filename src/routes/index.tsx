@@ -60,7 +60,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Visibilidade completa do título Marvel's Wolverine para PS5: preço, parcelamento, sellers autorizados e menções sociais.",
+          "Visibilidade completa do título Wolverine [PS5]: preço, parcelamento, sellers autorizados e menções sociais.",
       },
     ],
   }),
