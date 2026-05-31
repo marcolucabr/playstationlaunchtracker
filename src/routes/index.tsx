@@ -523,12 +523,11 @@ function KpiRow({ data }: { data: DashboardData }) {
 }
 
 function KpiCard({
-  icon,
   label,
   value,
   hint,
 }: {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   label: string;
   value: string;
   hint?: string;
@@ -537,7 +536,6 @@ function KpiCard({
     <Card>
       <CardContent className="p-4">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          {icon}
           {label}
         </div>
         <div className="mt-2 text-2xl font-semibold">{value}</div>
@@ -1910,7 +1908,6 @@ function HeroKpi({
   label,
   value,
   sub,
-  icon,
   accent,
   danger,
   onClick,
@@ -1918,7 +1915,7 @@ function HeroKpi({
   label: string;
   value: string;
   sub?: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   accent?: boolean;
   danger?: boolean;
   onClick?: () => void;
@@ -1948,7 +1945,6 @@ function HeroKpi({
     >
       <CardContent className="p-4">
         <div className="flex items-center gap-2 text-xs uppercase tracking-wider opacity-80">
-          {icon}
           {label}
         </div>
         <div className="mt-2 text-3xl font-black tabular-nums">{value}</div>
