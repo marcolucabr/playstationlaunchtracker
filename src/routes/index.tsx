@@ -423,7 +423,9 @@ function Header({ data }: { data: DashboardData }) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-4">
-              <PsIcon className="h-[63px] w-[63px] shrink-0 md:h-[76px] md:w-[76px]" />
+              <div className="flex w-[84px] justify-start md:w-[104px]">
+                <PsIcon className="h-[69px] w-[69px] md:h-[84px] md:w-[84px]" />
+              </div>
               <div
                 className="text-2xl font-light uppercase tracking-[0.32em] md:text-3xl"
                 style={{ color: isWlv ? "#f5c842" : "#7ec8ff" }}
@@ -432,12 +434,14 @@ function Header({ data }: { data: DashboardData }) {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <img
-                src={wolverineCover}
-                alt="Capa Wolverine PS5"
-                className="h-16 w-auto rounded-sm shadow-md ring-1 ring-border md:h-20"
-                draggable={false}
-              />
+              <div className="flex w-[84px] justify-start md:w-[104px]">
+                <img
+                  src={wolverineCover}
+                  alt="Capa Wolverine PS5"
+                  className="h-16 w-auto rounded-sm shadow-md ring-1 ring-border md:h-20"
+                  draggable={false}
+                />
+              </div>
               <div>
                 <h1
                   className="text-4xl font-black tracking-tight md:text-6xl"
@@ -453,8 +457,7 @@ function Header({ data }: { data: DashboardData }) {
                 </h1>
                 <p className="mt-2 text-sm text-white/75">
                   EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
-                  <strong className="text-white">{brl(product.srp_cents)}</strong> · {t("floor_avista")}{" "}
-                  <strong className="text-white">{brl(minAvista)}</strong>
+                  <strong className="text-white">{brl(product.srp_cents)}</strong>
                 </p>
               </div>
             </div>
