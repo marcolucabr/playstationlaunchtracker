@@ -349,7 +349,10 @@ function Header({ data }: { data: DashboardData }) {
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <LangToggle />
+              <ThemeToggle />
+            </div>
             <div className="flex items-center gap-2">
               <Badge variant={product.presale_allowed ? "default" : "destructive"}>
                 {product.presale_allowed ? "Pré-venda autorizada" : "Pré-venda NÃO autorizada"}
