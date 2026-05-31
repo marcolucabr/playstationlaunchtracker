@@ -1696,18 +1696,18 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             {(() => {
               const maxTotal = Math.max(...marketplaceMock.map((m) => m.total_sellers));
               return (
-                <div className="flex h-[200px] items-end justify-between gap-3 px-1">
+                <div className="flex h-[200px] items-stretch justify-between gap-3 px-1">
                   {marketplaceMock.map((m) => {
                     const totalH = (m.total_sellers / maxTotal) * 100;
                     const authPct = m.total_sellers > 0 ? (m.authorized_count / m.total_sellers) * 100 : 0;
                     return (
-                      <div key={m.retailer_id} className="flex flex-1 flex-col items-center gap-2">
-                        <span className="text-xs font-semibold tabular-nums text-foreground">
+                      <div key={m.retailer_id} className="flex flex-1 flex-col items-center">
+                        <span className="mb-1 text-xs font-semibold tabular-nums text-foreground">
                           {m.total_sellers}
                         </span>
-                        <div className="flex w-full flex-1 items-end justify-center">
+                        <div className="flex h-full w-full flex-col justify-end">
                           <div
-                            className="relative w-full max-w-[44px] overflow-hidden rounded-t-md bg-muted/40 ring-1 ring-inset ring-border/60 transition-all hover:ring-border"
+                            className="relative mx-auto w-full max-w-[44px] overflow-hidden rounded-t-md bg-muted/40 ring-1 ring-inset ring-border/60"
                             style={{ height: `${totalH}%` }}
                             title={`${m.retailer_name}: ${m.authorized_count} autorizados · ${m.unauthorized_count} não autorizados`}
                           >
@@ -1721,13 +1721,14 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                             />
                           </div>
                         </div>
-                        <span className="w-full truncate text-center text-[11px] text-muted-foreground">
+                        <span className="mt-2 w-full truncate text-center text-[11px] text-muted-foreground">
                           {m.retailer_name}
                         </span>
                       </div>
                     );
                   })}
                 </div>
+
               );
             })()}
             <div className="mt-3 flex items-center justify-center gap-4 text-[11px] text-muted-foreground">
