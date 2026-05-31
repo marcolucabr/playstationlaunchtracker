@@ -2,7 +2,7 @@
 // Substituir por coleta real (Firecrawl) no Sprint 1 final.
 
 export const PRESALE_START_ISO = "2026-06-02T22:00:00.000Z"; // 02/06 19h BRT (UTC-3)
-export const RELEASE_DATE_ISO = "2026-10-31T03:00:00.000Z"; // placeholder — confirmar
+export const RELEASE_DATE_ISO = "2026-09-15T03:00:00.000Z"; // 15/09 meia-noite BRT
 
 export type MarketplaceSeller = {
   seller: string;
