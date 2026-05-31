@@ -119,6 +119,10 @@ function AdminPage() {
           </Dialog>
         </div>
 
+        <AdminDashboard users={users} />
+
+
+
         <Card>
           <CardHeader><CardTitle className="text-base">Users ({users.length})</CardTitle></CardHeader>
           <CardContent>
