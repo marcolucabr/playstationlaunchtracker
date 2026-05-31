@@ -111,23 +111,24 @@ function LangProvider({ children }: { children: React.ReactNode }) {
 function LangToggle() {
   const { lang, setLang } = useContext(LangCtx);
   return (
-    <div className="inline-flex items-center rounded-md border bg-card p-0.5 text-xs">
-      <Languages className="ml-1 h-3 w-3 text-muted-foreground" />
-      <button
-        onClick={() => setLang("pt")}
-        className={`rounded px-2 py-1 font-medium transition ${lang === "pt" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
-      >
-        PT-BR
-      </button>
+    <div className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider">
       <button
         onClick={() => setLang("en")}
-        className={`rounded px-2 py-1 font-medium transition ${lang === "en" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+        className={lang === "en" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
       >
         EN
+      </button>
+      <span className="text-muted-foreground/40">/</span>
+      <button
+        onClick={() => setLang("pt")}
+        className={lang === "pt" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
+      >
+        PT
       </button>
     </div>
   );
 }
+
 
 function DashboardInner({ data }: { data: DashboardData }) {
   const t = useT();
@@ -200,26 +201,24 @@ function ThemeToggle() {
   const { theme, setTheme } = useContext(ThemeCtx);
   const t = useT();
   return (
-    <div className="inline-flex rounded-md border bg-card p-0.5 text-xs">
+    <div className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider">
       <button
         onClick={() => setTheme("corporate")}
-        className={`rounded px-2.5 py-1 font-medium transition ${
-          theme === "corporate" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-        }`}
+        className={theme === "corporate" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
       >
         {t("theme_light")}
       </button>
+      <span className="text-muted-foreground/40">/</span>
       <button
         onClick={() => setTheme("wolverine")}
-        className={`rounded px-2.5 py-1 font-medium transition ${
-          theme === "wolverine" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-        }`}
+        className={theme === "wolverine" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
       >
         {t("theme_wolverine")}
       </button>
     </div>
   );
 }
+
 
 function ThemeBackdrop() {
   const { theme } = useContext(ThemeCtx);
@@ -354,10 +353,7 @@ function Header({ data }: { data: DashboardData }) {
           <div>
             <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em]" style={{ color: "var(--primary)" }}>
               <PsIcon className="h-3.5 w-3.5" />
-              <span>Launch Commercial Tracking</span>
-            </div>
-            <div className="mt-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              {t("monitoring")}
+              <span>Launch Tracking</span>
             </div>
             <h1
               className="mt-2 text-4xl font-black tracking-tight md:text-5xl"
@@ -387,14 +383,12 @@ function Header({ data }: { data: DashboardData }) {
                 {product.presale_allowed ? "Pré-venda autorizada" : "Pré-venda NÃO autorizada"}
               </Badge>
               <Badge variant="outline" className="gap-1">
-                <Clock className="h-3 w-3" /> Coleta 08h30 & 13h00
+                <Clock className="h-3 w-3" /> Sync 9am &amp; 1pm
               </Badge>
             </div>
           </div>
         </div>
-        {product.notes ? (
-          <p className="mt-3 max-w-3xl text-sm text-muted-foreground">{product.notes}</p>
-        ) : null}
+
       </div>
     </header>
   );
