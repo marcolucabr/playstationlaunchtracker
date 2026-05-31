@@ -89,47 +89,89 @@ function Dashboard() {
   }
 
   return (
-    <ThemeProvider>
-      <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
-        <ThemeBackdrop />
-        <Header data={data} />
-        <main className="container relative mx-auto max-w-7xl space-y-6 px-4 py-6">
-          <PresaleCountdown />
-          <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-7">
-              <TabsTrigger value="overview">Visão geral</TabsTrigger>
-              <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
-              <TabsTrigger value="coupons">Cupom</TabsTrigger>
-              <TabsTrigger value="trends">Tendências</TabsTrigger>
-              <TabsTrigger value="violations">Violações</TabsTrigger>
-              <TabsTrigger value="history">Histórico</TabsTrigger>
-              <TabsTrigger value="social">Social</TabsTrigger>
-            </TabsList>
-            <TabsContent value="overview">
-              <OverviewSummary data={data} />
-            </TabsContent>
-            <TabsContent value="marketplace">
-              <MarketplacePanel />
-            </TabsContent>
-            <TabsContent value="coupons">
-              <CouponsPanel />
-            </TabsContent>
-            <TabsContent value="trends">
-              <TrendsPanel />
-            </TabsContent>
-            <TabsContent value="violations">
-              <ViolationsTable data={data} />
-            </TabsContent>
-            <TabsContent value="history">
-              <HistoryChart data={data} />
-            </TabsContent>
-            <TabsContent value="social">
-              <SocialFeed data={data} />
-            </TabsContent>
-          </Tabs>
-        </main>
-      </div>
-    </ThemeProvider>
+    <LangProvider>
+      <ThemeProvider>
+        <DashboardInner data={data} />
+      </ThemeProvider>
+    </LangProvider>
+  );
+}
+
+function LangProvider({ children }: { children: React.ReactNode }) {
+  const [lang, setLang] = useState<Lang>(() => {
+    if (typeof window === "undefined") return "pt";
+    return (localStorage.getItem("wlv-lang") as Lang) || "pt";
+  });
+  useEffect(() => {
+    localStorage.setItem("wlv-lang", lang);
+  }, [lang]);
+  return <LangCtx.Provider value={{ lang, setLang }}>{children}</LangCtx.Provider>;
+}
+
+function LangToggle() {
+  const { lang, setLang } = useContext(LangCtx);
+  return (
+    <div className="inline-flex items-center rounded-md border bg-card p-0.5 text-xs">
+      <Languages className="ml-1 h-3 w-3 text-muted-foreground" />
+      <button
+        onClick={() => setLang("pt")}
+        className={`rounded px-2 py-1 font-medium transition ${lang === "pt" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+      >
+        PT-BR
+      </button>
+      <button
+        onClick={() => setLang("en")}
+        className={`rounded px-2 py-1 font-medium transition ${lang === "en" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+      >
+        EN
+      </button>
+    </div>
+  );
+}
+
+function DashboardInner({ data }: { data: DashboardData }) {
+  const t = useT();
+  const [tab, setTab] = useState("overview");
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
+      <ThemeBackdrop />
+      <Header data={data} />
+      <main className="container relative mx-auto max-w-7xl space-y-6 px-4 py-6">
+        <PresaleCountdown />
+        <Tabs value={tab} onValueChange={setTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-7">
+            <TabsTrigger value="overview">{t("tab_overview")}</TabsTrigger>
+            <TabsTrigger value="marketplace">{t("tab_marketplace")}</TabsTrigger>
+            <TabsTrigger value="coupons">{t("tab_coupons")}</TabsTrigger>
+            <TabsTrigger value="trends">{t("tab_trends")}</TabsTrigger>
+            <TabsTrigger value="social">{t("tab_social")}</TabsTrigger>
+            <TabsTrigger value="violations">{t("tab_violations")}</TabsTrigger>
+            <TabsTrigger value="history">{t("tab_history")}</TabsTrigger>
+          </TabsList>
+          <TabsContent value="overview">
+            <OverviewSummary data={data} onNavigate={setTab} />
+          </TabsContent>
+          <TabsContent value="marketplace">
+            <MarketplacePanel />
+          </TabsContent>
+          <TabsContent value="coupons">
+            <CouponsPanel />
+          </TabsContent>
+          <TabsContent value="trends">
+            <TrendsPanel />
+          </TabsContent>
+          <TabsContent value="social">
+            <SocialFeed data={data} />
+          </TabsContent>
+          <TabsContent value="violations">
+            <ViolationsTable data={data} />
+          </TabsContent>
+          <TabsContent value="history">
+            <HistoryChart data={data} />
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
   );
 }
 
