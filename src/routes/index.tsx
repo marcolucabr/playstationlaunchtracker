@@ -1633,7 +1633,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-            <Store className="h-4 w-4" /> Varejos mapeados ({data.retailers.length})
+            <Store className="h-4 w-4" /> {tr("mapped_retailers")} ({data.retailers.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
