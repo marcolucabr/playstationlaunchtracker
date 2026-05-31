@@ -259,6 +259,8 @@ function AdminPage() {
             </Table>
           </CardContent>
         </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
