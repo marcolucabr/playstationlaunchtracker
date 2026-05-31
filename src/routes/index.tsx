@@ -174,6 +174,29 @@ function LangToggle() {
 
 
 
+
+function UserMenu() {
+  const { user, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
+  if (!user) return null;
+  return (
+    <div className="flex items-center gap-2 text-white/90 text-xs">
+      <span className="hidden md:inline opacity-70">{user.email}</span>
+      {isAdmin && (
+        <Link to="/admin" className="inline-flex items-center gap-1 rounded-md border border-white/30 px-2 py-1 hover:bg-white/10">
+          <Shield className="h-3.5 w-3.5" /> Admin
+        </Link>
+      )}
+      <button
+        onClick={async () => { await signOut(); navigate({ to: "/login" }); }}
+        className="inline-flex items-center gap-1 rounded-md border border-white/30 px-2 py-1 hover:bg-white/10"
+      >
+        <LogOut className="h-3.5 w-3.5" /> Sign out
+      </button>
+    </div>
+  );
+}
+
 function DashboardInner({ data }: { data: DashboardData }) {
   const t = useT();
   const [tab, setTab] = useState("overview");
