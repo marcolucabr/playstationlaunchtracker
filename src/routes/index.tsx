@@ -448,7 +448,8 @@ function Header({ data }: { data: DashboardData }) {
                   Wolverine
                 </h1>
                 <p className="mt-2 text-sm text-white/75">
-                  {t("srp")}{" "}
+                  EAN <span className="font-mono">{product.ean}</span> · SKU{" "}
+                  <span className="font-mono">1000052329</span> · {t("srp")}{" "}
                   <strong className="text-white">{brl(product.srp_cents)}</strong>
                 </p>
               </div>
@@ -1632,7 +1633,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-            <Store className="h-4 w-4" /> Varejos mapeados ({data.retailers.length})
+            <Store className="h-4 w-4" /> {tr("mapped_retailers")} ({data.retailers.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -1647,7 +1648,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             ))}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Coleta cobre o varejista oficial (1P) e, quando aplicável, sellers terceiros (3P) nos marketplaces. Webfones é o único seller autorizado a operar como 3P na Shopee.
+            {tr("mapped_retailers_hint")}
           </p>
         </CardContent>
       </Card>

@@ -118,6 +118,8 @@ export const dict = {
     pressure_title: "Pressão de preço — listagens mais agressivas (à vista)",
     index_score_label: "índice 0–100",
     featured: "Em destaque",
+    mapped_retailers: "Varejos mapeados",
+    mapped_retailers_hint: "Coleta cobre o varejista oficial (1P) e, quando aplicável, sellers terceiros (3P) nos marketplaces. Webfones é o único seller autorizado a operar como 3P na Shopee.",
   },
   en: {
     monitoring: "Launch Monitoring",
@@ -222,6 +224,8 @@ export const dict = {
     pressure_title: "Price pressure — most aggressive listings (cash)",
     index_score_label: "score 0–100",
     featured: "Featured",
+    mapped_retailers: "Mapped retailers",
+    mapped_retailers_hint: "Collection covers the official retailer (1P) and, when applicable, third-party sellers (3P) on marketplaces. Webfones is the only seller authorized to operate as 3P on Shopee.",
   },
 
 } as const;
