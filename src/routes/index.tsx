@@ -429,7 +429,7 @@ function Header({ data }: { data: DashboardData }) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-4">
-              <PsIcon className="h-[55px] w-[55px] shrink-0 md:h-[66px] md:w-[66px]" />
+              <PsIcon className="h-[63px] w-[63px] shrink-0 md:h-[76px] md:w-[76px]" />
               <div
                 className="text-2xl font-light uppercase tracking-[0.32em] md:text-3xl"
                 style={{ color: "var(--primary)" }}
@@ -455,19 +455,19 @@ function Header({ data }: { data: DashboardData }) {
                     lineHeight: 1,
                   }}
                 >
-                  Wolverine <span className="text-muted-foreground">[PS5]</span>
+                  Wolverine
                 </h1>
                 <p className="mt-2 text-sm text-muted-foreground">
                   EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
                   <strong>{brl(product.srp_cents)}</strong> · {t("floor_avista")}{" "}
-                  <strong>{brl(minAvista)}</strong> ({pct(product.max_discount_avista_pct)} {t("max")})
+                  <strong>{brl(minAvista)}</strong>
                 </p>
               </div>
             </div>
           </div>
 
           <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-10">
               <LangToggle />
               <ThemeToggle />
             </div>
@@ -476,7 +476,7 @@ function Header({ data }: { data: DashboardData }) {
                 {product.presale_allowed ? t("presale_ok") : t("presale_block")}
               </Badge>
               <Badge variant="outline" className="gap-1">
-                <Clock className="h-3 w-3" /> {t("collect_schedule")}
+                <Clock className="h-3 w-3" /> {t("last_sync")} {lastSyncLabel}
               </Badge>
             </div>
 
