@@ -537,7 +537,6 @@ function KpiCard({
     <Card>
       <CardContent className="p-4">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          {icon}
           {label}
         </div>
         <div className="mt-2 text-2xl font-semibold">{value}</div>
