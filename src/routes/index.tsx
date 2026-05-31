@@ -1616,25 +1616,58 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider"> {tr("mapped_retailers")} ({data.retailers.length})
+          <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+            {tr("mapped_retailers")}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {data.retailers.map((r) => (
-              <Badge key={r.id} variant="outline" className="gap-1.5 py-1">
-                <span className="font-medium">{r.name}</span>
-                <span className="text-[10px] uppercase text-muted-foreground">
-                  {r.kind === "both" ? "1P+3P" : r.kind}
-                </span>
-              </Badge>
-            ))}
-          </div>
+          {(() => {
+            const groups: Array<{
+              key: "cat_pure_online" | "cat_hybrid_retail" | "cat_physical_stores" | "cat_telco" | "cat_marketplace" | "cat_regional_retailer";
+              items: Array<{ name: string; sellerNote?: string }>;
+            }> = [
+              { key: "cat_pure_online", items: [{ name: "Amazon" }, { name: "Kabum" }, { name: "Mercado Livre" }, { name: "Webfones" }] },
+              { key: "cat_hybrid_retail", items: [{ name: "Magazine Luiza" }] },
+              { key: "cat_physical_stores", items: [{ name: "Carrefour" }, { name: "Sam's Club" }, { name: "Lasa" }] },
+              { key: "cat_telco", items: [{ name: "TIM" }, { name: "Vivo" }] },
+              { key: "cat_marketplace", items: [
+                { name: "Casas Bahia", sellerNote: "Game Play Fulfillment" },
+                { name: "Shopee", sellerNote: "Webfones" },
+              ] },
+              { key: "cat_regional_retailer", items: [{ name: "Havan" }, { name: "Gazin" }, { name: "Bemol" }] },
+            ];
+            return (
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+                {groups.map((g) => (
+                  <div key={g.key} className="rounded-lg border bg-muted/30 p-3">
+                    <div className="mb-2 border-b pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {tr(g.key)}
+                    </div>
+                    <ul className="space-y-1.5 text-sm">
+                      {g.items.map((it) => (
+                        <li key={it.name} className="leading-tight">
+                          <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                            {it.name}
+                          </span>
+                          {it.sellerNote && (
+                            <span className="ml-1 text-xs text-amber-600 dark:text-amber-400">
+                              (apenas {it.sellerNote})
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
           <p className="mt-3 text-xs text-muted-foreground">
             {tr("mapped_retailers_hint")}
           </p>
         </CardContent>
       </Card>
+
 
 
 
