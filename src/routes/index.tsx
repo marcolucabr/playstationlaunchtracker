@@ -55,7 +55,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import psLogo from "@/assets/playstation-logo.png";
 import wolverineCover from "@/assets/wolverine-cover.png";
-import wolverineHero from "@/assets/wolverine-hero.jpg";
+import wolverineHero from "@/assets/wolverine-banner.jpg";
+import psBg from "@/assets/ps-bg.jpg";
 
 
 
@@ -393,47 +394,39 @@ function Header({ data }: { data: DashboardData }) {
     <header
       className="relative overflow-hidden border-b"
       style={{
-        background:
-          theme === "wolverine"
-            ? "linear-gradient(135deg, oklch(0.13 0.01 80), oklch(0.18 0.02 90))"
-            : "linear-gradient(135deg, var(--card), oklch(0.95 0.04 258))",
+        background: isWlv
+          ? "linear-gradient(135deg, #0a0a0a, #161616)"
+          : "linear-gradient(135deg, #1a1a3a, #2a4ab8)",
       }}
     >
-      {/* Hero photographic backdrop — anchored right, faded into the theme bg */}
+      {/* Theme photographic backdrop */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage: `url(${wolverineHero})`,
+          backgroundImage: `url(${isWlv ? wolverineHero : psBg})`,
           backgroundSize: "cover",
-          backgroundPosition: "right center",
-          opacity: isWlv ? 0.55 : 0.28,
-          maskImage:
-            "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.25) 35%, rgba(0,0,0,1) 70%)",
-          WebkitMaskImage:
-            "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.25) 35%, rgba(0,0,0,1) 70%)",
+          backgroundPosition: isWlv ? "right center" : "center",
+          opacity: isWlv ? 0.7 : 0.85,
         }}
       />
-      {/* Legibility gradient over the photo — darker for wolverine, lighter for light theme */}
+      {/* Legibility gradient over the photo */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background: isWlv
-            ? "linear-gradient(90deg, rgba(15,15,18,0.92) 0%, rgba(15,15,18,0.65) 45%, rgba(15,15,18,0.15) 100%)"
-            : "linear-gradient(90deg, var(--card) 0%, rgba(255,255,255,0.85) 45%, rgba(255,255,255,0.35) 100%)",
+            ? "linear-gradient(90deg, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.55) 45%, rgba(8,8,8,0.05) 100%)"
+            : "linear-gradient(90deg, rgba(20,22,55,0.78) 0%, rgba(20,22,55,0.35) 45%, rgba(20,22,55,0.05) 100%)",
         }}
       />
-      <div
-        className="pointer-events-none absolute inset-y-0 right-0 w-[60%] opacity-20"
-        style={{ background: "var(--accent-gradient)", maskImage: "linear-gradient(90deg, transparent, black 80%)" }}
-      />
-      <div className="relative mx-auto w-full max-w-[1600px] px-6 py-6 lg:px-10">
+
+      <div className="relative mx-auto w-full max-w-[1600px] px-6 py-6 text-white lg:px-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-4">
               <PsIcon className="h-[63px] w-[63px] shrink-0 md:h-[76px] md:w-[76px]" />
               <div
                 className="text-2xl font-light uppercase tracking-[0.32em] md:text-3xl"
-                style={{ color: "var(--primary)" }}
+                style={{ color: isWlv ? "#f5c842" : "#7ec8ff" }}
               >
                 Launch Tracking
               </div>
@@ -458,17 +451,17 @@ function Header({ data }: { data: DashboardData }) {
                 >
                   Wolverine
                 </h1>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="mt-2 text-sm text-white/75">
                   EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
-                  <strong>{brl(product.srp_cents)}</strong> · {t("floor_avista")}{" "}
-                  <strong>{brl(minAvista)}</strong>
+                  <strong className="text-white">{brl(product.srp_cents)}</strong> · {t("floor_avista")}{" "}
+                  <strong className="text-white">{brl(minAvista)}</strong>
                 </p>
               </div>
             </div>
           </div>
 
           <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-10">
+            <div className="flex items-center gap-10 [&_button.text-muted-foreground]:!text-white/60 [&_button.font-semibold]:!text-white [&_span]:!text-white/40">
               <LangToggle />
               <ThemeToggle />
             </div>
