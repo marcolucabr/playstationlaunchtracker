@@ -356,7 +356,7 @@ function CountdownRow() {
     { key: "cat_regional_retailer", items: [{ name: "Havan" }, { name: "Gazin" }, { name: "Bemol" }] },
   ];
   return (
-    <div className="grid grid-cols-1 gap-3 lg:grid-cols-[35%_65%]">
+    <div className="grid grid-cols-1 gap-3 lg:grid-cols-[38%_62%]">
       <CountdownCard
         targetIso={RELEASE_DATE_ISO}
         titleKey="release_official"
@@ -365,8 +365,8 @@ function CountdownRow() {
         dateKey="release_date_label"
       />
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">{tr("mapped_retailers_title")}</CardTitle>
+        <CardHeader className="px-4 pb-2">
+          <CardTitle className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{tr("mapped_retailers_title")}</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-x-5 gap-y-1.5 p-4 pt-0 sm:grid-cols-2">
           {groups.map((g) => (
