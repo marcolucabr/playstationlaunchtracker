@@ -230,7 +230,7 @@ export const dict = {
     most_aggressive_subtitle: "low to high — very low prices signal MAP breakage risk, not a commercial win",
     all_clear_keep_watch: "All clear. Keep watching.",
     no_mentions_yet: "No mentions yet.",
-    pressure_title: "Price pressure — most aggressive listings (cash)",
+    pressure_title: "Practiced Prices",
     index_score_label: "score 0–100",
     featured: "Featured",
     mapped_retailers: "Mapped retailers",
