@@ -744,36 +744,37 @@ function ViolationsTable({ data }: { data: DashboardData }) {
 
 function HistoryChart({ data }: { data: DashboardData }) {
   const [mode, setMode] = useState<"avista" | "prazo">("avista");
+  const [party, setParty] = useState<"all" | "1p" | "3p">("all");
 
-  // Each captured_at slot is a column (the 2 daily collections kept as-is)
   const slots = Array.from(new Set(data.snapshots.map((s) => s.captured_at))).sort();
   const retailers = data.retailers;
 
-  // Stable color palette per retailer (1P = solid, 3P = dashed of same color)
   const palette = [
     "hsl(210 90% 55%)", "hsl(142 71% 45%)", "hsl(0 72% 51%)", "hsl(38 92% 50%)",
     "hsl(280 70% 55%)", "hsl(170 70% 40%)", "hsl(330 75% 55%)", "hsl(20 85% 55%)",
     "hsl(190 75% 45%)", "hsl(260 60% 55%)", "hsl(100 50% 45%)", "hsl(350 70% 55%)",
+    "hsl(50 90% 50%)", "hsl(220 60% 45%)", "hsl(160 60% 35%)",
   ];
 
-  // Build unique series per (retailer, party) actually present in snapshots
   const seriesKeys = Array.from(
     new Set(
-      data.snapshots.map((s) => `${s.retailer_id}::${s.is_first_party ? "1p" : "3p"}`)
+      data.snapshots
+        .filter((s) => party === "all" || (s.is_first_party ? "1p" : "3p") === party)
+        .map((s) => `${s.retailer_id}::${s.is_first_party ? "1p" : "3p"}`)
     )
   );
 
   const lines = seriesKeys
     .map((key) => {
-      const [retailerId, party] = key.split("::") as [string, "1p" | "3p"];
+      const [retailerId, p] = key.split("::") as [string, "1p" | "3p"];
       const retailer = retailers.find((r) => r.id === retailerId);
       if (!retailer) return null;
       const colorIdx = retailers.findIndex((r) => r.id === retailerId);
       return {
-        key: `${retailer.slug}_${party}`,
+        key: `${retailer.slug}_${p}`,
         retailerId,
-        party,
-        name: `${retailer.name} · ${party.toUpperCase()}`,
+        party: p,
+        name: party === "all" ? `${retailer.name} · ${p.toUpperCase()}` : retailer.name,
         color: palette[colorIdx % palette.length],
       };
     })
@@ -793,38 +794,62 @@ function HistoryChart({ data }: { data: DashboardData }) {
     return row;
   });
 
+  const partyOptions: { v: typeof party; l: string }[] = [
+    { v: "all", l: "todos" },
+    { v: "1p", l: "1P" },
+    { v: "3p", l: "3P" },
+  ];
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+      <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 space-y-0">
         <div>
           <CardTitle>Preço mapeado por varejista</CardTitle>
           <p className="mt-1 text-xs text-muted-foreground">Coletas diárias mantidas no histórico</p>
         </div>
-        <div className="flex rounded-md border bg-muted/40 p-0.5 text-xs">
-          <button
-            onClick={() => setMode("avista")}
-            className={`rounded px-3 py-1 transition ${mode === "avista" ? "bg-background font-semibold shadow-sm" : "text-muted-foreground"}`}
-          >
-            à vista
-          </button>
-          <button
-            onClick={() => setMode("prazo")}
-            className={`rounded px-3 py-1 transition ${mode === "prazo" ? "bg-background font-semibold shadow-sm" : "text-muted-foreground"}`}
-          >
-            a prazo
-          </button>
+        <div className="flex flex-wrap gap-2">
+          <div className="flex rounded-md border bg-muted/40 p-0.5 text-xs">
+            {partyOptions.map((opt) => (
+              <button
+                key={opt.v}
+                onClick={() => setParty(opt.v)}
+                className={`rounded px-3 py-1 transition ${party === opt.v ? "bg-background font-semibold shadow-sm" : "text-muted-foreground"}`}
+              >
+                {opt.l}
+              </button>
+            ))}
+          </div>
+          <div className="flex rounded-md border bg-muted/40 p-0.5 text-xs">
+            <button
+              onClick={() => setMode("avista")}
+              className={`rounded px-3 py-1 transition ${mode === "avista" ? "bg-background font-semibold shadow-sm" : "text-muted-foreground"}`}
+            >
+              à vista
+            </button>
+            <button
+              onClick={() => setMode("prazo")}
+              className={`rounded px-3 py-1 transition ${mode === "prazo" ? "bg-background font-semibold shadow-sm" : "text-muted-foreground"}`}
+            >
+              a prazo
+            </button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="h-[420px]">
-        {series.length === 0 ? (
+        {series.length === 0 || lines.length === 0 ? (
           <p className="text-sm text-muted-foreground">Sem histórico suficiente ainda.</p>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={series} margin={{ top: 12, right: 16, left: 0, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
               <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-              <YAxis tick={{ fontSize: 11 }} width={50} tickFormatter={(v) => `R$${v}`} />
+              <YAxis
+                tick={{ fontSize: 11 }}
+                width={50}
+                domain={[300, 420]}
+                ticks={[300, 320, 340, 360, 380, 400, 420]}
+                tickFormatter={(v) => `R$${v}`}
+              />
               <Tooltip formatter={(v: number) => brl(v * 100)} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               {lines.map((l) => (
@@ -835,7 +860,7 @@ function HistoryChart({ data }: { data: DashboardData }) {
                   name={l.name}
                   stroke={l.color}
                   strokeWidth={2}
-                  strokeDasharray={l.party === "3p" ? "5 4" : undefined}
+                  strokeDasharray={party === "all" && l.party === "3p" ? "5 4" : undefined}
                   dot={{ r: 3, strokeWidth: 2, fill: "transparent" }}
                   activeDot={{ r: 5, fill: "transparent", strokeWidth: 2 }}
                   connectNulls
