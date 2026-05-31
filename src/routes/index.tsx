@@ -1463,10 +1463,10 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                 })}
             </div>
           </CardContent>
-        </Card>
+        </ClickCard>
 
         {/* Tendências */}
-        <Card className="claw-cut">
+        <ClickCard onClick={() => onNavigate("trends")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
               <Flame className="h-4 w-4" /> Tendências (7d)
