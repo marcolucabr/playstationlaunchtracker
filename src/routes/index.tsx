@@ -116,26 +116,49 @@ function LangProvider({ children }: { children: React.ReactNode }) {
   return <LangCtx.Provider value={{ lang, setLang }}>{children}</LangCtx.Provider>;
 }
 
+function FlagUS({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 16" className={className} aria-hidden>
+      <rect width="24" height="16" fill="#fff" />
+      {[0, 2, 4, 6, 8, 10, 12, 14].map((y) => (
+        <rect key={y} y={y + 1} width="24" height="1.1" fill="#b22234" />
+      ))}
+      <rect width="10" height="8" fill="#3c3b6e" />
+    </svg>
+  );
+}
+function FlagBR({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 16" className={className} aria-hidden>
+      <rect width="24" height="16" fill="#009b3a" />
+      <polygon points="12,2 22,8 12,14 2,8" fill="#ffdf00" />
+      <circle cx="12" cy="8" r="3" fill="#002776" />
+    </svg>
+  );
+}
+
 function LangToggle() {
   const { lang, setLang } = useContext(LangCtx);
   return (
     <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-wider">
       <button
         onClick={() => setLang("en")}
-        className={`inline-flex items-center gap-1 ${lang === "en" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+        className={`inline-flex items-center gap-1.5 ${lang === "en" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}`}
       >
-        <span aria-hidden>🇺🇸</span> EN
+        <FlagUS className="h-3 w-[18px] rounded-[1px] ring-1 ring-border" /> EN
       </button>
       <span className="text-muted-foreground/40">/</span>
       <button
         onClick={() => setLang("pt")}
-        className={`inline-flex items-center gap-1 ${lang === "pt" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+        className={`inline-flex items-center gap-1.5 ${lang === "pt" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}`}
       >
-        <span aria-hidden>🇧🇷</span> PT
+        <FlagBR className="h-3 w-[18px] rounded-[1px] ring-1 ring-border" /> PT
       </button>
     </div>
   );
 }
+
+
 
 
 
