@@ -797,6 +797,27 @@ function SellersPanel({ data }: { data: DashboardData }) {
 
 // ===================== Marketplace =====================
 function MarketplacePanel() {
+  // Ranking global cross-plataforma (todos sellers)
+  const allSellers = marketplaceMock.flatMap((r) =>
+    r.sellers.map((s) => ({ ...s, retailer_name: r.retailer_name, retailer_id: r.retailer_id })),
+  );
+  const ranked = [...allSellers].sort((a, b) => a.price_avista_cents - b.price_avista_cents);
+
+  // Sellers x preço médio por plataforma
+  const scatterData = marketplaceMock.map((r) => {
+    const avg = Math.round(
+      r.sellers.reduce((a, s) => a + s.price_avista_cents, 0) / r.sellers.length / 100,
+    );
+    const min = Math.min(...r.sellers.map((s) => s.price_avista_cents)) / 100;
+    return {
+      retailer: r.retailer_name,
+      sellers: r.total_sellers,
+      avg_price: avg,
+      min_price: Math.round(min),
+      unauthorized: r.unauthorized_count,
+    };
+  });
+
   return (
     <div className="space-y-4">
       <Card>
@@ -812,6 +833,111 @@ function MarketplacePanel() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Grid: ranking global + gráfico */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Trophy className="h-4 w-4 text-amber-500" />
+              Ranking global de sellers (todas plataformas)
+            </CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              menor preço primeiro — útil para identificar onde está a pressão de preço
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-left text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th className="py-2 pr-2">#</th>
+                    <th className="py-2 pr-2">Seller</th>
+                    <th className="py-2 pr-2">Plataforma</th>
+                    <th className="py-2 pr-2 text-right">À vista</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ranked.slice(0, 10).map((s, i) => (
+                    <tr key={`${s.retailer_id}-${s.seller}`} className="border-t">
+                      <td className="py-1.5 pr-2 font-bold text-muted-foreground">{i + 1}</td>
+                      <td className="py-1.5 pr-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{s.seller}</span>
+                          {!s.authorized && (
+                            <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 text-[10px]">
+                              não autorizado
+                            </Badge>
+                          )}
+                          {s.is_buybox && (
+                            <Trophy className="h-3 w-3 text-amber-500" />
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-1.5 pr-2 text-xs text-muted-foreground">
+                        {s.retailer_name}
+                      </td>
+                      <td className="py-1.5 pr-2 text-right tabular-nums font-semibold">
+                        {brl(s.price_avista_cents)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Store className="h-4 w-4" />
+              Sellers por plataforma vs preço médio
+            </CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              barra = quantidade de sellers · linha = preço médio à vista (R$)
+            </p>
+          </CardHeader>
+          <CardContent className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={scatterData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis dataKey="retailer" className="text-xs" />
+                <YAxis yAxisId="left" className="text-xs" />
+                <YAxis yAxisId="right" orientation="right" className="text-xs" />
+                <Tooltip />
+                <Legend />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="sellers"
+                  name="Sellers ativos"
+                  stroke="var(--chart-2)"
+                  strokeWidth={2}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="avg_price"
+                  name="Preço médio (R$)"
+                  stroke="var(--primary)"
+                  strokeWidth={2}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="min_price"
+                  name="Menor preço (R$)"
+                  stroke="var(--destructive)"
+                  strokeWidth={2}
+                  strokeDasharray="4 4"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
       {marketplaceMock.map((r) => (
         <MarketplaceRetailerCard key={r.retailer_id} r={r} />
       ))}
