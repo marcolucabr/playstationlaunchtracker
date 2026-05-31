@@ -1338,7 +1338,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
               hint="3P sem permissão"
             />
           </CardContent>
-        </Card>
+        </ClickCard>
 
         {/* Sellers por marketplace */}
         <Card className="claw-cut">
