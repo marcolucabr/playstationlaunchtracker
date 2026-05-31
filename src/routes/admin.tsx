@@ -21,6 +21,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Panel" }] }),
@@ -117,6 +118,10 @@ function AdminPage() {
             </DialogContent>
           </Dialog>
         </div>
+
+        <AdminDashboard users={users} />
+
+
 
         <Card>
           <CardHeader><CardTitle className="text-base">Users ({users.length})</CardTitle></CardHeader>
