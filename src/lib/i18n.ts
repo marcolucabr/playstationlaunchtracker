@@ -231,7 +231,13 @@ export const dict = {
     index_score_label: "score 0–100",
     featured: "Featured",
     mapped_retailers: "Mapped retailers",
-    mapped_retailers_hint: "Collection covers the official retailer (1P) and, when applicable, third-party sellers (3P) on marketplaces. Webfones is the only seller authorized to operate as 3P on Shopee.",
+    mapped_retailers_hint: "Green = authorized retailer (1P). Yellow = allowed seller name inside the marketplace (3P only).",
+    cat_pure_online: "Pure Online",
+    cat_hybrid_retail: "Hybrid Retail",
+    cat_physical_stores: "Physical Stores",
+    cat_telco: "Telco",
+    cat_marketplace: "Marketplace",
+    cat_regional_retailer: "Regional Retailer",
   },
 
 } as const;
