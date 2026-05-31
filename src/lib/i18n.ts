@@ -118,6 +118,8 @@ export const dict = {
     pressure_title: "Pressão de preço — listagens mais agressivas (à vista)",
     index_score_label: "índice 0–100",
     featured: "Em destaque",
+    mapped_retailers: "Varejos mapeados",
+    mapped_retailers_hint: "Coleta cobre o varejista oficial (1P) e, quando aplicável, sellers terceiros (3P) nos marketplaces. Webfones é o único seller autorizado a operar como 3P na Shopee.",
   },
   en: {
     monitoring: "Launch Monitoring",
