@@ -663,7 +663,7 @@ function ViolationsTable({ data }: { data: DashboardData }) {
       </CardHeader>
       <CardContent>
         {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Tudo conforme. 🟢</p>
+          <p className="text-sm text-muted-foreground">Tudo conforme.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
