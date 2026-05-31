@@ -119,23 +119,24 @@ function LangProvider({ children }: { children: React.ReactNode }) {
 function LangToggle() {
   const { lang, setLang } = useContext(LangCtx);
   return (
-    <div className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider">
+    <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-wider">
       <button
         onClick={() => setLang("en")}
-        className={lang === "en" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
+        className={`inline-flex items-center gap-1 ${lang === "en" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}`}
       >
-        EN
+        <span aria-hidden>🇺🇸</span> EN
       </button>
       <span className="text-muted-foreground/40">/</span>
       <button
         onClick={() => setLang("pt")}
-        className={lang === "pt" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
+        className={`inline-flex items-center gap-1 ${lang === "pt" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}`}
       >
-        PT
+        <span aria-hidden>🇧🇷</span> PT
       </button>
     </div>
   );
 }
+
 
 
 function DashboardInner({ data }: { data: DashboardData }) {
@@ -145,7 +146,7 @@ function DashboardInner({ data }: { data: DashboardData }) {
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <ThemeBackdrop />
       <Header data={data} />
-      <main className="container relative mx-auto max-w-7xl space-y-6 px-4 py-6">
+      <main className="relative mx-auto w-full max-w-[1600px] space-y-6 px-6 py-6 lg:px-10">
         <CountdownRow />
         <Tabs value={tab} onValueChange={setTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-7">
@@ -209,7 +210,8 @@ function ThemeToggle() {
   const { theme, setTheme } = useContext(ThemeCtx);
   const t = useT();
   return (
-    <div className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider">
+    <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-wider">
+      <span className="text-muted-foreground/70">Theme:</span>
       <button
         onClick={() => setTheme("corporate")}
         className={theme === "corporate" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
@@ -226,6 +228,7 @@ function ThemeToggle() {
     </div>
   );
 }
+
 
 
 function ThemeBackdrop() {
@@ -399,11 +402,11 @@ function Header({ data }: { data: DashboardData }) {
         className="pointer-events-none absolute inset-y-0 right-0 w-[60%] opacity-20"
         style={{ background: "var(--accent-gradient)", maskImage: "linear-gradient(90deg, transparent, black 80%)" }}
       />
-      <div className="container relative mx-auto max-w-7xl px-4 py-6">
+      <div className="relative mx-auto w-full max-w-[1600px] px-6 py-6 lg:px-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-4">
-              <PsIcon className="h-[46px] w-[46px] shrink-0 md:h-[55px] md:w-[55px]" />
+              <PsIcon className="h-[55px] w-[55px] shrink-0 md:h-[66px] md:w-[66px]" />
               <div
                 className="text-2xl font-light uppercase tracking-[0.32em] md:text-3xl"
                 style={{ color: "var(--primary)" }}
@@ -441,7 +444,7 @@ function Header({ data }: { data: DashboardData }) {
           </div>
 
           <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-6">
               <LangToggle />
               <ThemeToggle />
             </div>
