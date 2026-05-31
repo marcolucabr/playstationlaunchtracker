@@ -1849,8 +1849,11 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                           />
                         </div>
                       </div>
-                      <span className="tabular-nums font-semibold">
-                        {brl(s.price_avista_cents)}
+                      <span className="flex flex-col items-end tabular-nums leading-tight">
+                        <span className="font-semibold">{brl(s.price_avista_cents)} <span className="text-[10px] font-normal uppercase text-muted-foreground">à vista</span></span>
+                        {s.price_full_cents != null && s.price_full_cents !== s.price_avista_cents && (
+                          <span className="text-xs text-muted-foreground">{brl(s.price_full_cents)} <span className="text-[10px] uppercase">a prazo</span></span>
+                        )}
                       </span>
                     </div>
                   );
