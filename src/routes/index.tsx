@@ -309,23 +309,32 @@ function CountdownCard({
 
   return (
     <Card className={past ? "border-emerald-500/40" : "border-amber-500/40"}>
-      <CardContent className="flex flex-col gap-4 p-5">
-        <div className="flex items-baseline justify-between">
+      <CardContent className="flex flex-wrap items-center justify-between gap-4 p-4">
+        <div className="flex items-center gap-3">
+          <div
+            className={`flex h-10 w-10 items-center justify-center rounded-md ${
+              past
+                ? "bg-emerald-500/15 text-emerald-600"
+                : "bg-rose-500/15 text-rose-600"
+            }`}
+          >
+            {past ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+          </div>
           <div>
-            <div className="text-sm font-semibold uppercase tracking-wider text-foreground">
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">
               {tr(titleKey)}
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-sm font-medium">
               {past ? tr(liveKey) : tr(embargoKey)}
             </div>
+            <div className="text-xs text-muted-foreground">{tr(dateKey)}</div>
           </div>
-          <div className="text-xs text-muted-foreground">{tr(dateKey)}</div>
         </div>
-        <div className="flex items-center justify-center gap-3 sm:gap-5 font-mono tabular-nums">
-          <CountBox v={d} l="DIAS" />
-          <CountBox v={h} l="HORAS" />
-          <CountBox v={m} l="MIN" />
-          <CountBox v={s} l="SEG" />
+        <div className="flex items-center gap-2 font-mono text-xl tabular-nums">
+          <CountBox v={d} l="d" />
+          <CountBox v={h} l="h" />
+          <CountBox v={m} l="m" />
+          <CountBox v={s} l="s" />
         </div>
       </CardContent>
     </Card>
@@ -387,11 +396,9 @@ function CountdownRow() {
 
 function CountBox({ v, l }: { v: number; l: string }) {
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-xl border bg-muted/60 text-3xl sm:text-4xl font-bold leading-none shadow-sm">
-        {String(v).padStart(2, "0")}
-      </div>
-      <div className="text-[10px] sm:text-xs font-medium uppercase tracking-wider text-muted-foreground">{l}</div>
+    <div className="rounded-md border bg-muted/40 px-3 py-1.5 text-center">
+      <div className="text-lg font-semibold leading-tight">{String(v).padStart(2, "0")}</div>
+      <div className="text-[10px] uppercase text-muted-foreground">{l}</div>
     </div>
   );
 }
