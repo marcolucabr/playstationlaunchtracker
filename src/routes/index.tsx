@@ -2029,11 +2029,12 @@ function ConfBar({
 }: {
   label: string;
   value: number;
-  total: number;
+  total?: number;
   tone: "green" | "yellow" | "red";
   hint?: string;
 }) {
-  const pctv = total ? (value / total) * 100 : 0;
+  const hasTotal = typeof total === "number";
+  const pctv = hasTotal && total! > 0 ? (value / total!) * 100 : value > 0 ? 100 : 0;
   const color = tone === "red" ? "bg-rose-500" : tone === "yellow" ? "bg-amber-500" : "bg-emerald-500";
   return (
     <div>
@@ -2041,7 +2042,7 @@ function ConfBar({
         <span>{label}</span>
         <span className="tabular-nums">
           <strong>{value}</strong>
-          <span className="text-muted-foreground">/{total}</span>
+          {hasTotal ? <span className="text-muted-foreground">/{total}</span> : null}
           {hint ? <span className="ml-2 text-xs text-muted-foreground">· {hint}</span> : null}
         </span>
       </div>
