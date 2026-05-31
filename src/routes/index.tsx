@@ -381,12 +381,13 @@ function Header({ data }: { data: DashboardData }) {
             </div>
             <div className="flex items-center gap-2">
               <Badge variant={product.presale_allowed ? "default" : "destructive"}>
-                {product.presale_allowed ? "Pré-venda autorizada" : "Pré-venda NÃO autorizada"}
+                {product.presale_allowed ? t("presale_ok") : t("presale_block")}
               </Badge>
               <Badge variant="outline" className="gap-1">
-                <Clock className="h-3 w-3" /> Sync 9am &amp; 1pm
+                <Clock className="h-3 w-3" /> {t("collect_schedule")}
               </Badge>
             </div>
+
           </div>
         </div>
 
