@@ -261,15 +261,15 @@ function PresaleCountdown() {
   const s = Math.floor((abs % 60_000) / 1000);
 
   return (
-    <Card className={past ? "border-emerald-500/40" : "border-rose-500/40"}>
+    <Card className={past ? "border-emerald-500/40" : "border-amber-500/40"}>
       <CardContent className="flex flex-wrap items-center justify-between gap-4 p-4">
         <div className="flex items-center gap-3">
           <div
             className={`flex h-10 w-10 items-center justify-center rounded-md ${
-              past ? "bg-emerald-500/15 text-emerald-600" : "bg-rose-500/15 text-rose-600"
+              past ? "bg-emerald-500/15 text-emerald-600" : "bg-amber-500/15 text-amber-600"
             }`}
           >
-            {past ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+            {past ? <CheckCircle2 className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
           </div>
           <div>
             <div className="text-xs uppercase tracking-wider text-muted-foreground">
@@ -305,9 +305,20 @@ function CountBox({ v, l }: { v: number; l: string }) {
   );
 }
 
+function PsIcon({ className = "" }: { className?: string }) {
+  // PlayStation "PS" mark — stylized two-letter logo path
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-label="PlayStation">
+      <path d="M9.5 3.2v17.5c1.45.42 2.87.59 3.97.33 2.55-.6 2.4-2.34.8-2.94-1.5-.57-3.97-1.46-3.97-1.46V8.05c1.85.55 4.5 1.42 5.92 2.16 1.78.93 1.95 2.95.42 4.04-1.5 1.07-3.78 1.62-3.78 1.62v2.06s2.45-.5 4.62-1.36c2.27-.9 2.95-2.96 2.42-4.62-.55-1.72-2.52-3.07-5.27-4.01-1.95-.67-4.02-1.16-5.13-1.4-.5-.11-.92-.31-.92-.31z" />
+      <path d="M3.5 14.5c0 1.05.55 1.95 1.7 2.34 1.05.36 2.55.4 3.83.1v-1.9c-.95.27-2.03.36-2.6.18-.52-.16-.58-.55-.18-.78.4-.24 1.4-.55 2.78-.93v-2c-2 .55-4.05 1.18-4.83 1.84-.45.4-.7.78-.7 1.15z" />
+    </svg>
+  );
+}
+
 function Header({ data }: { data: DashboardData }) {
   const { product } = data;
   const { theme } = useContext(ThemeCtx);
+  const t = useT();
   const minAvista = Math.round(product.srp_cents * (1 - product.max_discount_avista_pct / 100));
   const isWlv = theme === "wolverine";
   return (
@@ -324,11 +335,29 @@ function Header({ data }: { data: DashboardData }) {
         className="pointer-events-none absolute inset-y-0 right-0 w-[60%] opacity-30"
         style={{ background: "var(--accent-gradient)", maskImage: "linear-gradient(90deg, transparent, black 80%)" }}
       />
+      {/* Wolverine-inspired yellow claw slash — present in both themes for brand consistency */}
+      <div className="wolv-claw-accent opacity-60" />
+      <svg
+        className="pointer-events-none absolute -right-10 -top-6 h-[260px] w-[260px] opacity-20"
+        viewBox="0 0 200 200"
+        fill="none"
+        aria-hidden
+      >
+        <g stroke="oklch(0.86 0.19 95)" strokeWidth="4" strokeLinecap="round">
+          <path d="M20 40 Q 100 100 70 180" />
+          <path d="M60 20 Q 140 100 110 190" />
+          <path d="M110 30 Q 180 110 150 195" />
+        </g>
+      </svg>
       <div className="container relative mx-auto max-w-7xl px-4 py-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em]" style={{ color: "var(--primary)" }}>
-              {isWlv ? "▲▲▲" : "◆"} Monitoramento de Lançamento
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em]" style={{ color: "var(--primary)" }}>
+              <PsIcon className="h-3.5 w-3.5" />
+              <span>Launch Commercial Tracking</span>
+            </div>
+            <div className="mt-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              {t("monitoring")}
             </div>
             <h1
               className="mt-2 text-4xl font-black tracking-tight md:text-5xl"
@@ -343,9 +372,9 @@ function Header({ data }: { data: DashboardData }) {
               <span className="text-muted-foreground">({product.platform})</span>
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              EAN <span className="font-mono">{product.ean}</span> · SRP{" "}
-              <strong>{brl(product.srp_cents)}</strong> · Piso à vista{" "}
-              <strong>{brl(minAvista)}</strong> ({pct(product.max_discount_avista_pct)} máx)
+              EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
+              <strong>{brl(product.srp_cents)}</strong> · {t("floor_avista")}{" "}
+              <strong>{brl(minAvista)}</strong> ({pct(product.max_discount_avista_pct)} {t("max")})
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
@@ -928,7 +957,7 @@ function MarketplacePanel() {
                   type="monotone"
                   dataKey="min_price"
                   name="Menor preço (R$)"
-                  stroke="var(--destructive)"
+                  stroke="var(--chart-3)"
                   strokeWidth={2}
                   strokeDasharray="4 4"
                 />
