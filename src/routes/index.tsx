@@ -388,6 +388,7 @@ function Header({ data }: { data: DashboardData }) {
   const t = useT();
   const minAvista = Math.round(product.srp_cents * (1 - product.max_discount_avista_pct / 100));
   const isWlv = theme === "wolverine";
+  const lastSyncLabel = new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
   return (
     <header
       className="relative overflow-hidden border-b"
@@ -476,7 +477,7 @@ function Header({ data }: { data: DashboardData }) {
                 {product.presale_allowed ? t("presale_ok") : t("presale_block")}
               </Badge>
               <Badge variant="outline" className="gap-1">
-                <Clock className="h-3 w-3" /> {t("last_sync")} {lastSyncLabel}
+                <Clock className="h-3 w-3" /> Last sync {lastSyncLabel}
               </Badge>
             </div>
 
