@@ -169,6 +169,7 @@ export const dict = {
     all_compliant: "All clear. Keep watching.",
     no_mentions: "No mentions yet.",
     in_presale: "In pre-sale",
+    within_srp: "Within SRP",
     below_floor: "Below floor",
     above_srp: "Above SRP",
     unauthorized_sellers: "Unauthorized sellers",
