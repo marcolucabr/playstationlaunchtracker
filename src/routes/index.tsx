@@ -1492,12 +1492,12 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
               </div>
             ))}
           </CardContent>
-        </Card>
+        </ClickCard>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Violações destaque */}
-        <Card className="claw-cut">
+        <ClickCard onClick={() => onNavigate("violations")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
               <AlertTriangle className="h-4 w-4 text-rose-500" /> Violações em destaque
