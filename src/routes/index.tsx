@@ -1675,3 +1675,35 @@ function MiniStat({ n, l, tone }: { n: number; l: string; tone: "green" | "red" 
     </div>
   );
 }
+
+function ClickCard({
+  onClick,
+  className = "",
+  children,
+}: {
+  onClick?: () => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const clickable = !!onClick;
+  return (
+    <Card
+      onClick={onClick}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (clickable && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+      className={`claw-cut ${
+        clickable
+          ? "cursor-pointer transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
+          : ""
+      } ${className}`}
+    >
+      {children}
+    </Card>
+  );
+}
