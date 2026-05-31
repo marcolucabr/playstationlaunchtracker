@@ -305,6 +305,16 @@ function CountBox({ v, l }: { v: number; l: string }) {
   );
 }
 
+function PsIcon({ className = "" }: { className?: string }) {
+  // PlayStation "PS" mark — stylized two-letter logo path
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-label="PlayStation">
+      <path d="M9.5 3.2v17.5c1.45.42 2.87.59 3.97.33 2.55-.6 2.4-2.34.8-2.94-1.5-.57-3.97-1.46-3.97-1.46V8.05c1.85.55 4.5 1.42 5.92 2.16 1.78.93 1.95 2.95.42 4.04-1.5 1.07-3.78 1.62-3.78 1.62v2.06s2.45-.5 4.62-1.36c2.27-.9 2.95-2.96 2.42-4.62-.55-1.72-2.52-3.07-5.27-4.01-1.95-.67-4.02-1.16-5.13-1.4-.5-.11-.92-.31-.92-.31z" />
+      <path d="M3.5 14.5c0 1.05.55 1.95 1.7 2.34 1.05.36 2.55.4 3.83.1v-1.9c-.95.27-2.03.36-2.6.18-.52-.16-.58-.55-.18-.78.4-.24 1.4-.55 2.78-.93v-2c-2 .55-4.05 1.18-4.83 1.84-.45.4-.7.78-.7 1.15z" />
+    </svg>
+  );
+}
+
 function Header({ data }: { data: DashboardData }) {
   const { product } = data;
   const { theme } = useContext(ThemeCtx);
