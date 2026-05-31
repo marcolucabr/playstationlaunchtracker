@@ -1543,10 +1543,10 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
               );
             })()}
           </CardContent>
-        </Card>
+        </ClickCard>
 
         {/* Social destaque */}
-        <Card className="claw-cut">
+        <ClickCard onClick={() => onNavigate("social")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
               <MessageSquare className="h-4 w-4" /> Social em destaque
