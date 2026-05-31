@@ -372,12 +372,13 @@ function CountBox({ v, l }: { v: number; l: string }) {
 }
 
 function PsIcon({ className = "" }: { className?: string; style?: React.CSSProperties }) {
-  // Official PlayStation logo (uploaded asset)
+  // Official PlayStation logo, rendered in pure white via filter
   return (
     <img
       src={psLogo}
       alt="PlayStation"
-      className={`object-contain ${className}`}
+      className={`object-contain object-left ${className}`}
+      style={{ filter: "brightness(0) invert(1)" }}
       draggable={false}
     />
   );
