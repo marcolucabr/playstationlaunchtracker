@@ -25,6 +25,7 @@ import {
   Flame,
   Store,
   XCircle,
+  Languages,
 } from "lucide-react";
 
 import { fetchDashboard, type DashboardData } from "@/lib/dashboard-data";
@@ -44,6 +45,7 @@ import {
   toneClass,
   type PriceStatus,
 } from "@/lib/format";
+import { LangCtx, useT, type Lang } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
