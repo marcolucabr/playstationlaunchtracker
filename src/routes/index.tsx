@@ -341,14 +341,7 @@ function CountdownCard({
 
 function CountdownRow() {
   return (
-    <div className="grid gap-3 md:grid-cols-2">
-      <CountdownCard
-        targetIso={PRESALE_START_ISO}
-        titleKey="presale_official"
-        liveKey="presale_liberated"
-        embargoKey="presale_embargo"
-        dateKey="presale_start_date"
-      />
+    <div className="grid gap-3">
       <CountdownCard
         targetIso={RELEASE_DATE_ISO}
         titleKey="release_official"
