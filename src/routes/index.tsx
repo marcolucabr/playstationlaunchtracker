@@ -368,7 +368,7 @@ function CountdownRow() {
         <CardHeader className="px-4 pb-1">
           <CardTitle className="flex items-center gap-2 text-sm tracking-wider">{tr("mapped_retailers_title")}</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-x-5 gap-y-0.5 p-4 pt-0 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-x-5 gap-y-0.5 p-4 pt-0 pl-[60px] sm:grid-cols-2">
           {groups.map((g) => (
             <div key={g.key} className="flex items-baseline gap-2 min-w-0">
               <span className="w-28 shrink-0 text-xs font-medium tracking-wider text-muted-foreground">
