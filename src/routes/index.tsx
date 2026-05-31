@@ -1407,15 +1407,15 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
               ))}
             </ul>
           </CardContent>
-        </Card>
+        </ClickCard>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Top sellers ranking */}
-        <Card className="claw-cut lg:col-span-2">
+        {/* Pressão de preço (renomeado — não é ranking positivo) */}
+        <ClickCard onClick={() => onNavigate("marketplace")} className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <Trophy className="h-4 w-4" /> Ranking de preço (à vista)
+              <AlertTriangle className="h-4 w-4 text-amber-500" /> Pressão de preço — listagens mais agressivas (à vista)
             </CardTitle>
           </CardHeader>
           <CardContent>
