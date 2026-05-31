@@ -210,7 +210,8 @@ function ThemeToggle() {
   const { theme, setTheme } = useContext(ThemeCtx);
   const t = useT();
   return (
-    <div className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider">
+    <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-wider">
+      <span className="text-muted-foreground/70">{t("theme_label") || "Theme:"}</span>
       <button
         onClick={() => setTheme("corporate")}
         className={theme === "corporate" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
@@ -227,6 +228,7 @@ function ThemeToggle() {
     </div>
   );
 }
+
 
 
 function ThemeBackdrop() {
