@@ -81,6 +81,17 @@ function AdminPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
   });
 
+  const collectFn = useServerFn(runCollection);
+  const collectMut = useMutation({
+    mutationFn: () => collectFn({ data: {} }),
+    onSuccess: (r) => {
+      toast.success(`Coleta: ${r.ok} OK · ${r.blocked} bloqueados · ${r.notFound} sem preço · ${r.error} erros`);
+      qc.invalidateQueries({ queryKey: ["recent-runs"] });
+      qc.invalidateQueries({ queryKey: ["pru"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (loading || !isAdmin) {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">Loading…</div>;
   }
