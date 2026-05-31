@@ -1637,26 +1637,29 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
               { key: "cat_regional_retailer", items: [{ name: "Havan" }, { name: "Gazin" }, { name: "Bemol" }] },
             ];
             return (
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+              <div className="space-y-3">
                 {groups.map((g) => (
-                  <div key={g.key} className="rounded-lg border bg-muted/30 p-3">
-                    <div className="mb-2 border-b pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      {tr(g.key)}
-                    </div>
-                    <ul className="space-y-1.5 text-sm">
-                      {g.items.map((it) => (
-                        <li key={it.name} className="leading-tight">
+                  <div key={g.key} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {tr(g.key)}:
+                    </span>
+                    <div className="flex flex-wrap items-baseline gap-x-1 gap-y-1 text-sm">
+                      {g.items.map((it, idx) => (
+                        <span key={it.name}>
                           <span className="font-medium text-emerald-600 dark:text-emerald-400">
                             {it.name}
                           </span>
                           {it.sellerNote && (
-                            <span className="ml-1 text-xs text-amber-600 dark:text-amber-400">
-                              (apenas {it.sellerNote})
+                            <span className="text-amber-600 dark:text-amber-400">
+                              {" "}({it.sellerNote})
                             </span>
                           )}
-                        </li>
+                          {idx < g.items.length - 1 && (
+                            <span className="text-muted-foreground">{" — "}</span>
+                          )}
+                        </span>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 ))}
               </div>
