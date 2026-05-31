@@ -827,14 +827,15 @@ function HistoryChart({ data }: { data: DashboardData }) {
               <YAxis tick={{ fontSize: 11 }} width={50} tickFormatter={(v) => `R$${v}`} />
               <Tooltip formatter={(v: number) => brl(v * 100)} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              {retailers.map((r, i) => (
+              {lines.map((l) => (
                 <Line
-                  key={r.id}
+                  key={l.key}
                   type="monotone"
-                  dataKey={r.slug}
-                  name={r.name}
-                  stroke={palette[i % palette.length]}
+                  dataKey={l.key}
+                  name={l.name}
+                  stroke={l.color}
                   strokeWidth={2}
+                  strokeDasharray={l.party === "3p" ? "5 4" : undefined}
                   dot={{ r: 3, strokeWidth: 2, fill: "transparent" }}
                   activeDot={{ r: 5, fill: "transparent", strokeWidth: 2 }}
                   connectNulls
