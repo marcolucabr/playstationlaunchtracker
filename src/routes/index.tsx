@@ -1648,7 +1648,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             ))}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Coleta cobre o varejista oficial (1P) e, quando aplicável, sellers terceiros (3P) nos marketplaces. Webfones é o único seller autorizado a operar como 3P na Shopee.
+            {tr("mapped_retailers_hint")}
           </p>
         </CardContent>
       </Card>
