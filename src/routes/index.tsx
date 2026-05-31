@@ -198,6 +198,7 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 function ThemeToggle() {
   const { theme, setTheme } = useContext(ThemeCtx);
+  const t = useT();
   return (
     <div className="inline-flex rounded-md border bg-card p-0.5 text-xs">
       <button
@@ -206,7 +207,7 @@ function ThemeToggle() {
           theme === "corporate" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
         }`}
       >
-        Corporate
+        {t("theme_light")}
       </button>
       <button
         onClick={() => setTheme("wolverine")}
@@ -214,7 +215,7 @@ function ThemeToggle() {
           theme === "wolverine" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
         }`}
       >
-        Wolverine
+        {t("theme_wolverine")}
       </button>
     </div>
   );
