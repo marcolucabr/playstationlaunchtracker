@@ -261,15 +261,15 @@ function PresaleCountdown() {
   const s = Math.floor((abs % 60_000) / 1000);
 
   return (
-    <Card className={past ? "border-emerald-500/40" : "border-rose-500/40"}>
+    <Card className={past ? "border-emerald-500/40" : "border-amber-500/40"}>
       <CardContent className="flex flex-wrap items-center justify-between gap-4 p-4">
         <div className="flex items-center gap-3">
           <div
             className={`flex h-10 w-10 items-center justify-center rounded-md ${
-              past ? "bg-emerald-500/15 text-emerald-600" : "bg-rose-500/15 text-rose-600"
+              past ? "bg-emerald-500/15 text-emerald-600" : "bg-amber-500/15 text-amber-600"
             }`}
           >
-            {past ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+            {past ? <CheckCircle2 className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
           </div>
           <div>
             <div className="text-xs uppercase tracking-wider text-muted-foreground">
