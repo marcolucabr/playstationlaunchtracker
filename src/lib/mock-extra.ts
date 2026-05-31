@@ -154,8 +154,8 @@ export const marketplaceMock: MarketplaceRetailer[] = [
     retailer_id: "amazon",
     retailer_name: "Amazon",
     total_sellers: 7,
-    authorized_count: 2,
-    unauthorized_count: 5,
+    authorized_count: 0,
+    unauthorized_count: 7,
     buybox_history_24h: [
       { seller: "Amazon.com.br", hours: 14, authorized: true },
       { seller: "GameStop BR", hours: 6, authorized: false },
