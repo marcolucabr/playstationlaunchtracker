@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import psLogo from "@/assets/playstation-logo.png";
+import psBg from "@/assets/ps-bg.png";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — Launch Tracking" }] }),
@@ -45,8 +46,13 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100 px-4">
-      <Card className="w-full max-w-md shadow-xl border border-slate-200">
+    <div className="relative min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 via-white to-slate-100">
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-cover bg-center opacity-30 pointer-events-none"
+        style={{ backgroundImage: `url(${psBg})` }}
+      />
+      <Card className="relative w-full max-w-md shadow-xl border border-slate-200 bg-white/90 backdrop-blur-sm">
         <CardContent className="p-8">
           <div className="flex flex-col items-center mb-6">
             <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center shadow-lg p-3 mb-4">
