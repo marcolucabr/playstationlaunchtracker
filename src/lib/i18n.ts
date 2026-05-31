@@ -38,7 +38,7 @@ export const dict = {
     kpi_retailers: "varejistas",
     kpi_sellers: "sellers",
     // sections
-    compliance: "Conformidade",
+    compliance: "Retailers",
     sellers_by_marketplace: "Sellers por marketplace",
     coupons: "Cupons",
     price_pressure: "Pressão de preço — listagens mais agressivas",
