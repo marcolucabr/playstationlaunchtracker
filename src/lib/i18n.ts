@@ -100,12 +100,27 @@ export const dict = {
     // theme
     theme_light: "Light",
     theme_wolverine: "Wolverine",
+    // extras
+    presale_start_date: "Início: terça 02/06 às 19h00 (BRT)",
+    monitored: "monitoradas",
+    pressure_low: "Menor preço (pressão)",
+    click_for_details: "clique para detalhes",
+    in_attention: "em atenção",
+    ok_short: "ok",
+    highest: "Maior",
+    most_aggressive_subtitle: "do menor para o maior preço — preços muito baixos sinalizam risco de quebra de MAP, não vitória comercial",
+    all_clear_keep_watch: "Tudo conforme. 🟢 Continue de olho.",
+    no_mentions_yet: "Sem menções ainda.",
+    pressure_title: "Pressão de preço — listagens mais agressivas (à vista)",
+    index_score_label: "índice 0–100",
+    featured: "Em destaque",
   },
   en: {
     monitoring: "Launch Monitoring",
     presale_ok: "Pre-sale authorized",
     presale_block: "Pre-sale NOT authorized",
-    collect_schedule: "Collected 8:30am & 1:00pm",
+    collect_schedule: "Sync 9am & 1pm",
+
     srp: "SRP",
     floor_avista: "Cash floor",
     max: "max",
