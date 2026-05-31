@@ -146,7 +146,7 @@ function DashboardInner({ data }: { data: DashboardData }) {
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <ThemeBackdrop />
       <Header data={data} />
-      <main className="container relative mx-auto max-w-7xl space-y-6 px-4 py-6">
+      <main className="relative mx-auto w-full max-w-[1600px] space-y-6 px-6 py-6 lg:px-10">
         <CountdownRow />
         <Tabs value={tab} onValueChange={setTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-7">
