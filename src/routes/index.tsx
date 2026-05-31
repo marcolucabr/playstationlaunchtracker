@@ -395,7 +395,17 @@ function Header({ data }: { data: DashboardData }) {
                   letterSpacing: isWlv ? "0.02em" : "-0.02em",
                 }}
               >
-                Wolverine <span className="text-muted-foreground">[PS5]</span>
+                <span className="inline-flex items-center gap-3 align-middle">
+                  <img
+                    src={wolverineCover}
+                    alt="Capa Wolverine PS5"
+                    className="h-12 w-auto rounded-sm shadow-md ring-1 ring-border md:h-14"
+                    draggable={false}
+                  />
+                  <span>
+                    Wolverine <span className="text-muted-foreground">[PS5]</span>
+                  </span>
+                </span>
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
