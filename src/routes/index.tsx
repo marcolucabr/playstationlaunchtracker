@@ -448,7 +448,7 @@ function Header({ data }: { data: DashboardData }) {
                   Wolverine
                 </h1>
                 <p className="mt-2 text-sm text-white/75">
-                  EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
+                  {t("srp")}{" "}
                   <strong className="text-white">{brl(product.srp_cents)}</strong>
                 </p>
               </div>
