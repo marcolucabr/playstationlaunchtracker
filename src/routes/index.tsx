@@ -1658,10 +1658,10 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
           <CardContent className="space-y-3">
             <ConfBar
               label={tr("in_presale")}
-              value={latest.filter((s) => s.is_presale && (s.price_avista_cents ?? Infinity) < data.product.srp_cents).length}
+              value={latest.filter((s) => s.is_presale && (s.price_avista_cents ?? Infinity) <= data.product.srp_cents).length}
               total={total}
-              tone={data.product.presale_allowed ? "green" : "red"}
-              hint={`${tr("srp")} ${brl(data.product.srp_cents)}`}
+              tone="green"
+              hint={`${tr("within_srp")} · ${brl(data.product.srp_cents)}`}
             />
             <ConfBar
               label={tr("below_floor")}
