@@ -50,6 +50,7 @@ export const dict = {
     no_mentions: "Sem menções ainda.",
     // conformidade bars
     in_presale: "Em pré-venda",
+    within_srp: "Dentro do SRP",
     below_floor: "Abaixo do piso",
     above_srp: "Acima do SRP",
     unauthorized_sellers: "Sellers não autorizados",
