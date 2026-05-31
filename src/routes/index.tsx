@@ -324,11 +324,29 @@ function Header({ data }: { data: DashboardData }) {
         className="pointer-events-none absolute inset-y-0 right-0 w-[60%] opacity-30"
         style={{ background: "var(--accent-gradient)", maskImage: "linear-gradient(90deg, transparent, black 80%)" }}
       />
+      {/* Wolverine-inspired yellow claw slash — present in both themes for brand consistency */}
+      <div className="wolv-claw-accent opacity-60" />
+      <svg
+        className="pointer-events-none absolute -right-10 -top-6 h-[260px] w-[260px] opacity-20"
+        viewBox="0 0 200 200"
+        fill="none"
+        aria-hidden
+      >
+        <g stroke="oklch(0.86 0.19 95)" strokeWidth="4" strokeLinecap="round">
+          <path d="M20 40 Q 100 100 70 180" />
+          <path d="M60 20 Q 140 100 110 190" />
+          <path d="M110 30 Q 180 110 150 195" />
+        </g>
+      </svg>
       <div className="container relative mx-auto max-w-7xl px-4 py-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em]" style={{ color: "var(--primary)" }}>
-              {isWlv ? "▲▲▲" : "◆"} Monitoramento de Lançamento
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em]" style={{ color: "var(--primary)" }}>
+              <PsIcon className="h-3.5 w-3.5" />
+              <span>Launch Commercial Tracking</span>
+            </div>
+            <div className="mt-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              {t("monitoring")}
             </div>
             <h1
               className="mt-2 text-4xl font-black tracking-tight md:text-5xl"
@@ -343,9 +361,9 @@ function Header({ data }: { data: DashboardData }) {
               <span className="text-muted-foreground">({product.platform})</span>
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              EAN <span className="font-mono">{product.ean}</span> · SRP{" "}
-              <strong>{brl(product.srp_cents)}</strong> · Piso à vista{" "}
-              <strong>{brl(minAvista)}</strong> ({pct(product.max_discount_avista_pct)} máx)
+              EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
+              <strong>{brl(product.srp_cents)}</strong> · {t("floor_avista")}{" "}
+              <strong>{brl(minAvista)}</strong> ({pct(product.max_discount_avista_pct)} {t("max")})
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
