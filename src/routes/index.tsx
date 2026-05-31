@@ -12,6 +12,7 @@ import {
   YAxis,
   Tooltip,
   Legend,
+  LabelList,
 } from "recharts";
 import {
   AlertTriangle,
