@@ -378,10 +378,7 @@ function Header({ data }: { data: DashboardData }) {
       <div className="container relative mx-auto max-w-7xl px-4 py-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-4">
-            <PsIcon
-              className="mt-1 h-14 w-14 shrink-0 md:h-16 md:w-16"
-              style={{ color: "var(--primary)" }}
-            />
+            <PsIcon className="mt-1 h-14 w-14 shrink-0 md:h-16 md:w-16" />
             <div>
               <div
                 className="text-xs font-semibold uppercase tracking-[0.28em] md:text-sm"
