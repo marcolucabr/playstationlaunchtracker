@@ -1376,6 +1376,7 @@ function TrendCard({ t }: { t: (typeof trendsMock)[number] }) {
 
 // ===================== Overview (resumo do tudo) =====================
 function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate: (tab: string) => void }) {
+  const tr = useT();
   const latest = useLatestPerListing(data);
   const total = latest.length;
   const counts = latest.reduce(
@@ -1413,26 +1414,25 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
 
   return (
     <div className="space-y-6">
-      {/* Hero KPIs — clicáveis */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <HeroKpi
-          label="Listagens monitoradas"
+          label={tr("kpi_listings")}
           value={String(total)}
-          sub={`${data.retailers.length} varejistas · ${totalSellers} sellers`}
+          sub={`${data.retailers.length} ${tr("kpi_retailers")} · ${totalSellers} ${tr("kpi_sellers")}`}
           icon={<TrendingUp className="h-4 w-4" />}
           accent
           onClick={() => onNavigate("marketplace")}
         />
         <HeroKpi
-          label="Violações críticas"
+          label={tr("kpi_violations")}
           value={String(counts.red)}
-          sub={`${counts.yellow} em atenção · ${counts.green} ok · clique para detalhes`}
+          sub={`${counts.yellow} ${tr("in_attention")} · ${counts.green} ${tr("ok_short")} · ${tr("click_for_details")}`}
           icon={<AlertTriangle className="h-4 w-4" />}
           danger
           onClick={() => onNavigate("violations")}
         />
         <HeroKpi
-          label="Menor preço (pressão)"
+          label={tr("pressure_low")}
           value={brl(minPrice)}
           sub={
             minSeller
@@ -1443,13 +1443,15 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
           onClick={() => onNavigate("marketplace")}
         />
         <HeroKpi
-          label="Preço médio"
+          label={tr("kpi_avg_price")}
           value={brl(avgPrice)}
-          sub={`Maior: ${brl(maxPrice)} (${maxRetailer?.name ?? "?"})`}
+          sub={`${tr("highest")}: ${brl(maxPrice)} (${maxRetailer?.name ?? "?"})`}
           icon={<Tag className="h-4 w-4" />}
           onClick={() => onNavigate("history")}
         />
       </div>
+
+
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Pré-venda + piso */}
