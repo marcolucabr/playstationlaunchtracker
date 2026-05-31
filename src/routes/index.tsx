@@ -35,7 +35,7 @@ import {
   marketplaceMock,
   couponsMock,
   trendsMock,
-  PRESALE_START_ISO,
+  
   RELEASE_DATE_ISO,
   type MarketplaceSeller,
 } from "@/lib/mock-extra";
@@ -341,14 +341,7 @@ function CountdownCard({
 
 function CountdownRow() {
   return (
-    <div className="grid gap-3 md:grid-cols-2">
-      <CountdownCard
-        targetIso={PRESALE_START_ISO}
-        titleKey="presale_official"
-        liveKey="presale_liberated"
-        embargoKey="presale_embargo"
-        dateKey="presale_start_date"
-      />
+    <div className="grid gap-3">
       <CountdownCard
         targetIso={RELEASE_DATE_ISO}
         titleKey="release_official"
@@ -455,7 +448,7 @@ function Header({ data }: { data: DashboardData }) {
                   Wolverine
                 </h1>
                 <p className="mt-2 text-sm text-white/75">
-                  EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
+                  {t("srp")}{" "}
                   <strong className="text-white">{brl(product.srp_cents)}</strong>
                 </p>
               </div>
@@ -1635,6 +1628,31 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
           onClick={() => onNavigate("history")}
         />
       </div>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+            <Store className="h-4 w-4" /> Varejos mapeados ({data.retailers.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {data.retailers.map((r) => (
+              <Badge key={r.id} variant="outline" className="gap-1.5 py-1">
+                <span className="font-medium">{r.name}</span>
+                <span className="text-[10px] uppercase text-muted-foreground">
+                  {r.kind === "both" ? "1P+3P" : r.kind}
+                </span>
+              </Badge>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Coleta cobre o varejista oficial (1P) e, quando aplicável, sellers terceiros (3P) nos marketplaces. Webfones é o único seller autorizado a operar como 3P na Shopee.
+          </p>
+        </CardContent>
+      </Card>
+
+
 
 
 
