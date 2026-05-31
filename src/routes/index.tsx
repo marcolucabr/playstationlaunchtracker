@@ -406,7 +406,7 @@ function Header({ data }: { data: DashboardData }) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-4">
-              <PsIcon className="h-[46px] w-[46px] shrink-0 md:h-[55px] md:w-[55px]" />
+              <PsIcon className="h-[55px] w-[55px] shrink-0 md:h-[66px] md:w-[66px]" />
               <div
                 className="text-2xl font-light uppercase tracking-[0.32em] md:text-3xl"
                 style={{ color: "var(--primary)" }}
