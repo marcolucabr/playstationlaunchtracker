@@ -407,7 +407,7 @@ function Header({ data }: { data: DashboardData }) {
           backgroundImage: `url(${isWlv ? wolverineHero : psBg})`,
           backgroundSize: "cover",
           backgroundPosition: isWlv ? "right center" : "center",
-          opacity: isWlv ? 0.3 : 0.85,
+          opacity: isWlv ? 0.45 : 0.85,
         }}
       />
       {/* Legibility gradient over the photo */}
