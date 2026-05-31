@@ -340,15 +340,56 @@ function CountdownCard({
 }
 
 function CountdownRow() {
+  const tr = useT();
+  const groups: Array<{
+    key: "cat_pure_online" | "cat_hybrid_retail" | "cat_physical_stores" | "cat_telco" | "cat_marketplace" | "cat_regional_retailer";
+    items: Array<{ name: string; sellerNote?: string }>;
+  }> = [
+    { key: "cat_pure_online", items: [{ name: "Amazon" }, { name: "Kabum" }, { name: "Mercado Livre" }, { name: "Webfones" }] },
+    { key: "cat_hybrid_retail", items: [{ name: "Magazine Luiza" }] },
+    { key: "cat_physical_stores", items: [{ name: "Carrefour" }, { name: "Sam's Club" }, { name: "Lasa" }] },
+    { key: "cat_telco", items: [{ name: "TIM" }, { name: "Vivo" }] },
+    { key: "cat_marketplace", items: [
+      { name: "Casas Bahia", sellerNote: "Game Play Fulfillment" },
+      { name: "Shopee", sellerNote: "Webfones" },
+    ] },
+    { key: "cat_regional_retailer", items: [{ name: "Havan" }, { name: "Gazin" }, { name: "Bemol" }] },
+  ];
   return (
-    <div className="grid gap-3">
-      <CountdownCard
-        targetIso={RELEASE_DATE_ISO}
-        titleKey="release_official"
-        liveKey="release_live"
-        embargoKey="release_countdown"
-        dateKey="release_date_label"
-      />
+    <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+      <div className="lg:col-span-2">
+        <CountdownCard
+          targetIso={RELEASE_DATE_ISO}
+          titleKey="release_official"
+          liveKey="release_live"
+          embargoKey="release_countdown"
+          dateKey="release_date_label"
+        />
+      </div>
+      <Card className="flex flex-col justify-center">
+        <CardContent className="space-y-1.5 p-4">
+          {groups.map((g) => (
+            <div key={g.key} className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
+                {tr(g.key)}:
+              </span>
+              <span className="flex flex-wrap items-baseline gap-x-1 text-xs text-muted-foreground">
+                {g.items.map((it, idx) => (
+                  <span key={it.name} className="inline-flex items-center gap-1">
+                    <span>{it.name}</span>
+                    {it.sellerNote && (
+                      <span>({it.sellerNote})</span>
+                    )}
+                    {idx < g.items.length - 1 && (
+                      <span className="text-muted-foreground/60">•</span>
+                    )}
+                  </span>
+                ))}
+              </span>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -1614,62 +1655,6 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
         />
       </div>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-            {tr("mapped_retailers")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {(() => {
-            const groups: Array<{
-              key: "cat_pure_online" | "cat_hybrid_retail" | "cat_physical_stores" | "cat_telco" | "cat_marketplace" | "cat_regional_retailer";
-              items: Array<{ name: string; sellerNote?: string }>;
-            }> = [
-              { key: "cat_pure_online", items: [{ name: "Amazon" }, { name: "Kabum" }, { name: "Mercado Livre" }, { name: "Webfones" }] },
-              { key: "cat_hybrid_retail", items: [{ name: "Magazine Luiza" }] },
-              { key: "cat_physical_stores", items: [{ name: "Carrefour" }, { name: "Sam's Club" }, { name: "Lasa" }] },
-              { key: "cat_telco", items: [{ name: "TIM" }, { name: "Vivo" }] },
-              { key: "cat_marketplace", items: [
-                { name: "Casas Bahia", sellerNote: "Game Play Fulfillment" },
-                { name: "Shopee", sellerNote: "Webfones" },
-              ] },
-              { key: "cat_regional_retailer", items: [{ name: "Havan" }, { name: "Gazin" }, { name: "Bemol" }] },
-            ];
-            return (
-              <div className="space-y-3">
-                {groups.map((g) => (
-                  <div key={g.key} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {tr(g.key)}:
-                    </span>
-                    <div className="flex flex-wrap items-baseline gap-x-1 gap-y-1 text-sm">
-                      {g.items.map((it, idx) => (
-                        <span key={it.name}>
-                          <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                            {it.name}
-                          </span>
-                          {it.sellerNote && (
-                            <span className="text-amber-600 dark:text-amber-400">
-                              {" "}({it.sellerNote})
-                            </span>
-                          )}
-                          {idx < g.items.length - 1 && (
-                            <span className="text-muted-foreground">{" — "}</span>
-                          )}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
-          <p className="mt-3 text-xs text-muted-foreground">
-            {tr("mapped_retailers_hint")}
-          </p>
-        </CardContent>
-      </Card>
 
 
 
