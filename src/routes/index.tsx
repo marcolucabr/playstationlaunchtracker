@@ -119,23 +119,24 @@ function LangProvider({ children }: { children: React.ReactNode }) {
 function LangToggle() {
   const { lang, setLang } = useContext(LangCtx);
   return (
-    <div className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider">
+    <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-wider">
       <button
         onClick={() => setLang("en")}
-        className={lang === "en" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
+        className={`inline-flex items-center gap-1 ${lang === "en" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}`}
       >
-        EN
+        <span aria-hidden>🇺🇸</span> EN
       </button>
       <span className="text-muted-foreground/40">/</span>
       <button
         onClick={() => setLang("pt")}
-        className={lang === "pt" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
+        className={`inline-flex items-center gap-1 ${lang === "pt" ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}`}
       >
-        PT
+        <span aria-hidden>🇧🇷</span> PT
       </button>
     </div>
   );
 }
+
 
 
 function DashboardInner({ data }: { data: DashboardData }) {
