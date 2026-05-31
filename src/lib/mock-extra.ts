@@ -98,7 +98,7 @@ export const marketplaceMock: MarketplaceRetailer[] = [
     ],
     sellers: [
       {
-        seller: "ShopGames Oficial",
+        seller: "Webfones",
         authorized: true,
         price_avista_cents: 37990,
         installments: "10x R$ 37,99 sem juros",
@@ -109,7 +109,7 @@ export const marketplaceMock: MarketplaceRetailer[] = [
         listing_age_days: 35,
         is_buybox: true,
         buybox_reasons: [
-          "Loja Oficial Shopee",
+          "Único seller autorizado na Shopee",
           "Frete grátis com cupom da plataforma",
           "Reputação 4.8 (8k+ avaliações)",
           "Cashback Shopee 5%",
