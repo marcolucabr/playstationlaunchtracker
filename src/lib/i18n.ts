@@ -232,6 +232,7 @@ export const dict = {
     index_score_label: "score 0–100",
     featured: "Featured",
     mapped_retailers: "Mapped retailers",
+    mapped_retailers_title: "Mapped retailers for launch",
     mapped_retailers_hint: "Green = authorized retailer (1P). Yellow = allowed seller name inside the marketplace (3P only).",
     cat_pure_online: "Pure Online",
     cat_hybrid_retail: "Hybrid Retail",
