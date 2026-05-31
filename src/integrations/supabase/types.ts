@@ -308,6 +308,42 @@ export type Database = {
           },
         ]
       }
+      product_retailer_urls: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          last_checked_at: string | null
+          last_status: string | null
+          product_id: string
+          retailer_id: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          last_checked_at?: string | null
+          last_status?: string | null
+          product_id: string
+          retailer_id: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          last_checked_at?: string | null
+          last_status?: string | null
+          product_id?: string
+          retailer_id?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           active: boolean
