@@ -1908,7 +1908,6 @@ function HeroKpi({
   label,
   value,
   sub,
-  icon,
   accent,
   danger,
   onClick,
@@ -1916,7 +1915,7 @@ function HeroKpi({
   label: string;
   value: string;
   sub?: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   accent?: boolean;
   danger?: boolean;
   onClick?: () => void;
