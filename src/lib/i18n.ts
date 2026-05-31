@@ -157,7 +157,7 @@ export const dict = {
     kpi_largest: "Highest",
     kpi_retailers: "retailers",
     kpi_sellers: "sellers",
-    compliance: "Compliance",
+    compliance: "Retailers",
     sellers_by_marketplace: "Sellers by marketplace",
     coupons: "Coupons",
     price_pressure: "Price pressure — most aggressive listings",
