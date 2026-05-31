@@ -365,7 +365,7 @@ function CountdownRow() {
         dateKey="release_date_label"
       />
       <Card>
-        <CardHeader className="px-4 pb-1">
+        <CardHeader className="px-4 pb-1 pt-2">
           <CardTitle className="flex items-center gap-2 text-sm tracking-wider">{tr("mapped_retailers_title")}</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-x-10 gap-y-0.5 p-4 pt-0 sm:grid-cols-[60%_40%]">
