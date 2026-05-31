@@ -494,6 +494,7 @@ function Header({ data }: { data: DashboardData }) {
               <Badge variant="outline" className="gap-1">
                 <Clock className="h-3 w-3" /> Last sync {lastSyncLabel}
               </Badge>
+              <UserMenu />
             </div>
 
           </div>
