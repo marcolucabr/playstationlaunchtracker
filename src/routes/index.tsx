@@ -1417,6 +1417,9 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
               <AlertTriangle className="h-4 w-4 text-amber-500" /> Pressão de preço — listagens mais agressivas (à vista)
             </CardTitle>
+            <p className="mt-1 text-xs font-normal normal-case text-muted-foreground">
+              do menor para o maior preço — preços muito baixos sinalizam risco de quebra de MAP, não vitória comercial
+            </p>
           </CardHeader>
           <CardContent>
             <div className="space-y-1.5">
