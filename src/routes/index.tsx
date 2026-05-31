@@ -1454,50 +1454,48 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
 
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Pré-venda + piso */}
         <ClickCard onClick={() => onNavigate("violations")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <ShieldCheck className="h-4 w-4" /> Conformidade
+              <ShieldCheck className="h-4 w-4" /> {tr("compliance")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <ConfBar
-              label="Em pré-venda"
+              label={tr("in_presale")}
               value={presaleListings}
               total={total}
               tone={data.product.presale_allowed ? "green" : "red"}
-              hint={data.product.presale_allowed ? "permitida" : "embargada"}
+              hint={data.product.presale_allowed ? tr("permitted") : tr("embargoed")}
             />
             <ConfBar
-              label="Abaixo do piso"
+              label={tr("below_floor")}
               value={latest.filter((s) => (s.price_avista_cents ?? Infinity) < piso).length}
               total={total}
               tone="red"
-              hint={`piso ${brl(piso)}`}
+              hint={`${tr("floor")} ${brl(piso)}`}
             />
             <ConfBar
-              label="Acima do SRP"
+              label={tr("above_srp")}
               value={latest.filter((s) => (s.price_avista_cents ?? 0) > data.product.srp_cents).length}
               total={total}
               tone="red"
-              hint={`SRP ${brl(data.product.srp_cents)}`}
+              hint={`${tr("srp")} ${brl(data.product.srp_cents)}`}
             />
             <ConfBar
-              label="Sellers não autorizados"
+              label={tr("unauthorized_sellers")}
               value={unauthorizedSellers}
               total={totalSellers}
               tone="yellow"
-              hint="3P sem permissão"
+              hint={tr("no_permission_3p")}
             />
           </CardContent>
         </ClickCard>
 
-        {/* Sellers por marketplace */}
         <ClickCard onClick={() => onNavigate("marketplace")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <Store className="h-4 w-4" /> Sellers por marketplace
+              <Store className="h-4 w-4" /> {tr("sellers_by_marketplace")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -1506,7 +1504,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium">{m.retailer_name}</span>
                   <span className="text-xs text-muted-foreground">
-                    {m.total_sellers} sellers · {m.authorized_count} ok
+                    {m.total_sellers} {tr("kpi_sellers")} · {m.authorized_count} {tr("ok_short")}
                   </span>
                 </div>
                 <div className="flex h-2 overflow-hidden rounded-full bg-muted">
@@ -1524,18 +1522,17 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
           </CardContent>
         </ClickCard>
 
-        {/* Cupons */}
         <ClickCard onClick={() => onNavigate("coupons")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <Ticket className="h-4 w-4" /> Cupons
+              <Ticket className="h-4 w-4" /> {tr("coupons")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-3 gap-2 text-center">
-              <MiniStat n={activeCoupons.length} l="ativos hoje" tone="green" />
-              <MiniStat n={violatingCoupons.length} l="violam MAP" tone="red" />
-              <MiniStat n={last7dCoupons.length} l="últimos 7d" tone="neutral" />
+              <MiniStat n={activeCoupons.length} l={tr("active_today")} tone="green" />
+              <MiniStat n={violatingCoupons.length} l={tr("violate_map")} tone="red" />
+              <MiniStat n={last7dCoupons.length} l={tr("last_7d")} tone="neutral" />
             </div>
             <ul className="space-y-1.5 text-sm">
               {activeCoupons.slice(0, 4).map((c) => (
@@ -1564,14 +1561,13 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Pressão de preço (renomeado — não é ranking positivo) */}
         <ClickCard onClick={() => onNavigate("marketplace")} className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <AlertTriangle className="h-4 w-4 text-amber-500" /> Pressão de preço — listagens mais agressivas (à vista)
+              <AlertTriangle className="h-4 w-4 text-amber-500" /> {tr("pressure_title")}
             </CardTitle>
             <p className="mt-1 text-xs font-normal normal-case text-muted-foreground">
-              do menor para o maior preço — preços muito baixos sinalizam risco de quebra de MAP, não vitória comercial
+              {tr("most_aggressive_subtitle")}
             </p>
           </CardHeader>
           <CardContent>
@@ -1618,11 +1614,10 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
           </CardContent>
         </ClickCard>
 
-        {/* Tendências */}
         <ClickCard onClick={() => onNavigate("trends")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <Flame className="h-4 w-4" /> Tendências (7d)
+              <Flame className="h-4 w-4" /> {tr("trends_7d")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -1633,7 +1628,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
               >
                 <div>
                   <div className="text-sm font-medium">{t.source_name}</div>
-                  <div className="text-xs text-muted-foreground">índice {t.current_score}/100</div>
+                  <div className="text-xs text-muted-foreground">{tr("index_score_label")} · {t.current_score}/100</div>
                 </div>
                 <div
                   className={`text-sm font-semibold ${
@@ -1649,11 +1644,10 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* Violações destaque */}
         <ClickCard onClick={() => onNavigate("violations")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <AlertTriangle className="h-4 w-4 text-rose-500" /> Violações em destaque
+              <AlertTriangle className="h-4 w-4 text-rose-500" /> {tr("violations_highlight")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1664,7 +1658,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
               if (bad.length === 0)
                 return (
                   <p className="text-sm text-muted-foreground">
-                    Tudo conforme. 🟢 Continue de olho.
+                    {tr("all_clear_keep_watch")}
                   </p>
                 );
               return (
@@ -1698,16 +1692,15 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
           </CardContent>
         </ClickCard>
 
-        {/* Social destaque */}
         <ClickCard onClick={() => onNavigate("social")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
-              <MessageSquare className="h-4 w-4" /> Social em destaque
+              <MessageSquare className="h-4 w-4" /> {tr("social_highlight")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {topMentions.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sem menções ainda.</p>
+              <p className="text-sm text-muted-foreground">{tr("no_mentions_yet")}</p>
             ) : (
               <ul className="space-y-2 text-sm">
                 {topMentions.map((m) => (
@@ -1716,9 +1709,9 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                       <span>
                         {m.source_name ?? m.source} · {m.author ?? "—"}
                       </span>
-                      {m.engagement ? <span>{m.engagement.toLocaleString("pt-BR")} eng.</span> : null}
+                      {m.engagement ? <span>{m.engagement.toLocaleString()} eng.</span> : null}
                     </div>
-                    <div className="mt-1 font-medium">{m.title ?? "(sem título)"}</div>
+                    <div className="mt-1 font-medium">{m.title ?? "—"}</div>
                   </li>
                 ))}
               </ul>
@@ -1726,6 +1719,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
           </CardContent>
         </ClickCard>
       </div>
+
     </div>
   );
 }
