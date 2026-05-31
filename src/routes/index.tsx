@@ -356,16 +356,14 @@ function CountdownRow() {
     { key: "cat_regional_retailer", items: [{ name: "Havan" }, { name: "Gazin" }, { name: "Bemol" }] },
   ];
   return (
-    <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-      <div className="lg:col-span-2">
-        <CountdownCard
-          targetIso={RELEASE_DATE_ISO}
-          titleKey="release_official"
-          liveKey="release_live"
-          embargoKey="release_countdown"
-          dateKey="release_date_label"
-        />
-      </div>
+    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+      <CountdownCard
+        targetIso={RELEASE_DATE_ISO}
+        titleKey="release_official"
+        liveKey="release_live"
+        embargoKey="release_countdown"
+        dateKey="release_date_label"
+      />
       <Card>
         <CardContent className="grid grid-cols-1 gap-x-5 gap-y-1.5 p-4 sm:grid-cols-2">
           {groups.map((g) => (
