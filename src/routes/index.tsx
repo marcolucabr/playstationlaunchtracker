@@ -55,6 +55,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import psLogo from "@/assets/playstation-logo.png";
 import wolverineCover from "@/assets/wolverine-cover.png";
+import wolverineHero from "@/assets/wolverine-hero.jpg";
 
 
 
