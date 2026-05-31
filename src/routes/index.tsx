@@ -1262,7 +1262,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
 
   return (
     <div className="space-y-6">
-      {/* Hero KPIs */}
+      {/* Hero KPIs — clicáveis */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <HeroKpi
           label="Listagens monitoradas"
@@ -1270,29 +1270,33 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
           sub={`${data.retailers.length} varejistas · ${totalSellers} sellers`}
           icon={<TrendingUp className="h-4 w-4" />}
           accent
+          onClick={() => onNavigate("marketplace")}
         />
         <HeroKpi
           label="Violações críticas"
           value={String(counts.red)}
-          sub={`${counts.yellow} em atenção · ${counts.green} ok`}
+          sub={`${counts.yellow} em atenção · ${counts.green} ok · clique para detalhes`}
           icon={<AlertTriangle className="h-4 w-4" />}
           danger
+          onClick={() => onNavigate("violations")}
         />
         <HeroKpi
-          label="Menor preço"
+          label="Menor preço (pressão)"
           value={brl(minPrice)}
           sub={
             minSeller
               ? `${minRetailer?.name ?? "?"} · ${minSeller.seller_name ?? "1P"}`
               : "—"
           }
-          icon={<Trophy className="h-4 w-4" />}
+          icon={<AlertTriangle className="h-4 w-4 text-amber-500" />}
+          onClick={() => onNavigate("marketplace")}
         />
         <HeroKpi
           label="Preço médio"
           value={brl(avgPrice)}
           sub={`Maior: ${brl(maxPrice)} (${maxRetailer?.name ?? "?"})`}
           icon={<Tag className="h-4 w-4" />}
+          onClick={() => onNavigate("history")}
         />
       </div>
 
