@@ -1629,6 +1629,31 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
         />
       </div>
 
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
+            <Store className="h-4 w-4" /> Varejos mapeados ({data.retailers.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {data.retailers.map((r) => (
+              <Badge key={r.id} variant="outline" className="gap-1.5 py-1">
+                <span className="font-medium">{r.name}</span>
+                <span className="text-[10px] uppercase text-muted-foreground">
+                  {r.kind === "both" ? "1P+3P" : r.kind}
+                </span>
+              </Badge>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Coleta cobre o varejista oficial (1P) e, quando aplicável, sellers terceiros (3P) nos marketplaces. Webfones é o único seller autorizado a operar como 3P na Shopee.
+          </p>
+        </CardContent>
+      </Card>
+
+
+
 
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
