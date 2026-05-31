@@ -374,7 +374,7 @@ function CountdownRow() {
               <span className="w-28 shrink-0 text-xs font-medium tracking-wider text-muted-foreground">
                 {tr(g.key)}
               </span>
-              <span className="flex-1 truncate pl-[60px] text-xs text-muted-foreground" title={g.items.map(i => i.sellerNote ? `${i.name} (${i.sellerNote})` : i.name).join(" • ")}>
+              <span className="flex-1 truncate text-xs text-muted-foreground" title={g.items.map(i => i.sellerNote ? `${i.name} (${i.sellerNote})` : i.name).join(" • ")}>
                 {g.items.map((it, idx) => (
                   <span key={it.name}>
                     {it.name}{it.sellerNote ? ` (${it.sellerNote})` : ""}
