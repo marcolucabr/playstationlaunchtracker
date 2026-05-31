@@ -1581,6 +1581,7 @@ function HeroKpi({
   icon,
   accent,
   danger,
+  onClick,
 }: {
   label: string;
   value: string;
@@ -1588,10 +1589,23 @@ function HeroKpi({
   icon: React.ReactNode;
   accent?: boolean;
   danger?: boolean;
+  onClick?: () => void;
 }) {
+  const clickable = !!onClick;
   return (
     <Card
-      className="claw-cut relative overflow-hidden"
+      onClick={onClick}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (clickable && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+      className={`claw-cut relative overflow-hidden ${
+        clickable ? "cursor-pointer transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring" : ""
+      }`}
       style={
         accent
           ? { background: "var(--accent-gradient)", color: "var(--primary-foreground)" }
