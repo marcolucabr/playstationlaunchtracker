@@ -509,6 +509,9 @@ export type Database = {
         | "vendedor_nao_autorizado"
         | "pre_venda_nao_permitida"
         | "sem_desconto"
+        | "blocked"
+        | "not_found"
+        | "error"
       retailer_kind: "1p" | "3p" | "both"
       run_status: "running" | "success" | "partial" | "failed"
       run_trigger: "manual" | "cron"
@@ -667,6 +670,9 @@ export const Constants = {
         "vendedor_nao_autorizado",
         "pre_venda_nao_permitida",
         "sem_desconto",
+        "blocked",
+        "not_found",
+        "error",
       ],
       retailer_kind: ["1p", "3p", "both"],
       run_status: ["running", "success", "partial", "failed"],
