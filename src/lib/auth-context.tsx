@@ -75,13 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (sid) heartbeatSession({ data: { sessionId: sid } }).catch(() => {});
     };
     const interval = setInterval(tick, 60_000);
-    const onBeforeUnload = () => {
-      const sid = localStorage.getItem(SESSION_KEY);
-      if (sid && navigator.sendBeacon) {
-        // Best-effort: heartbeat on unload
-        tick();
-      }
-    };
+    const onBeforeUnload = () => { tick(); };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => {
       clearInterval(interval);
