@@ -53,6 +53,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import psLogo from "@/assets/playstation-logo.png";
+import wolverineCover from "@/assets/wolverine-cover.png";
+
+
 
 
 export const Route = createFileRoute("/")({
@@ -339,13 +343,15 @@ function CountBox({ v, l }: { v: number; l: string }) {
   );
 }
 
-function PsIcon({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
-  // PlayStation "PS" mark — stylized two-letter logo path
+function PsIcon({ className = "" }: { className?: string; style?: React.CSSProperties }) {
+  // Official PlayStation logo (uploaded asset)
   return (
-    <svg viewBox="0 0 24 24" className={className} style={style} fill="currentColor" aria-label="PlayStation">
-      <path d="M9.5 3.2v17.5c1.45.42 2.87.59 3.97.33 2.55-.6 2.4-2.34.8-2.94-1.5-.57-3.97-1.46-3.97-1.46V8.05c1.85.55 4.5 1.42 5.92 2.16 1.78.93 1.95 2.95.42 4.04-1.5 1.07-3.78 1.62-3.78 1.62v2.06s2.45-.5 4.62-1.36c2.27-.9 2.95-2.96 2.42-4.62-.55-1.72-2.52-3.07-5.27-4.01-1.95-.67-4.02-1.16-5.13-1.4-.5-.11-.92-.31-.92-.31z" />
-      <path d="M3.5 14.5c0 1.05.55 1.95 1.7 2.34 1.05.36 2.55.4 3.83.1v-1.9c-.95.27-2.03.36-2.6.18-.52-.16-.58-.55-.18-.78.4-.24 1.4-.55 2.78-.93v-2c-2 .55-4.05 1.18-4.83 1.84-.45.4-.7.78-.7 1.15z" />
-    </svg>
+    <img
+      src={psLogo}
+      alt="PlayStation"
+      className={`object-contain ${className}`}
+      draggable={false}
+    />
   );
 }
 
@@ -372,10 +378,7 @@ function Header({ data }: { data: DashboardData }) {
       <div className="container relative mx-auto max-w-7xl px-4 py-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-4">
-            <PsIcon
-              className="mt-1 h-14 w-14 shrink-0 md:h-16 md:w-16"
-              style={{ color: "var(--primary)" }}
-            />
+            <PsIcon className="mt-1 h-14 w-14 shrink-0 md:h-16 md:w-16" />
             <div>
               <div
                 className="text-xs font-semibold uppercase tracking-[0.28em] md:text-sm"
@@ -392,7 +395,17 @@ function Header({ data }: { data: DashboardData }) {
                   letterSpacing: isWlv ? "0.02em" : "-0.02em",
                 }}
               >
-                Wolverine <span className="text-muted-foreground">[PS5]</span>
+                <span className="inline-flex items-center gap-3 align-middle">
+                  <img
+                    src={wolverineCover}
+                    alt="Capa Wolverine PS5"
+                    className="h-12 w-auto rounded-sm shadow-md ring-1 ring-border md:h-14"
+                    draggable={false}
+                  />
+                  <span>
+                    Wolverine <span className="text-muted-foreground">[PS5]</span>
+                  </span>
+                </span>
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 EAN <span className="font-mono">{product.ean}</span> · {t("srp")}{" "}
