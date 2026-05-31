@@ -149,11 +149,25 @@
     );
 }
 
+.claw-cut {
+  clip-path: polygon(
+    0 0, 100% 0, 100% calc(100% - 10px),
+    calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px)
+  );
+}
 .theme-wolverine .claw-cut {
   clip-path: polygon(
-    0 0, 100% 0, 100% calc(100% - 14px),
-    calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px)
+    0 0, 100% 0, 100% calc(100% - 16px),
+    calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px)
   );
+}
+/* Yellow Wolverine accent stripe used as decoration in both themes */
+.wolv-claw-accent {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 0 62%, oklch(0.86 0.19 95 / 0.18) 62% 64%, transparent 64% 70%, oklch(0.86 0.19 95 / 0.35) 70% 71%, transparent 71%);
 }
 
 .dark {
