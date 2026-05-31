@@ -800,6 +800,29 @@ function HistoryChart({ data }: { data: DashboardData }) {
     { v: "3p", l: "3P" },
   ];
 
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || payload.length === 0) return null;
+    return (
+      <div className="rounded-lg border bg-background p-3 shadow-md">
+        <p className="mb-2 text-xs font-semibold text-foreground">{label}</p>
+        <div className="space-y-1.5">
+          {payload.map((entry: any) => (
+            <div key={entry.dataKey} className="flex items-center gap-2 text-xs">
+              <span
+                className="inline-block h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-muted-foreground">{entry.name}</span>
+              <span className="ml-auto font-semibold text-foreground">
+                {brl(entry.value * 100)}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 space-y-0">
@@ -850,7 +873,7 @@ function HistoryChart({ data }: { data: DashboardData }) {
                 ticks={[300, 320, 340, 360, 380, 400, 420]}
                 tickFormatter={(v) => `R$${v}`}
               />
-              <Tooltip formatter={(v: number) => brl(v * 100)} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+              <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               {lines.map((l) => (
                 <Line
