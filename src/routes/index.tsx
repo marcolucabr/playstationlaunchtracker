@@ -244,14 +244,26 @@ function ThemeBackdrop() {
   );
 }
 
-function PresaleCountdown() {
+function CountdownCard({
+  targetIso,
+  titleKey,
+  liveKey,
+  embargoKey,
+  dateKey,
+}: {
+  targetIso: string;
+  titleKey: "presale_official" | "release_official";
+  liveKey: "presale_liberated" | "release_live";
+  embargoKey: "presale_embargo" | "release_countdown";
+  dateKey: "presale_start_date" | "release_date_label";
+}) {
   const tr = useT();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  const target = new Date(PRESALE_START_ISO).getTime();
+  const target = new Date(targetIso).getTime();
   const diff = target - now;
   const past = diff <= 0;
   const abs = Math.abs(diff);
@@ -273,14 +285,12 @@ function PresaleCountdown() {
           </div>
           <div>
             <div className="text-xs uppercase tracking-wider text-muted-foreground">
-              {tr("presale_official")}
+              {tr(titleKey)}
             </div>
             <div className="text-sm font-medium">
-              {past ? tr("presale_liberated") : tr("presale_embargo")}
+              {past ? tr(liveKey) : tr(embargoKey)}
             </div>
-            <div className="text-xs text-muted-foreground">
-              {tr("presale_start_date")}
-            </div>
+            <div className="text-xs text-muted-foreground">{tr(dateKey)}</div>
           </div>
         </div>
         <div className="flex items-center gap-2 font-mono text-xl tabular-nums">
@@ -291,6 +301,27 @@ function PresaleCountdown() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function CountdownRow() {
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      <CountdownCard
+        targetIso={PRESALE_START_ISO}
+        titleKey="presale_official"
+        liveKey="presale_liberated"
+        embargoKey="presale_embargo"
+        dateKey="presale_start_date"
+      />
+      <CountdownCard
+        targetIso={RELEASE_DATE_ISO}
+        titleKey="release_official"
+        liveKey="release_live"
+        embargoKey="release_countdown"
+        dateKey="release_date_label"
+      />
+    </div>
   );
 }
 
