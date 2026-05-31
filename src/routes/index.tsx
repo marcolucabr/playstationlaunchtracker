@@ -356,7 +356,7 @@ function CountdownRow() {
     { key: "cat_regional_retailer", items: [{ name: "Havan" }, { name: "Gazin" }, { name: "Bemol" }] },
   ];
   return (
-    <div className="grid grid-cols-1 gap-3 lg:grid-cols-[38%_62%]">
+    <div className="grid grid-cols-1 gap-3 lg:grid-cols-[45%_55%]">
       <CountdownCard
         targetIso={RELEASE_DATE_ISO}
         titleKey="release_official"
@@ -365,13 +365,13 @@ function CountdownRow() {
         dateKey="release_date_label"
       />
       <Card>
-        <CardHeader className="px-4 pb-2">
-          <CardTitle className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{tr("mapped_retailers_title")}</CardTitle>
+        <CardHeader className="px-4 pb-1">
+          <CardTitle className="text-[10px] font-bold tracking-wider text-muted-foreground">{tr("mapped_retailers_title")}</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-x-5 gap-y-1.5 p-4 pt-0 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-x-5 gap-y-0.5 p-4 pt-0 sm:grid-cols-2">
           {groups.map((g) => (
             <div key={g.key} className="flex items-baseline gap-2 min-w-0">
-              <span className="w-28 shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="w-28 shrink-0 text-[10px] font-bold tracking-wider text-muted-foreground">
                 {tr(g.key)}
               </span>
               <span className="flex-1 truncate text-xs text-muted-foreground" title={g.items.map(i => i.sellerNote ? `${i.name} (${i.sellerNote})` : i.name).join(" • ")}>
