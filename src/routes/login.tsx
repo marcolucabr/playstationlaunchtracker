@@ -49,10 +49,10 @@ function LoginPage() {
       <Card className="w-full max-w-md shadow-xl border border-slate-200">
         <CardContent className="p-8">
           <div className="flex flex-col items-center mb-6">
-            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center shadow-lg p-3">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center shadow-lg p-3 mb-4">
               <img src={psLogo} alt="PlayStation" className="h-full w-full object-contain" style={{ filter: "brightness(0) invert(1)" }} draggable={false} />
             </div>
-            <h1 className="text-2xl font-bold text-center">
+            <h1 className="text-2xl font-bold text-center leading-none">
               <div className="text-blue-600">PlayStation</div>
               <div className="text-slate-900">Launch Tracking</div>
             </h1>
