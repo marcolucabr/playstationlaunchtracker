@@ -116,7 +116,7 @@ export const dict = {
     most_aggressive_subtitle: "do menor para o maior preço — preços muito baixos sinalizam risco de quebra de MAP, não vitória comercial",
     all_clear_keep_watch: "Tudo conforme. Continue de olho.",
     no_mentions_yet: "Sem menções ainda.",
-    pressure_title: "Pressão de preço — listagens mais agressivas (à vista)",
+    pressure_title: "Preços Praticados",
     index_score_label: "índice 0–100",
     featured: "Em destaque",
     mapped_retailers: "Varejos mapeados",
