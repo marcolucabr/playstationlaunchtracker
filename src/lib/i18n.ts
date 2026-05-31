@@ -12,7 +12,7 @@ export const dict = {
     srp: "SRP",
     floor_avista: "Piso à vista",
     max: "máx",
-    ean: "EAN",
+    // (ean omitted — same in both langs)
 
     // countdown
     presale_official: "Pré-venda oficial",
