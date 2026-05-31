@@ -1369,10 +1369,10 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
               </div>
             ))}
           </CardContent>
-        </Card>
+        </ClickCard>
 
         {/* Cupons */}
-        <Card className="claw-cut">
+        <ClickCard onClick={() => onNavigate("coupons")}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider">
               <Ticket className="h-4 w-4" /> Cupons
