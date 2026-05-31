@@ -1700,8 +1700,8 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                   data={marketplaceMock.map((m) => ({
                     name: m.retailer_name,
                     total: m.total_sellers,
-                    autorizados: m.authorized_count,
-                    nao_autorizados: m.unauthorized_count,
+                    autorizados: m.authorized_count || null,
+                    nao_autorizados: m.unauthorized_count || null,
                   }))}
                   margin={{ top: 16, right: 16, left: 0, bottom: 4 }}
                 >
