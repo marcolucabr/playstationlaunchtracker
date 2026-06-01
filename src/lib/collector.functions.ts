@@ -441,6 +441,8 @@ type SearchTemplate = {
   normalize?: (href: string) => string;
 };
 
+type ProductLite = { id?: string; name: string; ean: string | null; platform: string | null };
+
 const SEARCH_TEMPLATES: Record<string, SearchTemplate> = {
   amazon: {
     origin: "https://www.amazon.com.br",
@@ -515,9 +517,105 @@ function absolutize(href: string, origin: string): string {
   return origin + "/" + href;
 }
 
-async function searchFirstResult(tpl: SearchTemplate, query: string): Promise<{ url?: string; status: "ok" | "blocked" | "not_found" | "error"; error?: string }> {
+// === Product-page validation ============================================
+
+const STOPWORDS = new Set([
+  "the","of","for","and","with","a","an","de","da","do","das","dos","para","com","e","o","la","el",
+  "marvel","marvels","sony","game","jogo","midia","midias","fisica","fisicas","edicao","edition","standard",
+]);
+
+const PLATFORM_SYNONYMS: Record<string, string[]> = {
+  ps5: ["ps5", "playstation 5", "playstation5"],
+  ps4: ["ps4", "playstation 4", "playstation4"],
+  "playstation 5": ["ps5", "playstation 5", "playstation5"],
+  "playstation 4": ["ps4", "playstation 4", "playstation4"],
+  "xbox series x": ["xbox series x", "xbox series x|s", "series x"],
+  switch: ["nintendo switch", "switch"],
+  "nintendo switch": ["nintendo switch", "switch"],
+};
+
+const NEGATIVE_TOKENS = [
+  "livro", "book", "guide", "guia", "funko", "boneco", "action figure",
+  "camiseta", "t-shirt", "poster", "poster", "adesivo", "sticker",
+  "capa case", "skin", "controle", "headset",
+];
+
+function normalizeText(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9 ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function platformSynonyms(platform: string | null | undefined): string[] {
+  if (!platform) return [];
+  const n = normalizeText(platform);
+  return PLATFORM_SYNONYMS[n] ?? [n];
+}
+
+function nameTokens(name: string): string[] {
+  return normalizeText(name)
+    .split(" ")
+    .filter((t) => t.length >= 3 && !STOPWORDS.has(t));
+}
+
+/**
+ * Validates that a product page actually matches the target product.
+ * Strict: must mention platform (PS5/etc) AND at least 2 name tokens,
+ * OR contain the EAN. Rejects pages that look like books/merch when
+ * the platform is missing.
+ */
+function validateProductPage(html: string, product: ProductLite): { ok: boolean; reason?: string } {
+  // Cap to first 200kb to keep matching fast
+  const slice = html.slice(0, 200_000);
+  const text = normalizeText(slice.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " "));
+
+  if (product.ean && text.includes(product.ean.toLowerCase())) {
+    return { ok: true };
+  }
+
+  const platToks = platformSynonyms(product.platform);
+  const platformOk = platToks.length === 0 || platToks.some((t) => text.includes(t));
+  if (!platformOk) {
+    return { ok: false, reason: `platform "${product.platform}" not in page` };
+  }
+
+  const tokens = nameTokens(product.name);
+  const required = Math.min(2, tokens.length);
+  const matched = tokens.filter((t) => text.includes(t)).length;
+  if (matched < required) {
+    return { ok: false, reason: `name tokens ${matched}/${tokens.length}` };
+  }
+
+  // If platform is missing but page contains negative tokens (book/merch), reject
+  if (!platformOk && NEGATIVE_TOKENS.some((t) => text.includes(t))) {
+    return { ok: false, reason: "looks like merch/book, no platform" };
+  }
+
+  return { ok: true };
+}
+
+function extractCandidates(html: string, tpl: SearchTemplate, max = 8): string[] {
+  const flags = tpl.productHrefRegex.flags.includes("g")
+    ? tpl.productHrefRegex.flags
+    : tpl.productHrefRegex.flags + "g";
+  const re = new RegExp(tpl.productHrefRegex.source, flags);
+  const set = new Set<string>();
+  for (const m of html.matchAll(re)) {
+    let href = m[1].replace(/&amp;/g, "&");
+    href = absolutize(href, tpl.origin);
+    set.add(href);
+    if (set.size >= max) break;
+  }
+  return [...set];
+}
+
+async function fetchHtml(url: string): Promise<{ status: "ok" | "blocked" | "error"; html?: string; error?: string }> {
   try {
-    const res = await fetch(tpl.searchUrl(query), {
+    const res = await fetch(url, {
       headers: {
         "User-Agent": UA,
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -534,13 +632,46 @@ async function searchFirstResult(tpl: SearchTemplate, query: string): Promise<{ 
     if (/captcha|access denied|cf-browser-verification|robot check|are you a human/.test(lower)) {
       return { status: "blocked", error: "Anti-bot / captcha" };
     }
-    const m = html.match(tpl.productHrefRegex);
-    if (!m) return { status: "not_found" };
-    let href = m[1].replace(/&amp;/g, "&");
-    href = absolutize(href, tpl.origin);
-    return { status: "ok", url: href };
+    return { status: "ok", html };
   } catch (e) {
     return { status: "error", error: e instanceof Error ? e.message : String(e) };
   }
 }
+
+/**
+ * Discovery: search by EAN then by name+platform, validate each candidate
+ * against the actual product page, return first match.
+ */
+async function discoverForProduct(
+  tpl: SearchTemplate,
+  product: ProductLite,
+): Promise<{ url?: string; status: "ok" | "blocked" | "not_found" | "error"; error?: string }> {
+  const queries: string[] = [];
+  if (product.ean) queries.push(product.ean);
+  const nameQuery = [product.name, product.platform].filter(Boolean).join(" ").trim();
+  if (nameQuery) queries.push(nameQuery);
+
+  let lastReason = "no candidates matched";
+  let blockedSeen = false;
+
+  for (const q of queries) {
+    const search = await fetchHtml(tpl.searchUrl(q));
+    if (search.status === "blocked") { blockedSeen = true; continue; }
+    if (search.status !== "ok" || !search.html) continue;
+
+    const candidates = extractCandidates(search.html, tpl);
+    for (const url of candidates) {
+      const page = await fetchHtml(url);
+      if (page.status === "blocked") { blockedSeen = true; continue; }
+      if (page.status !== "ok" || !page.html) continue;
+      const v = validateProductPage(page.html, product);
+      if (v.ok) return { url, status: "ok" };
+      lastReason = v.reason ?? lastReason;
+    }
+  }
+
+  if (blockedSeen) return { status: "blocked", error: "search or page blocked" };
+  return { status: "not_found", error: lastReason };
+}
+
 
