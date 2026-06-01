@@ -2232,7 +2232,13 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                       >
                         <div>
                           <div className="font-medium">
-                            {r?.name} · {s.seller_name ?? "1P"}
+                            {s.product_url ? (
+                              <a href={s.product_url} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline hover:text-primary">
+                                {r?.name} · {s.seller_name ?? "1P"}
+                              </a>
+                            ) : (
+                              <>{r?.name} · {s.seller_name ?? "1P"}</>
+                            )}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {statusLabel[s.status as PriceStatus]} · {brl(s.price_avista_cents)}
