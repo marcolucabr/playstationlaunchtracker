@@ -289,7 +289,9 @@ async function runCollectionInternal(
   if (runErr) throw new Error(runErr.message);
 
   let snapshots = 0, okCount = 0, blockedCount = 0, errorCount = 0, notFoundCount = 0;
+  let rediscoveredCount = 0, rediscoveryFailed = 0;
   const errors: Array<{ url: string; error: string }> = [];
+
 
   for (const u of urls ?? []) {
     const product = productById.get(u.product_id);
@@ -328,11 +330,14 @@ async function runCollectionInternal(
                 .single();
               effectiveUrl = rediscovered.url;
               u.id = ins?.id ?? u.id;
+              rediscoveredCount++;
             } else {
               errors.push({ url: u.url, error: `rediscovery failed: ${rediscovered.error ?? rediscovered.status}` });
+              rediscoveryFailed++;
               notFoundCount++;
               continue;
             }
+
           } else {
             errors.push({ url: u.url, error: validationNote });
             errorCount++;
@@ -410,6 +415,15 @@ async function runCollectionInternal(
 
   const sourcesBreakdown = {
     price: { ok: okCount, blocked: blockedCount, not_found: notFoundCount, error: errorCount, urls_checked: urls?.length ?? 0 },
+    discovery: {
+      newly_discovered: discovery.found,
+      blocked: discovery.blocked,
+      not_found: discovery.notFound,
+      errors: discovery.errors,
+      skipped: discovery.skipped,
+      rediscovered: rediscoveredCount,
+      rediscovery_failed: rediscoveryFailed,
+    },
     reddit: qualitative.reddit,
     youtube: qualitative.youtube,
     news: qualitative.news,
@@ -421,6 +435,7 @@ async function runCollectionInternal(
     coupons: qualitative.coupons,
     sentiment_classified: qualitative.sentiment,
   };
+
 
   const finalStatus: "success" | "partial" | "failed" =
     okCount > 0 && blockedCount + errorCount === 0 ? "success" : okCount > 0 ? "partial" : "failed";

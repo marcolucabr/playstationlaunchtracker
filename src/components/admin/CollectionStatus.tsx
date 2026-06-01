@@ -6,15 +6,21 @@ import { listRecentRuns } from "@/lib/collector.functions";
 import {
   ShoppingCart, MessageSquare, Youtube, Newspaper, Twitter, Music2,
   Instagram, TrendingUp, Search, Tag, Brain, AlertCircle, CheckCircle2, Clock, XCircle,
+  Compass,
 } from "lucide-react";
 
 type Breakdown = {
   price?: { ok: number; blocked: number; not_found: number; error: number; urls_checked: number };
+  discovery?: {
+    newly_discovered: number; blocked: number; not_found: number;
+    errors: number; skipped: number; rediscovered: number; rediscovery_failed: number;
+  };
   reddit?: number; youtube?: number; news?: number;
   twitter?: number; tiktok?: number; instagram?: number;
   trends?: number; keywords?: number; coupons?: number;
   sentiment_classified?: number;
 };
+
 
 const SOURCES: Array<{ key: keyof Breakdown; label: string; icon: React.ReactNode; color: string }> = [
   { key: "reddit", label: "Reddit", icon: <MessageSquare className="h-4 w-4" />, color: "text-orange-600" },
@@ -53,6 +59,8 @@ export function CollectionStatus() {
   const last = runs[0];
   const lastBreakdown = (last?.sources_breakdown ?? {}) as Breakdown;
   const lastPrice = lastBreakdown.price;
+  const lastDiscovery = lastBreakdown.discovery;
+
 
   // Aggregate totals from last 7 runs
   const totals: Record<string, number> = {};
@@ -101,8 +109,27 @@ export function CollectionStatus() {
                 </div>
               </div>
 
+              {/* URL discovery (by EAN) */}
+              {lastDiscovery && (
+                <div className="mb-4">
+                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <Compass className="h-3.5 w-3.5" /> Descoberta de URLs por EAN
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <Stat label="Novas URLs" value={lastDiscovery.newly_discovered} accent="text-emerald-600" />
+                    <Stat label="Redescobertas" value={lastDiscovery.rediscovered} accent="text-blue-600" />
+                    <Stat label="Não encontradas" value={lastDiscovery.not_found} accent="text-slate-600" />
+                    <Stat label="Bloqueadas" value={lastDiscovery.blocked} accent="text-amber-600" />
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1.5">
+                    Coletor busca cada varejista pelo EAN ativo, valida o produto e troca URLs antigas automaticamente.
+                  </p>
+                </div>
+              )}
+
               {/* Qualitative sources */}
               <div>
+
                 <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
                   Fontes pesquisadas — resultados retornados
                 </h4>
