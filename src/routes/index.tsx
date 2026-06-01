@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState, useEffect, useContext, createContext } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Shield, LogOut } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -1831,6 +1832,10 @@ function TrendCardReal({ t }: { t: DashboardData["trends"][number] }) {
 // ===================== Overview (resumo do tudo) =====================
 function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate: (tab: string) => void }) {
   const tr = useT();
+  const isMobile = useIsMobile();
+  const xAxisFontSize = isMobile ? 8 : 10;
+  const xAxisAngle = isMobile ? -55 : -35;
+  const xAxisHeight = isMobile ? 64 : 50;
   const latest = useLatestPerListing(data);
   const total = latest.length;
   const counts = latest.reduce(
@@ -1998,7 +2003,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                       };
                     })
                     .filter((x): x is NonNullable<typeof x> => x !== null)}
-                  margin={{ top: 16, right: 16, left: 0, bottom: 28 }}
+                  margin={{ top: 16, right: 16, left: 0, bottom: isMobile ? 40 : 28 }}
                 >
                   <defs>
                     <linearGradient id="lineTotal" x1="0" y1="0" x2="1" y2="0">
@@ -2007,7 +2012,8 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
-                  <XAxis dataKey="name" tick={{ fontSize: 9 }} interval={0} angle={-35} textAnchor="end" height={50} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: xAxisFontSize }} interval={0} angle={xAxisAngle} textAnchor="end" height={xAxisHeight} axisLine={false} tickLine={false} />
+
 
                   <YAxis tick={{ fontSize: 11 }} allowDecimals={false} axisLine={false} tickLine={false} width={28} />
                   <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
