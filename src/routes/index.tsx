@@ -1255,7 +1255,18 @@ function MarketplacePanel({ data }: { data: DashboardData }) {
                       <td className="py-1.5 pr-2 font-bold text-muted-foreground">{i + 1}</td>
                       <td className="py-1.5 pr-2">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{s.seller_name}</span>
+                          {s.product_url ? (
+                            <a
+                              href={s.product_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-medium underline-offset-2 hover:underline hover:text-primary"
+                            >
+                              {s.seller_name}
+                            </a>
+                          ) : (
+                            <span className="font-medium">{s.seller_name}</span>
+                          )}
                           {!s.authorized && (
                             <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 text-[10px]">
                               não autorizado
@@ -1268,7 +1279,13 @@ function MarketplacePanel({ data }: { data: DashboardData }) {
                       </td>
                       <td className="py-1.5 pr-2 text-xs text-muted-foreground">{s.retailer_name}</td>
                       <td className="py-1.5 pr-2 text-right tabular-nums font-semibold">
-                        {brl(s.price_avista_cents)}
+                        {s.product_url ? (
+                          <a href={s.product_url} target="_blank" rel="noreferrer" className="hover:underline hover:text-primary">
+                            {brl(s.price_avista_cents)}
+                          </a>
+                        ) : (
+                          brl(s.price_avista_cents)
+                        )}
                       </td>
                     </tr>
                   ))}
