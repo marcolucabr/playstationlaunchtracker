@@ -1478,7 +1478,13 @@ function MarketplaceRetailerCardReal({
                 <tr key={s.id} className="border-t">
                   <td className="py-2 pr-3">
                     <div className="flex items-center gap-2 font-medium">
-                      {s.seller_name}
+                      {s.product_url ? (
+                        <a href={s.product_url} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline hover:text-primary">
+                          {s.seller_name}
+                        </a>
+                      ) : (
+                        s.seller_name
+                      )}
                       {s.is_first_party && <Badge variant="outline" className="text-[10px]">1P</Badge>}
                       {s.authorized ? (
                         <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
@@ -1492,7 +1498,13 @@ function MarketplaceRetailerCardReal({
                     </div>
                   </td>
                   <td className="py-2 pr-3 text-right tabular-nums font-semibold">
-                    {brl(s.price_avista_cents)}
+                    {s.product_url ? (
+                      <a href={s.product_url} target="_blank" rel="noreferrer" className="hover:underline hover:text-primary">
+                        {brl(s.price_avista_cents)}
+                      </a>
+                    ) : (
+                      brl(s.price_avista_cents)
+                    )}
                   </td>
                   <td className="py-2 pr-3 text-muted-foreground">{s.installments}</td>
                   <td className="py-2 pr-3 text-xs text-muted-foreground">
