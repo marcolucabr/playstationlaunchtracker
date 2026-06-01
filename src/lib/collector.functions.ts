@@ -415,6 +415,15 @@ async function runCollectionInternal(
 
   const sourcesBreakdown = {
     price: { ok: okCount, blocked: blockedCount, not_found: notFoundCount, error: errorCount, urls_checked: urls?.length ?? 0 },
+    discovery: {
+      newly_discovered: discovery.found,
+      blocked: discovery.blocked,
+      not_found: discovery.notFound,
+      errors: discovery.errors,
+      skipped: discovery.skipped,
+      rediscovered: rediscoveredCount,
+      rediscovery_failed: rediscoveryFailed,
+    },
     reddit: qualitative.reddit,
     youtube: qualitative.youtube,
     news: qualitative.news,
@@ -426,6 +435,7 @@ async function runCollectionInternal(
     coupons: qualitative.coupons,
     sentiment_classified: qualitative.sentiment,
   };
+
 
   const finalStatus: "success" | "partial" | "failed" =
     okCount > 0 && blockedCount + errorCount === 0 ? "success" : okCount > 0 ? "partial" : "failed";
