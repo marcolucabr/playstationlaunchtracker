@@ -1436,7 +1436,13 @@ function MarketplaceRetailerCardReal({
               <Trophy className="h-3.5 w-3.5" /> Oferta mais barata
             </div>
             <div className="mt-1 flex items-center gap-2 text-lg font-semibold">
-              {cheapest.seller_name}
+              {cheapest.product_url ? (
+                <a href={cheapest.product_url} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline hover:text-primary">
+                  {cheapest.seller_name}
+                </a>
+              ) : (
+                cheapest.seller_name
+              )}
               {cheapest.is_first_party && <Badge variant="outline" className="text-[10px]">1P</Badge>}
               {!cheapest.authorized && (
                 <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30">
@@ -1444,7 +1450,15 @@ function MarketplaceRetailerCardReal({
                 </Badge>
               )}
             </div>
-            <div className="text-2xl font-bold tabular-nums">{brl(cheapest.price_avista_cents)}</div>
+            <div className="text-2xl font-bold tabular-nums">
+              {cheapest.product_url ? (
+                <a href={cheapest.product_url} target="_blank" rel="noreferrer" className="hover:underline hover:text-primary">
+                  {brl(cheapest.price_avista_cents)}
+                </a>
+              ) : (
+                brl(cheapest.price_avista_cents)
+              )}
+            </div>
           </div>
         )}
 
