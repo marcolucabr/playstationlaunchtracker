@@ -1795,7 +1795,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
   const realListings = useMarketplaceListings(data);
   const totalSellers = realListings.length;
   const unauthorizedSellers = realListings.filter((l) => !l.authorized).length;
-  const presaleListings = latest.filter((s) => s.is_presale).length;
+
 
   // Cupons reais
   const now = Date.now();
