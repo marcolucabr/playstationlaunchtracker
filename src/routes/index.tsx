@@ -1255,7 +1255,18 @@ function MarketplacePanel({ data }: { data: DashboardData }) {
                       <td className="py-1.5 pr-2 font-bold text-muted-foreground">{i + 1}</td>
                       <td className="py-1.5 pr-2">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{s.seller_name}</span>
+                          {s.product_url ? (
+                            <a
+                              href={s.product_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-medium underline-offset-2 hover:underline hover:text-primary"
+                            >
+                              {s.seller_name}
+                            </a>
+                          ) : (
+                            <span className="font-medium">{s.seller_name}</span>
+                          )}
                           {!s.authorized && (
                             <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 text-[10px]">
                               não autorizado
@@ -1268,7 +1279,13 @@ function MarketplacePanel({ data }: { data: DashboardData }) {
                       </td>
                       <td className="py-1.5 pr-2 text-xs text-muted-foreground">{s.retailer_name}</td>
                       <td className="py-1.5 pr-2 text-right tabular-nums font-semibold">
-                        {brl(s.price_avista_cents)}
+                        {s.product_url ? (
+                          <a href={s.product_url} target="_blank" rel="noreferrer" className="hover:underline hover:text-primary">
+                            {brl(s.price_avista_cents)}
+                          </a>
+                        ) : (
+                          brl(s.price_avista_cents)
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -1419,7 +1436,13 @@ function MarketplaceRetailerCardReal({
               <Trophy className="h-3.5 w-3.5" /> Oferta mais barata
             </div>
             <div className="mt-1 flex items-center gap-2 text-lg font-semibold">
-              {cheapest.seller_name}
+              {cheapest.product_url ? (
+                <a href={cheapest.product_url} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline hover:text-primary">
+                  {cheapest.seller_name}
+                </a>
+              ) : (
+                cheapest.seller_name
+              )}
               {cheapest.is_first_party && <Badge variant="outline" className="text-[10px]">1P</Badge>}
               {!cheapest.authorized && (
                 <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30">
@@ -1427,7 +1450,15 @@ function MarketplaceRetailerCardReal({
                 </Badge>
               )}
             </div>
-            <div className="text-2xl font-bold tabular-nums">{brl(cheapest.price_avista_cents)}</div>
+            <div className="text-2xl font-bold tabular-nums">
+              {cheapest.product_url ? (
+                <a href={cheapest.product_url} target="_blank" rel="noreferrer" className="hover:underline hover:text-primary">
+                  {brl(cheapest.price_avista_cents)}
+                </a>
+              ) : (
+                brl(cheapest.price_avista_cents)
+              )}
+            </div>
           </div>
         )}
 
@@ -1447,7 +1478,13 @@ function MarketplaceRetailerCardReal({
                 <tr key={s.id} className="border-t">
                   <td className="py-2 pr-3">
                     <div className="flex items-center gap-2 font-medium">
-                      {s.seller_name}
+                      {s.product_url ? (
+                        <a href={s.product_url} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline hover:text-primary">
+                          {s.seller_name}
+                        </a>
+                      ) : (
+                        s.seller_name
+                      )}
                       {s.is_first_party && <Badge variant="outline" className="text-[10px]">1P</Badge>}
                       {s.authorized ? (
                         <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
@@ -1461,7 +1498,13 @@ function MarketplaceRetailerCardReal({
                     </div>
                   </td>
                   <td className="py-2 pr-3 text-right tabular-nums font-semibold">
-                    {brl(s.price_avista_cents)}
+                    {s.product_url ? (
+                      <a href={s.product_url} target="_blank" rel="noreferrer" className="hover:underline hover:text-primary">
+                        {brl(s.price_avista_cents)}
+                      </a>
+                    ) : (
+                      brl(s.price_avista_cents)
+                    )}
                   </td>
                   <td className="py-2 pr-3 text-muted-foreground">{s.installments}</td>
                   <td className="py-2 pr-3 text-xs text-muted-foreground">
@@ -2089,7 +2132,13 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                       <span className="text-xs font-bold text-muted-foreground">{i + 1}</span>
                       <div>
                         <div className="flex items-center gap-2 text-sm">
-                          <span className="font-medium">{retailer?.name ?? "?"}</span>
+                          {s.product_url ? (
+                            <a href={s.product_url} target="_blank" rel="noreferrer" className="font-medium underline-offset-2 hover:underline hover:text-primary">
+                              {retailer?.name ?? "?"}
+                            </a>
+                          ) : (
+                            <span className="font-medium">{retailer?.name ?? "?"}</span>
+                          )}
                           <span className="text-xs text-muted-foreground">
                             {s.is_first_party ? "1P" : `· ${s.seller_name ?? "?"}`}
                           </span>
@@ -2108,7 +2157,14 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                         </div>
                       </div>
                       <span className="flex flex-col items-end tabular-nums leading-tight">
-                        <span className="font-semibold">{brl(s.price_avista_cents)} <span className="text-[10px] font-normal uppercase text-muted-foreground">à vista</span></span>
+                        <span className="font-semibold">
+                          {s.product_url ? (
+                            <a href={s.product_url} target="_blank" rel="noreferrer" className="hover:underline hover:text-primary">{brl(s.price_avista_cents)}</a>
+                          ) : (
+                            brl(s.price_avista_cents)
+                          )}{" "}
+                          <span className="text-[10px] font-normal uppercase text-muted-foreground">à vista</span>
+                        </span>
                         {s.price_full_cents != null && s.price_full_cents !== s.price_avista_cents && (
                           <span className="text-xs text-muted-foreground">{brl(s.price_full_cents)} <span className="text-[10px] uppercase">a prazo</span></span>
                         )}
@@ -2176,7 +2232,13 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                       >
                         <div>
                           <div className="font-medium">
-                            {r?.name} · {s.seller_name ?? "1P"}
+                            {s.product_url ? (
+                              <a href={s.product_url} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline hover:text-primary">
+                                {r?.name} · {s.seller_name ?? "1P"}
+                              </a>
+                            ) : (
+                              <>{r?.name} · {s.seller_name ?? "1P"}</>
+                            )}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {statusLabel[s.status as PriceStatus]} · {brl(s.price_avista_cents)}
