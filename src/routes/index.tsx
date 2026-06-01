@@ -2000,36 +2000,37 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             </div>
             <ul className="space-y-1.5 text-sm">
               {activeCoupons.slice(0, 4).map((c) => {
-                const eff = c.effective_price_cents;
-                const base = eff != null
-                  ? (c.discount_pct
-                      ? Math.round(eff / (1 - c.discount_pct / 100))
-                      : eff + (c.discount_cents ?? 0))
+                const eff = c.discount_value_cents != null
+                  ? Math.max(0, data.product.srp_cents - c.discount_value_cents)
+                  : c.discount_pct != null
+                  ? Math.round(data.product.srp_cents * (1 - Number(c.discount_pct) / 100))
                   : null;
-                const label = c.discount_pct ? `-${c.discount_pct}%` : `-${brl(c.discount_cents ?? 0)}`;
+                const violates = eff != null && eff < piso;
+                const label = c.discount_pct != null
+                  ? `-${Number(c.discount_pct).toFixed(0)}%`
+                  : c.discount_value_cents != null
+                  ? `-${brl(c.discount_value_cents)}`
+                  : "—";
                 return (
                   <li
                     key={c.id}
                     className="flex items-center justify-between gap-2 rounded-md border bg-card/50 px-2 py-1"
                   >
                     <span className="flex min-w-0 items-center gap-2">
-                      <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px]">
-                        {c.code}
-                      </code>
-                      <span className="truncate text-xs text-muted-foreground">{c.retailer_name}</span>
+                      {c.code && (
+                        <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px]">
+                          {c.code}
+                        </code>
+                      )}
+                      <span className="truncate text-xs text-muted-foreground">
+                        {c.retailer_name ?? c.source}
+                      </span>
                     </span>
                     <span className="flex items-center gap-1.5 whitespace-nowrap text-[11px]">
-                      {base != null && (
-                        <span className="text-muted-foreground line-through">{brl(base)}</span>
-                      )}
                       {eff != null && (
                         <span className="font-medium text-foreground">{brl(eff)}</span>
                       )}
-                      <span
-                        className={
-                          c.triggers_map_violation ? "text-rose-500" : "text-emerald-600"
-                        }
-                      >
+                      <span className={violates ? "text-rose-500" : "text-emerald-600"}>
                         {label}
                       </span>
                     </span>
@@ -2037,6 +2038,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                 );
               })}
             </ul>
+
           </CardContent>
         </ClickCard>
       </div>
