@@ -36,11 +36,7 @@ import {
 
 import { fetchDashboard, type DashboardData } from "@/lib/dashboard-data";
 import {
-  marketplaceMock,
-  couponsMock,
-  trendsMock,
   RELEASE_DATE_ISO,
-  type MarketplaceSeller,
 } from "@/lib/mock-extra";
 
 
@@ -227,7 +223,7 @@ function DashboardInner({ data }: { data: DashboardData }) {
             <ListingsPanel />
           </TabsContent>
           <TabsContent value="marketplace">
-            <MarketplacePanel />
+            <MarketplacePanel data={data} />
           </TabsContent>
           <TabsContent value="coupons">
             <CouponsPanel data={data} />
@@ -1074,77 +1070,152 @@ function SellersPanel({ data }: { data: DashboardData }) {
 }
 
 // ===================== Marketplace =====================
-function is1P(sellerName: string, retailerName: string): boolean {
-  if (/\(1P\)/i.test(sellerName)) return true;
-  if (retailerName === "Amazon" && /^Amazon/i.test(sellerName)) return true;
-  return false;
+
+
+
+type MarketplaceListing = {
+  id: string;
+  retailer_id: string;
+  retailer_name: string;
+  seller_name: string;
+  is_first_party: boolean;
+  authorized: boolean;
+  price_avista_cents: number;
+  price_full_cents: number | null;
+  installments: string;
+  product_url: string | null;
+  status: string;
+  captured_at: string;
+};
+
+function useMarketplaceListings(data: DashboardData): MarketplaceListing[] {
+  const latest = useLatestPerListing(data);
+  return useMemo(() => {
+    const authMap = new Map<string, Set<string>>();
+    for (const a of data.authorizedSellers) {
+      const s = authMap.get(a.retailer_id) ?? new Set<string>();
+      s.add(a.seller_name.toLowerCase().trim());
+      authMap.set(a.retailer_id, s);
+    }
+    return latest
+      .filter((s) => s.price_avista_cents != null)
+      .map((s) => {
+        const retailer = data.retailers.find((r) => r.id === s.retailer_id);
+        const sellerName = s.is_first_party
+          ? retailer?.name ?? "1P"
+          : s.seller_name ?? "—";
+        const authorized = s.is_first_party
+          ? true
+          : authMap.get(s.retailer_id)?.has((s.seller_name ?? "").toLowerCase().trim()) ?? false;
+        const inst =
+          s.installment_count && s.installment_value_cents
+            ? `${s.installment_count}x ${brl(s.installment_value_cents)}`
+            : "—";
+        return {
+          id: s.id,
+          retailer_id: s.retailer_id,
+          retailer_name: retailer?.name ?? "—",
+          seller_name: sellerName,
+          is_first_party: s.is_first_party,
+          authorized,
+          price_avista_cents: s.price_avista_cents!,
+          price_full_cents: s.price_full_cents,
+          installments: inst,
+          product_url: s.product_url,
+          status: s.status,
+          captured_at: s.captured_at,
+        };
+      });
+  }, [latest, data.authorizedSellers, data.retailers]);
 }
 
-function MarketplacePanel() {
-  // Ranking global cross-plataforma (todos sellers)
-  const allSellers = marketplaceMock.flatMap((r) =>
-    r.sellers.map((s) => ({ ...s, retailer_name: r.retailer_name, retailer_id: r.retailer_id })),
-  );
-  const ranked = [...allSellers].sort((a, b) => a.price_avista_cents - b.price_avista_cents);
+function MarketplacePanel({ data }: { data: DashboardData }) {
+  const listings = useMarketplaceListings(data);
+  const ranked = [...listings].sort((a, b) => a.price_avista_cents - b.price_avista_cents);
 
-  // Sellers x preço médio por plataforma
-  const scatterData = marketplaceMock.map((r) => {
-    const avg = Math.round(
-      r.sellers.reduce((a, s) => a + s.price_avista_cents, 0) / r.sellers.length / 100,
-    );
-    const min = Math.min(...r.sellers.map((s) => s.price_avista_cents)) / 100;
-    return {
-      retailer: r.retailer_name,
-      sellers: r.total_sellers,
-      avg_price: avg,
-      min_price: Math.round(min),
-      unauthorized: r.unauthorized_count,
-    };
-  });
+  const byRetailer = useMemo(() => {
+    const m = new Map<string, MarketplaceListing[]>();
+    for (const l of listings) {
+      const arr = m.get(l.retailer_id) ?? [];
+      arr.push(l);
+      m.set(l.retailer_id, arr);
+    }
+    return m;
+  }, [listings]);
 
-  // 1P vs 3P por varejista — usa os sellers do mock para inferir presença/preço de cada categoria
-  const firstThirdData = marketplaceMock.map((r) => {
-    const oneP = r.sellers.filter((s) => is1P(s.seller, r.retailer_name));
-    const threeP = r.sellers.filter((s) => !is1P(s.seller, r.retailer_name));
-    const avg = (arr: typeof r.sellers) =>
-      arr.length
-        ? Math.round(arr.reduce((a, s) => a + s.price_avista_cents, 0) / arr.length / 100)
-        : 0;
-    return {
-      retailer: r.retailer_name,
-      "1P": oneP.length,
-      "3P": threeP.length,
-      avg_1p: avg(oneP),
-      avg_3p: avg(threeP),
-    };
-  });
+  const scatterData = data.retailers
+    .map((r) => {
+      const items = byRetailer.get(r.id) ?? [];
+      if (items.length === 0) return null;
+      const prices = items.map((i) => i.price_avista_cents);
+      return {
+        retailer: r.name,
+        sellers: items.length,
+        avg_price: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length / 100),
+        min_price: Math.round(Math.min(...prices) / 100),
+        unauthorized: items.filter((i) => !i.authorized).length,
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+
+  const firstThirdData = data.retailers
+    .map((r) => {
+      const items = byRetailer.get(r.id) ?? [];
+      if (items.length === 0) return null;
+      const oneP = items.filter((i) => i.is_first_party);
+      const threeP = items.filter((i) => !i.is_first_party);
+      const avg = (arr: MarketplaceListing[]) =>
+        arr.length ? Math.round(arr.reduce((a, s) => a + s.price_avista_cents, 0) / arr.length / 100) : 0;
+      return {
+        retailer: r.name,
+        "1P": oneP.length,
+        "3P": threeP.length,
+        avg_1p: avg(oneP),
+        avg_3p: avg(threeP),
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
   const total1P = firstThirdData.reduce((a, r) => a + r["1P"], 0);
   const total3P = firstThirdData.reduce((a, r) => a + r["3P"], 0);
+  const totalUnauthorized = listings.filter((l) => !l.authorized).length;
+
+  if (listings.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center text-sm text-muted-foreground">
+          Sem coletas de preço ainda. Configure URLs em <strong>Admin → Anúncios</strong> e rode a coleta.
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-4">
       <Card>
         <CardContent className="flex flex-wrap items-center gap-4 p-4 text-sm">
-          <div className="flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-amber-500" />
-            <span>
-              <strong>BuyBox</strong> = vendedor que aparece por padrão no botão "Comprar"
-            </span>
-          </div>
-          <div className="text-muted-foreground">
-            Dados mockados — coleta real por seller depende de scraping por loja (cada varejista expõe sellers de forma diferente). Os preços reais por URL aparecem na aba <strong>Anúncios</strong>.
-          </div>
+          <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">
+            {listings.length} ofertas coletadas
+          </Badge>
+          <Badge className="bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-500/30">
+            {total1P} 1P · {total3P} 3P
+          </Badge>
+          {totalUnauthorized > 0 && (
+            <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30">
+              {totalUnauthorized} sellers não autorizados
+            </Badge>
+          )}
+          <span className="text-xs text-muted-foreground">
+            Dados reais — uma oferta por URL configurada em Admin → Anúncios.
+          </span>
         </CardContent>
       </Card>
 
-      {/* Grid: ranking global + gráfico */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base"> Ranking global de sellers (todas plataformas)
-            </CardTitle>
+            <CardTitle className="text-base">Ranking global de sellers</CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">
-              menor preço primeiro — útil para identificar onde está a pressão de preço
+              menor preço primeiro — pressão competitiva
             </p>
           </CardHeader>
           <CardContent>
@@ -1159,25 +1230,23 @@ function MarketplacePanel() {
                   </tr>
                 </thead>
                 <tbody>
-                  {ranked.slice(0, 10).map((s, i) => (
-                    <tr key={`${s.retailer_id}-${s.seller}`} className="border-t">
+                  {ranked.slice(0, 12).map((s, i) => (
+                    <tr key={s.id} className="border-t">
                       <td className="py-1.5 pr-2 font-bold text-muted-foreground">{i + 1}</td>
                       <td className="py-1.5 pr-2">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{s.seller}</span>
+                          <span className="font-medium">{s.seller_name}</span>
                           {!s.authorized && (
                             <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 text-[10px]">
                               não autorizado
                             </Badge>
                           )}
-                          {s.is_buybox && (
-                            <Trophy className="h-3 w-3 text-amber-500" />
+                          {s.is_first_party && (
+                            <Badge variant="outline" className="text-[10px]">1P</Badge>
                           )}
                         </div>
                       </td>
-                      <td className="py-1.5 pr-2 text-xs text-muted-foreground">
-                        {s.retailer_name}
-                      </td>
+                      <td className="py-1.5 pr-2 text-xs text-muted-foreground">{s.retailer_name}</td>
                       <td className="py-1.5 pr-2 text-right tabular-nums font-semibold">
                         {brl(s.price_avista_cents)}
                       </td>
@@ -1191,10 +1260,9 @@ function MarketplacePanel() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base"> Sellers por plataforma vs preço médio
-            </CardTitle>
+            <CardTitle className="text-base">Sellers por plataforma vs preço médio</CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">
-              barra = quantidade de sellers · linha = preço médio à vista (R$)
+              linha = preço (R$) · contagem = quantidade de ofertas
             </p>
           </CardHeader>
           <CardContent className="h-72">
@@ -1206,55 +1274,30 @@ function MarketplacePanel() {
                 <YAxis yAxisId="right" orientation="right" className="text-xs" />
                 <Tooltip />
                 <Legend />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="sellers"
-                  name="Sellers ativos"
-                  stroke="var(--chart-2)"
-                  strokeWidth={2}
-                />
-                <Line
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="avg_price"
-                  name="Preço médio (R$)"
-                  stroke="var(--primary)"
-                  strokeWidth={2}
-                />
-                <Line
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="min_price"
-                  name="Menor preço (R$)"
-                  stroke="var(--chart-3)"
-                  strokeWidth={2}
-                  strokeDasharray="4 4"
-                />
+                <Line yAxisId="left" type="monotone" dataKey="sellers" name="Sellers ativos" stroke="var(--chart-2)" strokeWidth={2} />
+                <Line yAxisId="right" type="monotone" dataKey="avg_price" name="Preço médio (R$)" stroke="var(--primary)" strokeWidth={2} />
+                <Line yAxisId="right" type="monotone" dataKey="min_price" name="Menor preço (R$)" stroke="var(--chart-3)" strokeWidth={2} strokeDasharray="4 4" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* 1P vs 3P por varejista */}
       <Card>
         <CardHeader className="pb-2">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
-              <CardTitle className="flex items-center gap-2 text-base"> 1P vs 3P por varejista
-              </CardTitle>
+              <CardTitle className="text-base">1P vs 3P por varejista</CardTitle>
               <p className="mt-1 text-xs text-muted-foreground">
-                1P = venda direta do varejista · 3P = sellers do marketplace. Ajuda a
-                identificar onde a operação do próprio varejo concorre (ou não) com 3Ps.
+                1P = venda direta do varejista · 3P = sellers do marketplace
               </p>
             </div>
             <div className="flex gap-2 text-xs">
               <Badge className="border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
-                {total1P} sellers 1P
+                {total1P} ofertas 1P
               </Badge>
               <Badge className="border-sky-500/30 bg-sky-500/15 text-sky-700 dark:text-sky-400">
-                {total3P} sellers 3P
+                {total3P} ofertas 3P
               </Badge>
             </div>
           </div>
@@ -1306,205 +1349,132 @@ function MarketplacePanel() {
         </CardContent>
       </Card>
 
-
-      {marketplaceMock.map((r) => (
-        <MarketplaceRetailerCard key={r.retailer_id} r={r} />
-      ))}
+      {data.retailers
+        .filter((r) => (byRetailer.get(r.id)?.length ?? 0) > 0)
+        .map((r) => (
+          <MarketplaceRetailerCardReal
+            key={r.id}
+            retailerName={r.name}
+            items={byRetailer.get(r.id) ?? []}
+          />
+        ))}
     </div>
   );
 }
 
-function MarketplaceRetailerCard({
-  r,
+function MarketplaceRetailerCardReal({
+  retailerName,
+  items,
 }: {
-  r: (typeof marketplaceMock)[number];
+  retailerName: string;
+  items: MarketplaceListing[];
 }) {
-  const buybox = r.sellers.find((s) => s.is_buybox);
-  const sorted = [...r.sellers].sort((a, b) => a.price_avista_cents - b.price_avista_cents);
+  const sorted = [...items].sort((a, b) => a.price_avista_cents - b.price_avista_cents);
+  const cheapest = sorted[0];
+  const authorizedCount = items.filter((i) => i.authorized).length;
+  const unauthorizedCount = items.length - authorizedCount;
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <CardTitle className="flex items-center gap-2 text-lg"> {r.retailer_name}
-          </CardTitle>
+          <CardTitle className="text-lg">{retailerName}</CardTitle>
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <Badge variant="outline">{r.total_sellers} sellers ativos</Badge>
+            <Badge variant="outline">{items.length} ofertas</Badge>
             <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">
-              {r.authorized_count} autorizados
+              {authorizedCount} autorizados
             </Badge>
-            <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30">
-              {r.unauthorized_count} não autorizados
-            </Badge>
+            {unauthorizedCount > 0 && (
+              <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30">
+                {unauthorizedCount} não autorizados
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {buybox ? <BuyBoxCard s={buybox} /> : null}
-
-        <div>
-          <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Todos os sellers (ordenados por preço)
+        {cheapest && (
+          <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-amber-700 dark:text-amber-400">
+              <Trophy className="h-3.5 w-3.5" /> Oferta mais barata
+            </div>
+            <div className="mt-1 flex items-center gap-2 text-lg font-semibold">
+              {cheapest.seller_name}
+              {cheapest.is_first_party && <Badge variant="outline" className="text-[10px]">1P</Badge>}
+              {!cheapest.authorized && (
+                <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30">
+                  <XCircle className="mr-1 h-3 w-3" /> não autorizado
+                </Badge>
+              )}
+            </div>
+            <div className="text-2xl font-bold tabular-nums">{brl(cheapest.price_avista_cents)}</div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th className="py-2 pr-3">Seller</th>
-                  <th className="py-2 pr-3">À vista</th>
-                  <th className="py-2 pr-3">Parcelamento</th>
-                  <th className="py-2 pr-3">Frete</th>
-                  <th className="py-2 pr-3">Reputação</th>
-                  <th className="py-2 pr-3">Estoque</th>
-                  <th className="py-2 pr-3">Idade</th>
-                  <th className="py-2 pr-3"></th>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-left text-xs uppercase text-muted-foreground">
+              <tr>
+                <th className="py-2 pr-3">Seller</th>
+                <th className="py-2 pr-3 text-right">À vista</th>
+                <th className="py-2 pr-3">Parcelamento</th>
+                <th className="py-2 pr-3">Coletado</th>
+                <th className="py-2 pr-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((s) => (
+                <tr key={s.id} className="border-t">
+                  <td className="py-2 pr-3">
+                    <div className="flex items-center gap-2 font-medium">
+                      {s.seller_name}
+                      {s.is_first_party && <Badge variant="outline" className="text-[10px]">1P</Badge>}
+                      {s.authorized ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
+                          autorizado
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 text-[10px]">
+                          não autorizado
+                        </Badge>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-2 pr-3 text-right tabular-nums font-semibold">
+                    {brl(s.price_avista_cents)}
+                  </td>
+                  <td className="py-2 pr-3 text-muted-foreground">{s.installments}</td>
+                  <td className="py-2 pr-3 text-xs text-muted-foreground">
+                    {new Date(s.captured_at).toLocaleString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </td>
+                  <td className="py-2 pr-3">
+                    {s.product_url ? (
+                      <a
+                        href={s.product_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    ) : null}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {sorted.map((s) => (
-                  <tr
-                    key={s.seller}
-                    className={`border-t ${s.is_buybox ? "bg-amber-500/5" : ""}`}
-                  >
-                    <td className="py-2 pr-3">
-                      <div className="flex items-center gap-2 font-medium">
-                        {s.is_buybox ? (
-                          <Trophy className="h-3.5 w-3.5 text-amber-500" />
-                        ) : null}
-                        {s.seller}
-                        {s.authorized ? (
-                          <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
-                            autorizado
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 text-[10px]">
-                            não autorizado
-                          </Badge>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-2 pr-3 tabular-nums font-semibold">
-                      {brl(s.price_avista_cents)}
-                    </td>
-                    <td className="py-2 pr-3 text-muted-foreground">{s.installments}</td>
-                    <td className="py-2 pr-3">
-                      <ShippingBadge kind={s.shipping} />
-                    </td>
-                    <td className="py-2 pr-3 text-muted-foreground">
-                      ★ {s.rating.toFixed(1)} ({s.reviews.toLocaleString("pt-BR")})
-                    </td>
-                    <td className="py-2 pr-3">
-                      <StockBadge stock={s.stock} />
-                    </td>
-                    <td className="py-2 pr-3 text-muted-foreground">{s.listing_age_days}d</td>
-                    <td className="py-2 pr-3">
-                      {s.url ? (
-                        <a
-                          href={s.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      ) : null}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div>
-          <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Quem ganhou a BuyBox nas últimas 24h
-          </div>
-          <div className="flex h-6 w-full overflow-hidden rounded-md border">
-            {r.buybox_history_24h.map((h, i) => (
-              <div
-                key={i}
-                title={`${h.seller} — ${h.hours}h`}
-                style={{ width: `${(h.hours / 24) * 100}%` }}
-                className={`flex items-center justify-center text-[10px] font-medium text-white ${
-                  h.authorized ? "bg-emerald-500" : "bg-rose-500"
-                }`}
-              >
-                {h.hours >= 3 ? `${h.seller} · ${h.hours}h` : ""}
-              </div>
-            ))}
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function BuyBoxCard({ s }: { s: MarketplaceSeller }) {
-  return (
-    <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-amber-700 dark:text-amber-400">
-            <Trophy className="h-3.5 w-3.5" /> BuyBox atual
-          </div>
-          <div className="mt-1 flex items-center gap-2 text-lg font-semibold">
-            {s.seller}
-            {s.authorized ? (
-              <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">
-                autorizado
-              </Badge>
-            ) : (
-              <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30">
-                <XCircle className="mr-1 h-3 w-3" /> não autorizado
-              </Badge>
-            )}
-          </div>
-          <div className="text-2xl font-bold tabular-nums">{brl(s.price_avista_cents)}</div>
-        </div>
-        <div className="min-w-[260px] flex-1">
-          <div className="mb-1 text-xs font-medium uppercase text-muted-foreground">
-            Por que ganhou a BuyBox
-          </div>
-          <ul className="space-y-1 text-sm">
-            {(s.buybox_reasons ?? []).map((r, i) => (
-              <li key={i} className="flex items-start gap-2">
-                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-emerald-500" />
-                {r}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function ShippingBadge({ kind }: { kind: MarketplaceSeller["shipping"] }) {
-  const map = {
-    gratis: { label: "grátis", cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" },
-    pago: { label: "pago", cls: "bg-muted text-muted-foreground" },
-    full: { label: "Full", cls: "bg-yellow-400/20 text-yellow-700 dark:text-yellow-400" },
-    prime: { label: "Prime", cls: "bg-sky-500/15 text-sky-700 dark:text-sky-400" },
-  } as const;
-  const m = map[kind];
-  return <span className={`rounded px-1.5 py-0.5 text-[11px] ${m.cls}`}>{m.label}</span>;
-}
-
-function StockBadge({ stock }: { stock: MarketplaceSeller["stock"] }) {
-  const map = {
-    alto: { label: "alto", tone: "green" as const },
-    medio: { label: "médio", tone: "yellow" as const },
-    baixo: { label: "baixo", tone: "yellow" as const },
-    sem: { label: "esgotado", tone: "red" as const },
-  };
-  const m = map[stock];
-  return (
-    <span className={`inline-flex rounded-md border px-1.5 py-0.5 text-[10px] ${toneClass[m.tone]}`}>
-      {m.label}
-    </span>
-  );
-}
 
 // ===================== Cupom =====================
 function CouponsPanel({ data }: { data: DashboardData }) {
@@ -1821,17 +1791,46 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
     data.product.srp_cents * (1 - data.product.max_discount_avista_pct / 100),
   );
 
-  const totalSellers = marketplaceMock.reduce((a, m) => a + m.total_sellers, 0);
-  const unauthorizedSellers = marketplaceMock.reduce((a, m) => a + m.unauthorized_count, 0);
-  const presaleListings = latest.filter((s) => s.is_presale).length;
-  const activeCoupons = couponsMock.filter((c) => c.active);
-  const violatingCoupons = activeCoupons.filter((c) => c.triggers_map_violation);
-  const last7dCoupons = couponsMock.filter(
-    (c) => Date.now() - new Date(c.starts_at).getTime() < 7 * 24 * 3600_000,
-  );
+  // Sellers reais a partir das coletas (uma oferta = um seller por URL)
+  const realListings = useMarketplaceListings(data);
+  const totalSellers = realListings.length;
+  const unauthorizedSellers = realListings.filter((l) => !l.authorized).length;
 
-  const topTrends = [...trendsMock].sort((a, b) => b.delta_7d_pct - a.delta_7d_pct);
+
+  // Cupons reais
+  const now = Date.now();
+  const last7dCoupons = data.coupons.filter(
+    (c) => now - new Date(c.captured_at).getTime() < 7 * 24 * 3600_000,
+  );
+  const activeCoupons = last7dCoupons; // sem expires-at confiável, ativos = últimos 7d
+  const violatingCoupons = activeCoupons.filter((c) => {
+    const eff = c.discount_value_cents != null
+      ? Math.max(0, data.product.srp_cents - c.discount_value_cents)
+      : c.discount_pct != null
+      ? Math.round(data.product.srp_cents * (1 - Number(c.discount_pct) / 100))
+      : null;
+    return eff != null && eff < piso;
+  });
+
+  // Tendências reais a partir de trends_snapshots (Google Trends)
+  const topTrends = data.trends
+    .map((t) => {
+      const series = t.series ?? [];
+      const last = series[series.length - 1]?.value ?? 0;
+      const prev = series[Math.max(0, series.length - 8)]?.value ?? last;
+      const delta_7d_pct = prev > 0 ? ((last - prev) / prev) * 100 : 0;
+      return {
+        source: t.id,
+        source_name: t.keyword,
+        current_score: Math.round(last),
+        delta_7d_pct,
+      };
+    })
+    .sort((a, b) => b.delta_7d_pct - a.delta_7d_pct)
+    .slice(0, 5);
+
   const topMentions = data.mentions.slice(0, 3);
+
 
   return (
     <div className="space-y-6">
@@ -1922,12 +1921,20 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             <div className="h-[220px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                  data={marketplaceMock.map((m) => ({
-                    name: m.retailer_name,
-                    total: m.total_sellers,
-                    autorizados: m.authorized_count || null,
-                    nao_autorizados: m.unauthorized_count || null,
-                  }))}
+                  data={data.retailers
+                    .map((r) => {
+                      const items = realListings.filter((l) => l.retailer_id === r.id);
+                      if (items.length === 0) return null;
+                      const autorizados = items.filter((i) => i.authorized).length;
+                      const nao = items.length - autorizados;
+                      return {
+                        name: r.name,
+                        total: items.length,
+                        autorizados: autorizados || null,
+                        nao_autorizados: nao || null,
+                      };
+                    })
+                    .filter((x): x is NonNullable<typeof x> => x !== null)}
                   margin={{ top: 16, right: 16, left: 0, bottom: 4 }}
                 >
                   <defs>
@@ -1994,36 +2001,37 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             </div>
             <ul className="space-y-1.5 text-sm">
               {activeCoupons.slice(0, 4).map((c) => {
-                const eff = c.effective_price_cents;
-                const base = eff != null
-                  ? (c.discount_pct
-                      ? Math.round(eff / (1 - c.discount_pct / 100))
-                      : eff + (c.discount_cents ?? 0))
+                const eff = c.discount_value_cents != null
+                  ? Math.max(0, data.product.srp_cents - c.discount_value_cents)
+                  : c.discount_pct != null
+                  ? Math.round(data.product.srp_cents * (1 - Number(c.discount_pct) / 100))
                   : null;
-                const label = c.discount_pct ? `-${c.discount_pct}%` : `-${brl(c.discount_cents ?? 0)}`;
+                const violates = eff != null && eff < piso;
+                const label = c.discount_pct != null
+                  ? `-${Number(c.discount_pct).toFixed(0)}%`
+                  : c.discount_value_cents != null
+                  ? `-${brl(c.discount_value_cents)}`
+                  : "—";
                 return (
                   <li
                     key={c.id}
                     className="flex items-center justify-between gap-2 rounded-md border bg-card/50 px-2 py-1"
                   >
                     <span className="flex min-w-0 items-center gap-2">
-                      <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px]">
-                        {c.code}
-                      </code>
-                      <span className="truncate text-xs text-muted-foreground">{c.retailer_name}</span>
+                      {c.code && (
+                        <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px]">
+                          {c.code}
+                        </code>
+                      )}
+                      <span className="truncate text-xs text-muted-foreground">
+                        {c.retailer_name ?? c.source}
+                      </span>
                     </span>
                     <span className="flex items-center gap-1.5 whitespace-nowrap text-[11px]">
-                      {base != null && (
-                        <span className="text-muted-foreground line-through">{brl(base)}</span>
-                      )}
                       {eff != null && (
                         <span className="font-medium text-foreground">{brl(eff)}</span>
                       )}
-                      <span
-                        className={
-                          c.triggers_map_violation ? "text-rose-500" : "text-emerald-600"
-                        }
-                      >
+                      <span className={violates ? "text-rose-500" : "text-emerald-600"}>
                         {label}
                       </span>
                     </span>
@@ -2031,6 +2039,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                 );
               })}
             </ul>
+
           </CardContent>
         </ClickCard>
       </div>
