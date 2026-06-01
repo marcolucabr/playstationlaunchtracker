@@ -94,6 +94,57 @@ export async function collectYouTube(admin: Admin, p: Product, extraTerms: strin
   return inserted;
 }
 
+// ============ Generic social collector ============
+async function collectSocial(
+  admin: Admin,
+  p: Product,
+  extraTerms: string[],
+  opts: { source: "twitter" | "tiktok" | "instagram"; sourceName: string; domainRegex: RegExp; siteFilters: string[] },
+) {
+  const client = fc();
+  const sitePart = opts.siteFilters.map((s) => `site:${s}`).join(" OR ");
+  const queries = uniq([baseQuery(p), ...extraTerms]).map((q) => `${q} (${sitePart})`);
+  let inserted = 0;
+  for (const query of queries) {
+    try {
+      const res = await client.search(query, { limit: 8, sources: ["web"], location: "Brazil", tbs: "qdr:w" });
+      const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
+      for (const r of results) {
+        if (!r?.url || !opts.domainRegex.test(r.url)) continue;
+        const { error } = await admin.from("mentions").insert({
+          product_id: p.id, source: opts.source, source_name: opts.sourceName,
+          url: r.url, title: r.title ?? null,
+          excerpt: r.description ?? r.markdown?.slice(0, 500) ?? null,
+          captured_at: new Date().toISOString(),
+        });
+        if (!error) inserted++;
+      }
+    } catch (e) { console.error(`[${opts.source}]`, e); }
+  }
+  return inserted;
+}
+
+export const collectTwitter = (admin: Admin, p: Product, extra: string[]) =>
+  collectSocial(admin, p, extra, {
+    source: "twitter", sourceName: "X / Twitter",
+    domainRegex: /(twitter\.com|x\.com)/i,
+    siteFilters: ["twitter.com", "x.com"],
+  });
+
+export const collectTikTok = (admin: Admin, p: Product, extra: string[]) =>
+  collectSocial(admin, p, extra, {
+    source: "tiktok", sourceName: "TikTok",
+    domainRegex: /tiktok\.com/i,
+    siteFilters: ["tiktok.com"],
+  });
+
+export const collectInstagram = (admin: Admin, p: Product, extra: string[]) =>
+  collectSocial(admin, p, extra, {
+    source: "instagram", sourceName: "Instagram",
+    domainRegex: /instagram\.com/i,
+    siteFilters: ["instagram.com"],
+  });
+
 // ============ News (BR portals) ============
 export async function collectNews(admin: Admin, p: Product, extraTerms: string[]) {
   const client = fc();
