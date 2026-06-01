@@ -60,6 +60,7 @@ import psLogo from "@/assets/playstation-logo.png";
 import wolverineCover from "@/assets/wolverine-cover.png";
 import wolverineHero from "@/assets/wolverine-banner.jpg";
 import psBg from "@/assets/ps-bg.jpg";
+import { ListingsPanel } from "@/components/admin/ListingsPanel";
 
 
 
