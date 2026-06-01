@@ -499,8 +499,9 @@ type SearchTemplate = {
   normalize?: (href: string) => string;
 };
 
-import { validateCandidate, type ProductLite } from "./collector-validation";
-export type { ProductLite } from "./collector-validation";
+import { validateCandidate } from "./collector-validation";
+import type { ProductLite } from "./collector-validation";
+export type { ProductLite };
 
 const SEARCH_TEMPLATES: Record<string, SearchTemplate> = {
   amazon: {
