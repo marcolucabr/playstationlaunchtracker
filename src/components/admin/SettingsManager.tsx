@@ -16,6 +16,7 @@ import {
   listSettings,
   updateProductDates,
   updateRetailerCategory,
+  setActiveLaunch,
   type RetailerCategory,
 } from "@/lib/settings.functions";
 
@@ -33,10 +34,44 @@ export function SettingsManager() {
   const listFn = useServerFn(listSettings);
   const updProd = useServerFn(updateProductDates);
   const updCat = useServerFn(updateRetailerCategory);
+  const setLaunchFn = useServerFn(setActiveLaunch);
 
   const { data, isLoading } = useQuery({
     queryKey: ["settings"],
     queryFn: () => listFn({}),
+  });
+
+  const [launch, setLaunch] = useState({ ean: "", name: "", platform: "PS5", release_date: "", srp: "" });
+  const activeProduct = data?.products.find((p) => p.active);
+
+  useEffect(() => {
+    if (!activeProduct) return;
+    setLaunch({
+      ean: activeProduct.ean ?? "",
+      name: activeProduct.name ?? "",
+      platform: activeProduct.platform ?? "PS5",
+      release_date: activeProduct.release_date ?? "",
+      srp: activeProduct.srp_cents ? (activeProduct.srp_cents / 100).toFixed(2) : "",
+    });
+  }, [activeProduct?.id]);
+
+  const setLaunchMut = useMutation({
+    mutationFn: () =>
+      setLaunchFn({
+        data: {
+          ean: launch.ean,
+          name: launch.name || undefined,
+          platform: launch.platform || undefined,
+          release_date: launch.release_date || null,
+          srp_cents: launch.srp ? Math.round(parseFloat(launch.srp.replace(",", ".")) * 100) : null,
+        },
+      }),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ["settings"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success(r.created ? "Novo lançamento criado e ativado" : "Lançamento ativo atualizado");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const [prodForms, setProdForms] = useState<Record<string, { release_date: string; presale_starts_at: string }>>({});
@@ -78,6 +113,76 @@ export function SettingsManager() {
 
   return (
     <div className="space-y-4">
+      <Card className="border-blue-300">
+        <CardHeader>
+          <CardTitle className="text-base">Lançamento ativo</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Informe o <strong>EAN</strong> do lançamento que o tracker deve monitorar. Trocar aqui
+            desativa os outros produtos e faz toda a coleta (preços, menções, trends, cupons) passar
+            a buscar este EAN. Se o EAN já existir, ele é reativado; senão, é criado.
+          </p>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-[180px_1fr_120px_160px_140px_auto] md:items-end">
+            <div>
+              <Label className="text-xs">EAN</Label>
+              <Input
+                inputMode="numeric"
+                placeholder="7117190281166"
+                value={launch.ean}
+                onChange={(e) => setLaunch({ ...launch, ean: e.target.value.replace(/\D/g, "") })}
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Nome</Label>
+              <Input
+                placeholder="Marvel's Wolverine"
+                value={launch.name}
+                onChange={(e) => setLaunch({ ...launch, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Plataforma</Label>
+              <Input
+                placeholder="PS5"
+                value={launch.platform}
+                onChange={(e) => setLaunch({ ...launch, platform: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Lançamento</Label>
+              <Input
+                type="date"
+                value={launch.release_date}
+                onChange={(e) => setLaunch({ ...launch, release_date: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label className="text-xs">SRP (R$)</Label>
+              <Input
+                inputMode="decimal"
+                placeholder="349.90"
+                value={launch.srp}
+                onChange={(e) => setLaunch({ ...launch, srp: e.target.value })}
+              />
+            </div>
+            <Button
+              onClick={() => setLaunchMut.mutate()}
+              disabled={setLaunchMut.isPending || !launch.ean}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {setLaunchMut.isPending ? "Salvando…" : "Ativar"}
+            </Button>
+          </div>
+          {activeProduct && (
+            <div className="text-xs text-muted-foreground">
+              Ativo agora: <strong>{activeProduct.name}</strong> · EAN {activeProduct.ean ?? "—"} ·{" "}
+              {activeProduct.platform ?? "—"}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Datas dos produtos</CardTitle>

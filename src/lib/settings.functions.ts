@@ -38,7 +38,8 @@ export const listSettings = createServerFn({ method: "POST" })
     const [{ data: products }, { data: retailers }] = await Promise.all([
       admin
         .from("products")
-        .select("id, name, ean, release_date, presale_starts_at, presale_allowed")
+        .select("id, name, ean, platform, release_date, presale_starts_at, presale_allowed, active, srp_cents")
+        .order("active", { ascending: false })
         .order("name"),
       admin
         .from("retailers")
@@ -46,6 +47,68 @@ export const listSettings = createServerFn({ method: "POST" })
         .order("display_order"),
     ]);
     return { products: products ?? [], retailers: retailers ?? [] };
+  });
+
+export const setActiveLaunch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: {
+    ean: string;
+    name?: string;
+    platform?: string;
+    release_date?: string | null;
+    srp_cents?: number | null;
+  }) => d)
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const admin = adminClient();
+    const ean = data.ean.trim();
+    if (!/^\d{8,14}$/.test(ean)) throw new Error("EAN inválido (use apenas dígitos, 8 a 14)");
+
+    const { data: existing, error: selErr } = await admin
+      .from("products")
+      .select("id, name, platform, release_date, srp_cents")
+      .eq("ean", ean)
+      .maybeSingle();
+    if (selErr) throw new Error(selErr.message);
+
+    // Deactivate everything else
+    const { error: deactErr } = await admin
+      .from("products")
+      .update({ active: false })
+      .neq("ean", ean);
+    if (deactErr) throw new Error(deactErr.message);
+
+    if (existing) {
+      const patch: {
+        active: boolean;
+        name?: string;
+        platform?: string;
+        release_date?: string | null;
+        srp_cents?: number;
+      } = { active: true };
+      if (data.name) patch.name = data.name;
+      if (data.platform) patch.platform = data.platform;
+      if (data.release_date !== undefined) patch.release_date = data.release_date;
+      if (data.srp_cents != null) patch.srp_cents = data.srp_cents;
+      const { error } = await admin.from("products").update(patch).eq("id", existing.id);
+      if (error) throw new Error(error.message);
+      return { ok: true, productId: existing.id, created: false };
+    }
+
+    const { data: created, error: insErr } = await admin
+      .from("products")
+      .insert({
+        ean,
+        name: data.name?.trim() || `Lançamento ${ean}`,
+        platform: data.platform?.trim() || "PS5",
+        release_date: data.release_date ?? null,
+        srp_cents: data.srp_cents ?? 0,
+        active: true,
+      })
+      .select("id")
+      .single();
+    if (insErr) throw new Error(insErr.message);
+    return { ok: true, productId: created.id, created: true };
   });
 
 export const updateProductDates = createServerFn({ method: "POST" })
