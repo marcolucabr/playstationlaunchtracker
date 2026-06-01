@@ -103,6 +103,60 @@ export type Database = {
           },
         ]
       }
+      coupon_snapshots: {
+        Row: {
+          captured_at: string
+          code: string | null
+          description: string | null
+          discount_pct: number | null
+          discount_value_cents: number | null
+          id: string
+          product_id: string
+          retailer_id: string | null
+          retailer_name: string | null
+          source: string
+          source_url: string | null
+          stackable: boolean | null
+          title: string
+          upvotes: number | null
+          valid_until: string | null
+        }
+        Insert: {
+          captured_at?: string
+          code?: string | null
+          description?: string | null
+          discount_pct?: number | null
+          discount_value_cents?: number | null
+          id?: string
+          product_id: string
+          retailer_id?: string | null
+          retailer_name?: string | null
+          source: string
+          source_url?: string | null
+          stackable?: boolean | null
+          title: string
+          upvotes?: number | null
+          valid_until?: string | null
+        }
+        Update: {
+          captured_at?: string
+          code?: string | null
+          description?: string | null
+          discount_pct?: number | null
+          discount_value_cents?: number | null
+          id?: string
+          product_id?: string
+          retailer_id?: string | null
+          retailer_name?: string | null
+          source?: string
+          source_url?: string | null
+          stackable?: boolean | null
+          title?: string
+          upvotes?: number | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       keyword_snapshots: {
         Row: {
           captured_at: string
@@ -172,6 +226,30 @@ export type Database = {
           os?: string | null
           user_agent?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      manual_keywords: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          product_id: string
+          term: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          product_id: string
+          term: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          product_id?: string
+          term?: string
         }
         Relationships: []
       }
