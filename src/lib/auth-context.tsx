@@ -46,12 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       if (event === "SIGNED_OUT") {
         setRole(null);
-        const sid = localStorage.getItem(SESSION_KEY);
-        if (sid) {
-          endSession({ data: { sessionId: sid } }).catch(() => {});
-          localStorage.removeItem(SESSION_KEY);
-        }
+        localStorage.removeItem(SESSION_KEY);
       }
+
     });
 
     supabase.auth.getSession().then(async ({ data: { session: sess } }) => {
@@ -90,7 +87,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return error ? { error: error.message } : {};
     },
-    signOut: async () => { await supabase.auth.signOut(); },
+    signOut: async () => {
+      const sid = localStorage.getItem(SESSION_KEY);
+      if (sid) {
+        try { await endSession({ data: { sessionId: sid } }); } catch {}
+      }
+      await supabase.auth.signOut();
+    },
     resetPassword: async (email) => {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
