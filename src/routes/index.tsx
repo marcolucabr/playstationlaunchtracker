@@ -1832,6 +1832,10 @@ function TrendCardReal({ t }: { t: DashboardData["trends"][number] }) {
 // ===================== Overview (resumo do tudo) =====================
 function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate: (tab: string) => void }) {
   const tr = useT();
+  const isMobile = useIsMobile();
+  const xAxisFontSize = isMobile ? 8 : 10;
+  const xAxisAngle = isMobile ? -55 : -35;
+  const xAxisHeight = isMobile ? 64 : 50;
   const latest = useLatestPerListing(data);
   const total = latest.length;
   const counts = latest.reduce(
