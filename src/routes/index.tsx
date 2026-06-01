@@ -34,14 +34,8 @@ import {
 } from "lucide-react";
 
 import { fetchDashboard, type DashboardData } from "@/lib/dashboard-data";
-import {
-  marketplaceMock,
-  couponsMock,
-  trendsMock,
-  
-  RELEASE_DATE_ISO,
-  type MarketplaceSeller,
-} from "@/lib/mock-extra";
+import { RELEASE_DATE_ISO } from "@/lib/mock-extra";
+
 import {
   brl,
   dotClass,
