@@ -21,6 +21,7 @@ export const dict = {
     presale_start: "Início: terça 02/06 às 19h00 (BRT)",
     // tabs
     tab_overview: "Visão geral",
+    tab_listings: "Anúncios",
     tab_marketplace: "Marketplace",
     tab_coupons: "Cupom",
     tab_trends: "Tendências",
