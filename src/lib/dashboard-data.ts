@@ -2,6 +2,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const WOLVERINE_EAN = "711719028116";
 
+export type RetailerCategoryKey =
+  | "pure_online"
+  | "hybrid_retail"
+  | "physical_stores"
+  | "telco"
+  | "marketplace"
+  | "regional_retailer";
+
 export type DashboardData = {
   product: {
     id: string;
@@ -12,6 +20,8 @@ export type DashboardData = {
     max_discount_avista_pct: number;
     presale_allowed: boolean;
     notes: string | null;
+    release_date: string | null;
+    presale_starts_at: string | null;
   };
   retailers: Array<{
     id: string;
@@ -19,6 +29,7 @@ export type DashboardData = {
     slug: string;
     kind: "1p" | "3p" | "both";
     display_order: number;
+    category: RetailerCategoryKey | null;
   }>;
   snapshots: Array<{
     id: string;
