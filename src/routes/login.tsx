@@ -59,8 +59,8 @@ function LoginPage() {
               <img src={psLogo} alt="PlayStation" className="h-full w-full object-contain" style={{ filter: "brightness(0) invert(1)" }} draggable={false} />
             </div>
             <h1 className="text-2xl font-bold text-center leading-none">
-              <div className="text-blue-600">PlayStation</div>
-              <div className="text-slate-900 text-base mt-2">Launch Tracking</div>
+              <span className="text-blue-600">Launch</span>
+              <span className="text-slate-900"> Tracking</span>
             </h1>
             <p className="mt-1 text-[10px] tracking-wider text-slate-500 font-mono">
               Brazil Commercial Team
