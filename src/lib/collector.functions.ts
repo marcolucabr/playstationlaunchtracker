@@ -258,6 +258,53 @@ async function fetchAndParse(url: string): Promise<Parsed> {
   }
 }
 
+async function fetchAndParseWithFallback(url: string): Promise<Parsed> {
+  const direct = await fetchAndParse(url);
+  if (direct.status === "ok") return direct;
+  if (direct.status === "blocked" || direct.status === "not_found") {
+    const apiKey = process.env.FIRECRAWL_API_KEY;
+    if (!apiKey) return direct;
+    try {
+      const res = await fetch(FIRECRAWL_SCRAPE_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url,
+          formats: ["html", "markdown"],
+        }),
+      });
+      if (!res.ok) return direct;
+      const json = (await res.json()) as {
+        data?: { html?: string; markdown?: string };
+        html?: string;
+        markdown?: string;
+      };
+      const html = json.data?.html ?? json.html ?? json.data?.markdown ?? json.markdown;
+      if (!html) return direct;
+      const parsed = parseHtml(html);
+      if (parsed.status === "ok") {
+        return {
+          ...parsed,
+          raw: {
+            ...(parsed.raw ?? {}),
+            fallback: {
+              provider: "firecrawl",
+              original_status: direct.status,
+            },
+          },
+        };
+      }
+      return direct;
+    } catch {
+      return direct;
+    }
+  }
+  return direct;
+}
+
 // =========== Internal helpers (no auth, callable from cron route) ===========
 
 type AdminDb = ReturnType<typeof adminClient>;
