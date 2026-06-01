@@ -329,8 +329,8 @@ async function runCollectionInternal(
       .eq("id", u.id);
   }
 
-  // === Qualitative pass (Reddit / YouTube / News / Trends / Keywords / Sentiment) ===
-  const qualitative = { reddit: 0, youtube: 0, news: 0, trends: 0, keywords: 0, sentiment: 0 };
+  // === Qualitative pass (Reddit / YouTube / News / Trends / Keywords / Coupons / Sentiment) ===
+  const qualitative = { reddit: 0, youtube: 0, news: 0, trends: 0, keywords: 0, coupons: 0, sentiment: 0 };
   try {
     const { runQualitativeForProduct } = await import("./qualitative-collector.server");
     let prodQuery = admin.from("products").select("id, name, platform").eq("active", true);
@@ -343,6 +343,7 @@ async function runCollectionInternal(
       qualitative.news += r.news;
       qualitative.trends += r.trends;
       qualitative.keywords += r.keywords;
+      qualitative.coupons += r.coupons;
       qualitative.sentiment += r.sentiment;
     }
   } catch (e) {
@@ -351,6 +352,7 @@ async function runCollectionInternal(
   }
 
   const mentionsInserted = qualitative.reddit + qualitative.youtube + qualitative.news;
+
 
   const finalStatus: "success" | "partial" | "failed" =
     okCount > 0 && blockedCount + errorCount === 0 ? "success" : okCount > 0 ? "partial" : "failed";
