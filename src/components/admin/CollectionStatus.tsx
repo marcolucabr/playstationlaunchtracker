@@ -6,15 +6,21 @@ import { listRecentRuns } from "@/lib/collector.functions";
 import {
   ShoppingCart, MessageSquare, Youtube, Newspaper, Twitter, Music2,
   Instagram, TrendingUp, Search, Tag, Brain, AlertCircle, CheckCircle2, Clock, XCircle,
+  Compass,
 } from "lucide-react";
 
 type Breakdown = {
   price?: { ok: number; blocked: number; not_found: number; error: number; urls_checked: number };
+  discovery?: {
+    newly_discovered: number; blocked: number; not_found: number;
+    errors: number; skipped: number; rediscovered: number; rediscovery_failed: number;
+  };
   reddit?: number; youtube?: number; news?: number;
   twitter?: number; tiktok?: number; instagram?: number;
   trends?: number; keywords?: number; coupons?: number;
   sentiment_classified?: number;
 };
+
 
 const SOURCES: Array<{ key: keyof Breakdown; label: string; icon: React.ReactNode; color: string }> = [
   { key: "reddit", label: "Reddit", icon: <MessageSquare className="h-4 w-4" />, color: "text-orange-600" },
