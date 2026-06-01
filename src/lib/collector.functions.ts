@@ -330,11 +330,14 @@ async function runCollectionInternal(
                 .single();
               effectiveUrl = rediscovered.url;
               u.id = ins?.id ?? u.id;
+              rediscoveredCount++;
             } else {
               errors.push({ url: u.url, error: `rediscovery failed: ${rediscovered.error ?? rediscovered.status}` });
+              rediscoveryFailed++;
               notFoundCount++;
               continue;
             }
+
           } else {
             errors.push({ url: u.url, error: validationNote });
             errorCount++;
