@@ -210,24 +210,13 @@ async function runDiscoveryInternal(admin: AdminDb, opts: { productId?: string; 
   let found = 0, blocked = 0, notFound = 0, skipped = 0, errors = 0;
 
   for (const p of products ?? []) {
-    const queries: string[] = [];
-    if (p.ean) queries.push(p.ean);
-    const nameQuery = [p.name, p.platform].filter(Boolean).join(" ").trim();
-    if (nameQuery) queries.push(nameQuery);
-
     for (const r of retailers ?? []) {
       const tpl = SEARCH_TEMPLATES[r.slug];
       if (!tpl) { skipped++; continue; }
       const key = `${p.id}|${r.id}`;
       if (!opts.overwrite && existingMap.has(key)) { skipped++; continue; }
 
-      let result: Awaited<ReturnType<typeof searchFirstResult>> | null = null;
-      for (const q of queries) {
-        result = await searchFirstResult(tpl, q);
-        if (result.status === "ok" || result.status === "blocked") break;
-      }
-      if (!result) { skipped++; continue; }
-
+      const result = await discoverForProduct(tpl, p);
       if (result.status === "ok" && result.url) {
         await admin.from("product_retailer_urls").upsert(
           {
