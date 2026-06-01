@@ -92,16 +92,6 @@ function AdminPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const discoverFn = useServerFn(discoverUrls);
-  const discoverMut = useMutation({
-    mutationFn: (overwrite: boolean) => discoverFn({ data: { overwrite } }),
-    onSuccess: (r) => {
-      toast.success(`Descoberta: ${r.found} encontrados · ${r.blocked} bloqueados · ${r.notFound} sem resultado · ${r.skipped} pulados`);
-      qc.invalidateQueries({ queryKey: ["pru"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   if (loading || !isAdmin) {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">Loading…</div>;
   }
@@ -115,14 +105,6 @@ function AdminPage() {
             <h1 className="text-2xl font-bold flex items-center gap-2"><Shield className="h-6 w-6 text-blue-600" /> Admin Panel</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => discoverMut.mutate(false)}
-              disabled={discoverMut.isPending}
-            >
-              <Search className={`h-4 w-4 mr-1 ${discoverMut.isPending ? "animate-pulse" : ""}`} />
-              {discoverMut.isPending ? "Descobrindo…" : "Descobrir URLs (EAN)"}
-            </Button>
             <Button
               variant="outline"
               onClick={() => collectMut.mutate()}
