@@ -59,6 +59,8 @@ export function CollectionStatus() {
   const last = runs[0];
   const lastBreakdown = (last?.sources_breakdown ?? {}) as Breakdown;
   const lastPrice = lastBreakdown.price;
+  const lastDiscovery = lastBreakdown.discovery;
+
 
   // Aggregate totals from last 7 runs
   const totals: Record<string, number> = {};
