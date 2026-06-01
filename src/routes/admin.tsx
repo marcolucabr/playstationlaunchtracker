@@ -29,6 +29,7 @@ import { UrlsManager } from "@/components/admin/UrlsManager";
 import { RecentRuns } from "@/components/admin/RecentRuns";
 import { ListingsPanel } from "@/components/admin/ListingsPanel";
 import { KeywordsManager } from "@/components/admin/KeywordsManager";
+import { SettingsManager } from "@/components/admin/SettingsManager";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Panel" }] }),
@@ -157,6 +158,7 @@ function AdminPage() {
             <TabsTrigger value="listings">Anúncios</TabsTrigger>
             <TabsTrigger value="urls">URLs por loja</TabsTrigger>
             <TabsTrigger value="keywords">Palavras-chave</TabsTrigger>
+            <TabsTrigger value="settings">Configurações</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
           </TabsList>
 
@@ -176,6 +178,11 @@ function AdminPage() {
           <TabsContent value="keywords">
             <KeywordsManager />
           </TabsContent>
+
+          <TabsContent value="settings">
+            <SettingsManager />
+          </TabsContent>
+
 
           <TabsContent value="users" className="space-y-4">
 

@@ -524,6 +524,7 @@ export type Database = {
       retailers: {
         Row: {
           active: boolean
+          category: Database["public"]["Enums"]["retailer_category"] | null
           created_at: string
           display_order: number
           id: string
@@ -534,6 +535,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          category?: Database["public"]["Enums"]["retailer_category"] | null
           created_at?: string
           display_order?: number
           id?: string
@@ -544,6 +546,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          category?: Database["public"]["Enums"]["retailer_category"] | null
           created_at?: string
           display_order?: number
           id?: string
@@ -657,6 +660,13 @@ export type Database = {
         | "blocked"
         | "not_found"
         | "error"
+      retailer_category:
+        | "pure_online"
+        | "hybrid_retail"
+        | "physical_stores"
+        | "telco"
+        | "marketplace"
+        | "regional_retailer"
       retailer_kind: "1p" | "3p" | "both"
       run_status: "running" | "success" | "partial" | "failed"
       run_trigger: "manual" | "cron"
@@ -819,6 +829,14 @@ export const Constants = {
         "blocked",
         "not_found",
         "error",
+      ],
+      retailer_category: [
+        "pure_online",
+        "hybrid_retail",
+        "physical_stores",
+        "telco",
+        "marketplace",
+        "regional_retailer",
       ],
       retailer_kind: ["1p", "3p", "both"],
       run_status: ["running", "success", "partial", "failed"],
