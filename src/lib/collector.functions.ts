@@ -257,13 +257,16 @@ async function runCollectionInternal(
   if (opts.productId) urlsQuery = urlsQuery.eq("product_id", opts.productId);
   const { data: urls } = await urlsQuery;
 
-  const { data: retailers } = await admin.from("retailers").select("id, kind, slug");
+  const { data: retailers } = await admin.from("retailers").select("id, kind, slug, name");
   const retailerKind = new Map<string, string>();
   const retailerSlug = new Map<string, string>();
+  const retailerName = new Map<string, string>();
   for (const r of retailers ?? []) {
     retailerKind.set(r.id, r.kind as string);
     retailerSlug.set(r.id, r.slug as string);
+    retailerName.set(r.id, r.name as string);
   }
+
 
   const { data: prodRows } = await admin.from("products").select("id, name, ean, platform");
   const productById = new Map<string, ProductLite>();
