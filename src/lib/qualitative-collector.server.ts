@@ -387,14 +387,17 @@ export async function classifyRecentSentiment(admin: Admin, productId: string) {
 // ============ Orchestrator ============
 export async function runQualitativeForProduct(admin: Admin, p: Product) {
   const extraTerms = await getManualTerms(admin, p.id);
-  const [reddit, youtube, news, trends, keywords, coupons] = await Promise.all([
+  const [reddit, youtube, news, trends, keywords, coupons, twitter, tiktok, instagram] = await Promise.all([
     collectReddit(admin, p, extraTerms),
     collectYouTube(admin, p, extraTerms),
     collectNews(admin, p, extraTerms),
     collectTrends(admin, p),
     collectKeywords(admin, p, extraTerms),
     collectCoupons(admin, p),
+    collectTwitter(admin, p, extraTerms),
+    collectTikTok(admin, p, extraTerms),
+    collectInstagram(admin, p, extraTerms),
   ]);
   const sentiment = await classifyRecentSentiment(admin, p.id);
-  return { reddit, youtube, news, trends, keywords, coupons, sentiment };
+  return { reddit, youtube, news, trends, keywords, coupons, twitter, tiktok, instagram, sentiment };
 }
