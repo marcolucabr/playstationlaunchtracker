@@ -1998,7 +1998,7 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                       };
                     })
                     .filter((x): x is NonNullable<typeof x> => x !== null)}
-                  margin={{ top: 16, right: 16, left: 0, bottom: 4 }}
+                  margin={{ top: 16, right: 16, left: 0, bottom: 28 }}
                 >
                   <defs>
                     <linearGradient id="lineTotal" x1="0" y1="0" x2="1" y2="0">
@@ -2007,7 +2007,8 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 9 }} interval={0} angle={-35} textAnchor="end" height={50} axisLine={false} tickLine={false} />
+
                   <YAxis tick={{ fontSize: 11 }} allowDecimals={false} axisLine={false} tickLine={false} width={28} />
                   <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
                   <Line
