@@ -210,24 +210,13 @@ async function runDiscoveryInternal(admin: AdminDb, opts: { productId?: string; 
   let found = 0, blocked = 0, notFound = 0, skipped = 0, errors = 0;
 
   for (const p of products ?? []) {
-    const queries: string[] = [];
-    if (p.ean) queries.push(p.ean);
-    const nameQuery = [p.name, p.platform].filter(Boolean).join(" ").trim();
-    if (nameQuery) queries.push(nameQuery);
-
     for (const r of retailers ?? []) {
       const tpl = SEARCH_TEMPLATES[r.slug];
       if (!tpl) { skipped++; continue; }
       const key = `${p.id}|${r.id}`;
       if (!opts.overwrite && existingMap.has(key)) { skipped++; continue; }
 
-      let result: Awaited<ReturnType<typeof searchFirstResult>> | null = null;
-      for (const q of queries) {
-        result = await searchFirstResult(tpl, q);
-        if (result.status === "ok" || result.status === "blocked") break;
-      }
-      if (!result) { skipped++; continue; }
-
+      const result = await discoverForProduct(tpl, p);
       if (result.status === "ok" && result.url) {
         await admin.from("product_retailer_urls").upsert(
           {
@@ -256,7 +245,7 @@ async function runCollectionInternal(
   // 1. Auto-discover URLs for products/retailers without one
   const discovery = await runDiscoveryInternal(admin, { productId: opts.productId, overwrite: false });
 
-  // 2. Load active URLs + retailer kinds + authorized sellers
+  // 2. Load active URLs + retailer kinds + authorized sellers + product info (for validation)
   let urlsQuery = admin
     .from("product_retailer_urls")
     .select("id, product_id, retailer_id, url")
@@ -264,9 +253,17 @@ async function runCollectionInternal(
   if (opts.productId) urlsQuery = urlsQuery.eq("product_id", opts.productId);
   const { data: urls } = await urlsQuery;
 
-  const { data: retailers } = await admin.from("retailers").select("id, kind");
+  const { data: retailers } = await admin.from("retailers").select("id, kind, slug");
   const retailerKind = new Map<string, string>();
-  for (const r of retailers ?? []) retailerKind.set(r.id, r.kind as string);
+  const retailerSlug = new Map<string, string>();
+  for (const r of retailers ?? []) {
+    retailerKind.set(r.id, r.kind as string);
+    retailerSlug.set(r.id, r.slug as string);
+  }
+
+  const { data: prodRows } = await admin.from("products").select("id, name, ean, platform");
+  const productById = new Map<string, ProductLite>();
+  for (const p of prodRows ?? []) productById.set(p.id, p);
 
   const { data: authSellers } = await admin
     .from("authorized_sellers")
@@ -295,7 +292,57 @@ async function runCollectionInternal(
   const errors: Array<{ url: string; error: string }> = [];
 
   for (const u of urls ?? []) {
-    const parsed = await fetchAndParse(u.url);
+    const product = productById.get(u.product_id);
+    let effectiveUrl = u.url;
+    let validationNote: string | undefined;
+
+    // Validate the saved URL still matches the product. If not, drop it and re-discover.
+    if (product) {
+      const page = await fetchHtml(u.url);
+      if (page.status === "ok" && page.html) {
+        const v = validateProductPage(page.html, product);
+        if (!v.ok) {
+          validationNote = `URL antiga descartada: ${v.reason}`;
+          const slug = retailerSlug.get(u.retailer_id);
+          const tpl = slug ? SEARCH_TEMPLATES[slug] : undefined;
+          // Delete the bad URL row
+          await admin.from("product_retailer_urls").delete().eq("id", u.id);
+          // Try to re-discover
+          if (tpl) {
+            const rediscovered = await discoverForProduct(tpl, product);
+            if (rediscovered.status === "ok" && rediscovered.url) {
+              const { data: ins } = await admin
+                .from("product_retailer_urls")
+                .upsert(
+                  {
+                    product_id: u.product_id,
+                    retailer_id: u.retailer_id,
+                    url: rediscovered.url,
+                    active: true,
+                    last_status: "rediscovered",
+                    last_checked_at: new Date().toISOString(),
+                  },
+                  { onConflict: "product_id,retailer_id" },
+                )
+                .select()
+                .single();
+              effectiveUrl = rediscovered.url;
+              u.id = ins?.id ?? u.id;
+            } else {
+              errors.push({ url: u.url, error: `rediscovery failed: ${rediscovered.error ?? rediscovered.status}` });
+              notFoundCount++;
+              continue;
+            }
+          } else {
+            errors.push({ url: u.url, error: validationNote });
+            errorCount++;
+            continue;
+          }
+        }
+      }
+    }
+
+    const parsed = await fetchAndParse(effectiveUrl);
     const kind = retailerKind.get(u.retailer_id) ?? "3p";
     let isFirstParty = false;
     if (kind === "1p") isFirstParty = true;
@@ -306,7 +353,7 @@ async function runCollectionInternal(
       retailer_id: u.retailer_id,
       is_first_party: isFirstParty,
       seller_name: parsed.seller_name ?? null,
-      product_url: u.url,
+      product_url: effectiveUrl,
       price_avista_cents: parsed.price_avista_cents ?? null,
       price_full_cents: parsed.price_full_cents ?? null,
       installment_count: parsed.installment_count ?? null,
@@ -314,14 +361,14 @@ async function runCollectionInternal(
       in_stock: parsed.in_stock ?? null,
       is_presale: false,
       status: parsed.status,
-      raw_payload: { ...(parsed.raw ?? {}), error: parsed.error ?? null },
+      raw_payload: { ...(parsed.raw ?? {}), error: parsed.error ?? null, validation: validationNote ?? null },
     });
     if (!snapErr) snapshots++;
     if (parsed.status === "ok") okCount++;
     else if (parsed.status === "blocked") blockedCount++;
     else if (parsed.status === "not_found") notFoundCount++;
     else errorCount++;
-    if (parsed.status !== "ok") errors.push({ url: u.url, error: parsed.error ?? parsed.status });
+    if (parsed.status !== "ok") errors.push({ url: effectiveUrl, error: parsed.error ?? parsed.status });
 
     await admin
       .from("product_retailer_urls")
@@ -452,6 +499,8 @@ type SearchTemplate = {
   normalize?: (href: string) => string;
 };
 
+type ProductLite = { id?: string; name: string; ean: string | null; platform: string | null };
+
 const SEARCH_TEMPLATES: Record<string, SearchTemplate> = {
   amazon: {
     origin: "https://www.amazon.com.br",
@@ -526,9 +575,105 @@ function absolutize(href: string, origin: string): string {
   return origin + "/" + href;
 }
 
-async function searchFirstResult(tpl: SearchTemplate, query: string): Promise<{ url?: string; status: "ok" | "blocked" | "not_found" | "error"; error?: string }> {
+// === Product-page validation ============================================
+
+const STOPWORDS = new Set([
+  "the","of","for","and","with","a","an","de","da","do","das","dos","para","com","e","o","la","el",
+  "marvel","marvels","sony","game","jogo","midia","midias","fisica","fisicas","edicao","edition","standard",
+]);
+
+const PLATFORM_SYNONYMS: Record<string, string[]> = {
+  ps5: ["ps5", "playstation 5", "playstation5"],
+  ps4: ["ps4", "playstation 4", "playstation4"],
+  "playstation 5": ["ps5", "playstation 5", "playstation5"],
+  "playstation 4": ["ps4", "playstation 4", "playstation4"],
+  "xbox series x": ["xbox series x", "xbox series x|s", "series x"],
+  switch: ["nintendo switch", "switch"],
+  "nintendo switch": ["nintendo switch", "switch"],
+};
+
+const NEGATIVE_TOKENS = [
+  "livro", "book", "guide", "guia", "funko", "boneco", "action figure",
+  "camiseta", "t-shirt", "poster", "poster", "adesivo", "sticker",
+  "capa case", "skin", "controle", "headset",
+];
+
+function normalizeText(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9 ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function platformSynonyms(platform: string | null | undefined): string[] {
+  if (!platform) return [];
+  const n = normalizeText(platform);
+  return PLATFORM_SYNONYMS[n] ?? [n];
+}
+
+function nameTokens(name: string): string[] {
+  return normalizeText(name)
+    .split(" ")
+    .filter((t) => t.length >= 3 && !STOPWORDS.has(t));
+}
+
+/**
+ * Validates that a product page actually matches the target product.
+ * Strict: must mention platform (PS5/etc) AND at least 2 name tokens,
+ * OR contain the EAN. Rejects pages that look like books/merch when
+ * the platform is missing.
+ */
+function validateProductPage(html: string, product: ProductLite): { ok: boolean; reason?: string } {
+  // Cap to first 200kb to keep matching fast
+  const slice = html.slice(0, 200_000);
+  const text = normalizeText(slice.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " "));
+
+  if (product.ean && text.includes(product.ean.toLowerCase())) {
+    return { ok: true };
+  }
+
+  const platToks = platformSynonyms(product.platform);
+  const platformOk = platToks.length === 0 || platToks.some((t) => text.includes(t));
+  if (!platformOk) {
+    return { ok: false, reason: `platform "${product.platform}" not in page` };
+  }
+
+  const tokens = nameTokens(product.name);
+  const required = Math.min(2, tokens.length);
+  const matched = tokens.filter((t) => text.includes(t)).length;
+  if (matched < required) {
+    return { ok: false, reason: `name tokens ${matched}/${tokens.length}` };
+  }
+
+  // If platform is missing but page contains negative tokens (book/merch), reject
+  if (!platformOk && NEGATIVE_TOKENS.some((t) => text.includes(t))) {
+    return { ok: false, reason: "looks like merch/book, no platform" };
+  }
+
+  return { ok: true };
+}
+
+function extractCandidates(html: string, tpl: SearchTemplate, max = 8): string[] {
+  const flags = tpl.productHrefRegex.flags.includes("g")
+    ? tpl.productHrefRegex.flags
+    : tpl.productHrefRegex.flags + "g";
+  const re = new RegExp(tpl.productHrefRegex.source, flags);
+  const set = new Set<string>();
+  for (const m of html.matchAll(re)) {
+    let href = m[1].replace(/&amp;/g, "&");
+    href = absolutize(href, tpl.origin);
+    set.add(href);
+    if (set.size >= max) break;
+  }
+  return [...set];
+}
+
+async function fetchHtml(url: string): Promise<{ status: "ok" | "blocked" | "error"; html?: string; error?: string }> {
   try {
-    const res = await fetch(tpl.searchUrl(query), {
+    const res = await fetch(url, {
       headers: {
         "User-Agent": UA,
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -545,13 +690,46 @@ async function searchFirstResult(tpl: SearchTemplate, query: string): Promise<{ 
     if (/captcha|access denied|cf-browser-verification|robot check|are you a human/.test(lower)) {
       return { status: "blocked", error: "Anti-bot / captcha" };
     }
-    const m = html.match(tpl.productHrefRegex);
-    if (!m) return { status: "not_found" };
-    let href = m[1].replace(/&amp;/g, "&");
-    href = absolutize(href, tpl.origin);
-    return { status: "ok", url: href };
+    return { status: "ok", html };
   } catch (e) {
     return { status: "error", error: e instanceof Error ? e.message : String(e) };
   }
 }
+
+/**
+ * Discovery: search by EAN then by name+platform, validate each candidate
+ * against the actual product page, return first match.
+ */
+async function discoverForProduct(
+  tpl: SearchTemplate,
+  product: ProductLite,
+): Promise<{ url?: string; status: "ok" | "blocked" | "not_found" | "error"; error?: string }> {
+  const queries: string[] = [];
+  if (product.ean) queries.push(product.ean);
+  const nameQuery = [product.name, product.platform].filter(Boolean).join(" ").trim();
+  if (nameQuery) queries.push(nameQuery);
+
+  let lastReason = "no candidates matched";
+  let blockedSeen = false;
+
+  for (const q of queries) {
+    const search = await fetchHtml(tpl.searchUrl(q));
+    if (search.status === "blocked") { blockedSeen = true; continue; }
+    if (search.status !== "ok" || !search.html) continue;
+
+    const candidates = extractCandidates(search.html, tpl);
+    for (const url of candidates) {
+      const page = await fetchHtml(url);
+      if (page.status === "blocked") { blockedSeen = true; continue; }
+      if (page.status !== "ok" || !page.html) continue;
+      const v = validateProductPage(page.html, product);
+      if (v.ok) return { url, status: "ok" };
+      lastReason = v.reason ?? lastReason;
+    }
+  }
+
+  if (blockedSeen) return { status: "blocked", error: "search or page blocked" };
+  return { status: "not_found", error: lastReason };
+}
+
 
