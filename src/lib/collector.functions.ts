@@ -91,12 +91,73 @@ type Parsed = {
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36";
+const FIRECRAWL_SCRAPE_URL = "https://api.firecrawl.dev/v2/scrape";
 
 function toCents(n: number | string | undefined | null): number | undefined {
   if (n == null) return undefined;
   const num = typeof n === "string" ? parseFloat(n.replace(/[^0-9.,]/g, "").replace(/\.(?=\d{3})/g, "").replace(",", ".")) : n;
   if (!isFinite(num) || num <= 0) return undefined;
   return Math.round(num * 100);
+}
+
+function htmlToText(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function detectStock(text: string): boolean | undefined {
+  if (/(indispon[ií]vel|esgotado|sem estoque)/i.test(text)) return false;
+  if (/(em estoque|dispon[ií]vel|comprar|adicionar ao carrinho|pr[ée]-venda|pre venda|retire)/i.test(text)) return true;
+  return undefined;
+}
+
+function parseTextualPrice(html: string): Omit<Parsed, "status" | "error"> | null {
+  const text = htmlToText(html);
+
+  const contextualMatches = [
+    ...text.matchAll(/(?:à vista|a vista|no pix|pix|por|pre[cç]o(?:\s+por)?|apenas)[^r$0-9]{0,30}r\$\s*([\d.]+,\d{2})/gi),
+    ...text.matchAll(/r\$\s*([\d.]+,\d{2})[^a-z0-9]{0,20}(?:à vista|a vista|no pix|pix)/gi),
+  ]
+    .map((m) => toCents(m[1]))
+    .filter((value): value is number => typeof value === "number" && value > 500);
+
+  const installment = text.match(/(\d{1,2})\s*x\s*de\s*r\$\s*([\d.]+,\d{2})/i);
+  const installmentCount = installment ? Number(installment[1]) : undefined;
+  const installmentValue = installment ? toCents(installment[2]) : undefined;
+
+  const genericPrices = [...text.matchAll(/r\$\s*([\d.]+,\d{2})/gi)]
+    .map((m) => toCents(m[1]))
+    .filter((value): value is number => typeof value === "number" && value > 500)
+    .slice(0, 12);
+  const uniquePrices = [...new Set(genericPrices)];
+  const chosen =
+    contextualMatches[0] ??
+    (uniquePrices.length === 1
+      ? uniquePrices[0]
+      : uniquePrices.find((value) => value !== installmentValue) ?? uniquePrices[0]);
+
+  if (!chosen) return null;
+
+  return {
+    price_avista_cents: chosen,
+    price_full_cents: chosen,
+    installment_count: installmentCount,
+    installment_value_cents: installmentValue,
+    in_stock: detectStock(text),
+    raw: {
+      text_price: {
+        chosen,
+        contextual: contextualMatches[0] ?? null,
+        installment_count: installmentCount ?? null,
+        installment_value_cents: installmentValue ?? null,
+      },
+    },
+  };
 }
 
 function parseHtml(html: string): Parsed {
@@ -164,6 +225,15 @@ function parseHtml(html: string): Parsed {
     }
   }
 
+  const textual = parseTextualPrice(html);
+  if (textual) {
+    return {
+      status: "ok",
+      ...textual,
+      raw: { ...raw, ...(textual.raw ?? {}) },
+    };
+  }
+
   return { status: "not_found", error: "Nenhum preço encontrado (JSON-LD, OG, microdata)" };
 }
 
@@ -186,6 +256,53 @@ async function fetchAndParse(url: string): Promise<Parsed> {
   } catch (e) {
     return { status: "error", error: e instanceof Error ? e.message : String(e) };
   }
+}
+
+async function fetchAndParseWithFallback(url: string): Promise<Parsed> {
+  const direct = await fetchAndParse(url);
+  if (direct.status === "ok") return direct;
+  if (direct.status === "blocked" || direct.status === "not_found") {
+    const apiKey = process.env.FIRECRAWL_API_KEY;
+    if (!apiKey) return direct;
+    try {
+      const res = await fetch(FIRECRAWL_SCRAPE_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url,
+          formats: ["html", "markdown"],
+        }),
+      });
+      if (!res.ok) return direct;
+      const json = (await res.json()) as {
+        data?: { html?: string; markdown?: string };
+        html?: string;
+        markdown?: string;
+      };
+      const html = json.data?.html ?? json.html ?? json.data?.markdown ?? json.markdown;
+      if (!html) return direct;
+      const parsed = parseHtml(html);
+      if (parsed.status === "ok") {
+        return {
+          ...parsed,
+          raw: {
+            ...(parsed.raw ?? {}),
+            fallback: {
+              provider: "firecrawl",
+              original_status: direct.status,
+            },
+          },
+        };
+      }
+      return direct;
+    } catch {
+      return direct;
+    }
+  }
+  return direct;
 }
 
 // =========== Internal helpers (no auth, callable from cron route) ===========
@@ -364,7 +481,7 @@ async function runCollectionInternal(
       }
     }
 
-    const parsed = await fetchAndParse(effectiveUrl);
+    const parsed = await fetchAndParseWithFallback(effectiveUrl);
     const kind = retailerKind.get(u.retailer_id) ?? "3p";
     let isFirstParty = false;
     if (kind === "1p") isFirstParty = true;
@@ -717,6 +834,37 @@ async function fetchHtml(url: string): Promise<{ status: "ok" | "blocked" | "err
   }
 }
 
+async function firecrawlSearch(query: string): Promise<Array<{ url?: string; title?: string }>> {
+  const apiKey = process.env.FIRECRAWL_API_KEY;
+  if (!apiKey) return [];
+  try {
+    const res = await fetch("https://api.firecrawl.dev/v1/search", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query, limit: 8, location: "Brazil" }),
+    });
+    if (!res.ok) return [];
+    const json = (await res.json()) as {
+      web?: Array<{ url?: string; title?: string }>;
+      data?: Array<{ url?: string; title?: string }>;
+    };
+    return json.web ?? json.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+function matchHost(url: string, origin: string): boolean {
+  try {
+    return new URL(url).hostname === new URL(origin).hostname;
+  } catch {
+    return false;
+  }
+}
+
 
 /**
  * Discovery: search by EAN then by name+platform, validate each candidate
@@ -743,6 +891,23 @@ async function discoverForProduct(
     for (const url of candidates) {
       const page = await fetchHtml(url);
       if (page.status === "blocked") { blockedSeen = true; continue; }
+      if (page.status !== "ok" || !page.html) continue;
+      const v = await validateCandidate(page.html, product);
+      if (v.ok) return { url, status: "ok" };
+      lastReason = v.reason;
+    }
+
+    const fcCandidates = await firecrawlSearch(`${q} site:${new URL(tpl.origin).hostname}`);
+    for (const candidate of fcCandidates) {
+      const url = candidate.url;
+      if (!url || !matchHost(url, tpl.origin)) continue;
+      const page = await fetchHtml(url);
+      if (page.status === "blocked") {
+        const fallback = await fetchAndParseWithFallback(url);
+        if (fallback.status === "ok") return { url, status: "ok" };
+        blockedSeen = true;
+        continue;
+      }
       if (page.status !== "ok" || !page.html) continue;
       const v = await validateCandidate(page.html, product);
       if (v.ok) return { url, status: "ok" };
