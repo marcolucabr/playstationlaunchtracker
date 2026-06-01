@@ -30,6 +30,8 @@ import { RecentRuns } from "@/components/admin/RecentRuns";
 import { ListingsPanel } from "@/components/admin/ListingsPanel";
 import { KeywordsManager } from "@/components/admin/KeywordsManager";
 import { SettingsManager } from "@/components/admin/SettingsManager";
+import { CollectionStatus } from "@/components/admin/CollectionStatus";
+import { ChannelsDashboard } from "@/components/admin/ChannelsDashboard";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Panel" }] }),
