@@ -7,7 +7,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-all")({
       POST: async () => {
         try {
           const result = await runScheduledCollection();
-          return new Response(JSON.stringify({ ok: true, ...result }), {
+          return new Response(JSON.stringify({ success: true, ...result }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
           });
