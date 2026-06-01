@@ -27,6 +27,7 @@ import {
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { UrlsManager } from "@/components/admin/UrlsManager";
 import { RecentRuns } from "@/components/admin/RecentRuns";
+import { ListingsPanel } from "@/components/admin/ListingsPanel";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Panel" }] }),
