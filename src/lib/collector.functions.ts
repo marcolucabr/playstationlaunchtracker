@@ -481,7 +481,7 @@ async function runCollectionInternal(
       }
     }
 
-    const parsed = await fetchAndParse(effectiveUrl);
+    const parsed = await fetchAndParseWithFallback(effectiveUrl);
     const kind = retailerKind.get(u.retailer_id) ?? "3p";
     let isFirstParty = false;
     if (kind === "1p") isFirstParty = true;
