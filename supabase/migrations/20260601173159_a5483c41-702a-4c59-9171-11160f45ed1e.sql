@@ -1,0 +1,1 @@
+TRUNCATE TABLE public.price_snapshots, public.mentions, public.coupon_snapshots, public.keyword_snapshots, public.trends_snapshots, public.collection_runs;
