@@ -14,7 +14,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-all")({
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
           console.error("collect-all failed", msg);
-          return new Response(JSON.stringify({ ok: false, error: msg }), {
+          return new Response(JSON.stringify({ success: false, error: msg }), {
             status: 500,
             headers: { "Content-Type": "application/json" },
           });
