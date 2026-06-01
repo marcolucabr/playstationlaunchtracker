@@ -499,7 +499,7 @@ type SearchTemplate = {
   normalize?: (href: string) => string;
 };
 
-type ProductLite = { id?: string; name: string; ean: string | null; platform: string | null };
+export type ProductLite = { id?: string; name: string; ean: string | null; platform: string | null };
 
 const SEARCH_TEMPLATES: Record<string, SearchTemplate> = {
   amazon: {
