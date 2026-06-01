@@ -58,39 +58,51 @@ export type Database = {
       }
       collection_runs: {
         Row: {
+          coupons_inserted: number
           errors: Json | null
           finished_at: string | null
           id: string
+          keyword_snapshots_inserted: number
           mentions_inserted: number
           product_id: string | null
           retailers_checked: number
           snapshots_inserted: number
+          sources_breakdown: Json | null
           started_at: string
           status: Database["public"]["Enums"]["run_status"]
+          trends_snapshots_inserted: number
           trigger: Database["public"]["Enums"]["run_trigger"]
         }
         Insert: {
+          coupons_inserted?: number
           errors?: Json | null
           finished_at?: string | null
           id?: string
+          keyword_snapshots_inserted?: number
           mentions_inserted?: number
           product_id?: string | null
           retailers_checked?: number
           snapshots_inserted?: number
+          sources_breakdown?: Json | null
           started_at?: string
           status?: Database["public"]["Enums"]["run_status"]
+          trends_snapshots_inserted?: number
           trigger?: Database["public"]["Enums"]["run_trigger"]
         }
         Update: {
+          coupons_inserted?: number
           errors?: Json | null
           finished_at?: string | null
           id?: string
+          keyword_snapshots_inserted?: number
           mentions_inserted?: number
           product_id?: string | null
           retailers_checked?: number
           snapshots_inserted?: number
+          sources_breakdown?: Json | null
           started_at?: string
           status?: Database["public"]["Enums"]["run_status"]
+          trends_snapshots_inserted?: number
           trigger?: Database["public"]["Enums"]["run_trigger"]
         }
         Relationships: [

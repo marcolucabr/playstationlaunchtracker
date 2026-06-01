@@ -376,8 +376,11 @@ async function runCollectionInternal(
       .eq("id", u.id);
   }
 
-  // === Qualitative pass (Reddit / YouTube / News / Trends / Keywords / Coupons / Sentiment) ===
-  const qualitative = { reddit: 0, youtube: 0, news: 0, trends: 0, keywords: 0, coupons: 0, sentiment: 0 };
+  // === Qualitative pass (Reddit / YouTube / News / Trends / Keywords / Coupons / Sentiment / Twitter / TikTok / Instagram) ===
+  const qualitative = {
+    reddit: 0, youtube: 0, news: 0, trends: 0, keywords: 0, coupons: 0,
+    sentiment: 0, twitter: 0, tiktok: 0, instagram: 0,
+  };
   try {
     const { runQualitativeForProduct } = await import("./qualitative-collector.server");
     let prodQuery = admin.from("products").select("id, name, platform").eq("active", true);
@@ -392,14 +395,32 @@ async function runCollectionInternal(
       qualitative.keywords += r.keywords;
       qualitative.coupons += r.coupons;
       qualitative.sentiment += r.sentiment;
+      qualitative.twitter += r.twitter ?? 0;
+      qualitative.tiktok += r.tiktok ?? 0;
+      qualitative.instagram += r.instagram ?? 0;
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     errors.push({ url: "qualitative", error: msg });
   }
 
-  const mentionsInserted = qualitative.reddit + qualitative.youtube + qualitative.news;
+  const mentionsInserted =
+    qualitative.reddit + qualitative.youtube + qualitative.news +
+    qualitative.twitter + qualitative.tiktok + qualitative.instagram;
 
+  const sourcesBreakdown = {
+    price: { ok: okCount, blocked: blockedCount, not_found: notFoundCount, error: errorCount, urls_checked: urls?.length ?? 0 },
+    reddit: qualitative.reddit,
+    youtube: qualitative.youtube,
+    news: qualitative.news,
+    twitter: qualitative.twitter,
+    tiktok: qualitative.tiktok,
+    instagram: qualitative.instagram,
+    trends: qualitative.trends,
+    keywords: qualitative.keywords,
+    coupons: qualitative.coupons,
+    sentiment_classified: qualitative.sentiment,
+  };
 
   const finalStatus: "success" | "partial" | "failed" =
     okCount > 0 && blockedCount + errorCount === 0 ? "success" : okCount > 0 ? "partial" : "failed";
@@ -411,6 +432,10 @@ async function runCollectionInternal(
       retailers_checked: urls?.length ?? 0,
       snapshots_inserted: snapshots,
       mentions_inserted: mentionsInserted,
+      coupons_inserted: qualitative.coupons,
+      trends_snapshots_inserted: qualitative.trends,
+      keyword_snapshots_inserted: qualitative.keywords,
+      sources_breakdown: sourcesBreakdown,
       errors: errors.length ? errors : null,
     })
     .eq("id", run.id);
@@ -457,6 +482,30 @@ export const listRecentRuns = createServerFn({ method: "POST" })
       .limit(20);
     return data ?? [];
   });
+
+// =========== Channels dashboard (mentions aggregated by source) ===========
+
+export const listChannelsData = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const admin = adminClient();
+    const [{ data: mentions }, { data: trends }, { data: products }] = await Promise.all([
+      admin
+        .from("mentions")
+        .select("id, source, source_name, title, excerpt, url, sentiment, captured_at, posted_at, product_id")
+        .order("captured_at", { ascending: false })
+        .limit(2000),
+      admin
+        .from("trends_snapshots")
+        .select("id, keyword, series, avg_value, peak_value, peak_date, captured_at, product_id")
+        .order("captured_at", { ascending: false })
+        .limit(20),
+      admin.from("products").select("id, name").eq("active", true),
+    ]);
+    return { mentions: mentions ?? [], trends: trends ?? [], products: products ?? [] };
+  });
+
 
 // =========== Listings (current ads view) ===========
 

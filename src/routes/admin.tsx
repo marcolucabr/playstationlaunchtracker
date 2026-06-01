@@ -30,6 +30,8 @@ import { RecentRuns } from "@/components/admin/RecentRuns";
 import { ListingsPanel } from "@/components/admin/ListingsPanel";
 import { KeywordsManager } from "@/components/admin/KeywordsManager";
 import { SettingsManager } from "@/components/admin/SettingsManager";
+import { CollectionStatus } from "@/components/admin/CollectionStatus";
+import { ChannelsDashboard } from "@/components/admin/ChannelsDashboard";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Panel" }] }),
@@ -155,6 +157,8 @@ function AdminPage() {
         <Tabs defaultValue="dashboard" className="space-y-4">
           <TabsList>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="status">Status da coleta</TabsTrigger>
+            <TabsTrigger value="channels">Canais & menções</TabsTrigger>
             <TabsTrigger value="listings">Anúncios</TabsTrigger>
             <TabsTrigger value="urls">URLs por loja</TabsTrigger>
             <TabsTrigger value="keywords">Palavras-chave</TabsTrigger>
@@ -165,6 +169,14 @@ function AdminPage() {
           <TabsContent value="dashboard" className="space-y-4">
             <AdminDashboard users={users} />
             <RecentRuns />
+          </TabsContent>
+
+          <TabsContent value="status">
+            <CollectionStatus />
+          </TabsContent>
+
+          <TabsContent value="channels">
+            <ChannelsDashboard />
           </TabsContent>
 
           <TabsContent value="listings">
