@@ -62,7 +62,7 @@ function LoginPage() {
               <span className="text-blue-600">Launch</span>
               <span className="text-slate-900">Tracking</span>
             </h1>
-            <p className="mt-1 text-[11px] tracking-wider text-slate-500 font-mono">
+            <p className="mt-1 text-[13px] tracking-wider text-slate-500 font-mono">
               Brazil Commercial Team
             </p>
           </div>
