@@ -1928,12 +1928,20 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
             <div className="h-[220px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                  data={marketplaceMock.map((m) => ({
-                    name: m.retailer_name,
-                    total: m.total_sellers,
-                    autorizados: m.authorized_count || null,
-                    nao_autorizados: m.unauthorized_count || null,
-                  }))}
+                  data={data.retailers
+                    .map((r) => {
+                      const items = realListings.filter((l) => l.retailer_id === r.id);
+                      if (items.length === 0) return null;
+                      const autorizados = items.filter((i) => i.authorized).length;
+                      const nao = items.length - autorizados;
+                      return {
+                        name: r.name,
+                        total: items.length,
+                        autorizados: autorizados || null,
+                        nao_autorizados: nao || null,
+                      };
+                    })
+                    .filter((x): x is NonNullable<typeof x> => x !== null)}
                   margin={{ top: 16, right: 16, left: 0, bottom: 4 }}
                 >
                   <defs>
