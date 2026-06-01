@@ -42,7 +42,7 @@ export async function collectReddit(admin: Admin, p: Product) {
   try {
     const res = await client.search(query, {
       limit: 10,
-      lang: "pt",
+      sources: ["web"],
       country: "br",
       tbs: "qdr:w", // last week
     });
@@ -74,7 +74,7 @@ export async function collectYouTube(admin: Admin, p: Product) {
   try {
     const res = await client.search(query, {
       limit: 10,
-      lang: "pt",
+      sources: ["web"],
       country: "br",
       tbs: "qdr:m", // last month
     });
@@ -106,7 +106,7 @@ export async function collectNews(admin: Admin, p: Product) {
   try {
     const res = await client.search(query, {
       limit: 15,
-      lang: "pt",
+      sources: ["web"],
       country: "br",
       tbs: "qdr:d", // last day (refresh fast)
     });
