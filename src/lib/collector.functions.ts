@@ -414,7 +414,6 @@ export const listListings = createServerFn({ method: "POST" })
       listings,
     };
   });
-  });
 
 // =========== Discover URLs by EAN ===========
 
