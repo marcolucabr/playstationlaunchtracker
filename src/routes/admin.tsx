@@ -2,13 +2,13 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Trash2, Plus, Shield, User as UserIcon, RefreshCw, Search } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, Shield, User as UserIcon, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import {
   adminListUsers, adminCreateUser, adminDeleteUser, adminUpdateRole,
 } from "@/lib/admin.functions";
-import { runCollection, discoverUrls } from "@/lib/collector.functions";
+import { runCollection } from "@/lib/collector.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
