@@ -80,7 +80,7 @@ export async function collectReddit(admin: Admin, p: Product, extraTerms: string
   let inserted = 0;
   for (const query of queries) {
     try {
-      const res = await client.search(query, { limit: 8, sources: ["web"], location: "Brazil", tbs: "qdr:w" });
+      const res = await client.search(query, { limit: 8, location: "Brazil", tbs: "qdr:w" });
       const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
       for (const r of results) {
         if (!r?.url || !/reddit\.com/.test(r.url)) continue;
@@ -106,7 +106,7 @@ export async function collectYouTube(admin: Admin, p: Product, extraTerms: strin
   let inserted = 0;
   for (const query of queries) {
     try {
-      const res = await client.search(query, { limit: 8, sources: ["web"], location: "Brazil", tbs: "qdr:m" });
+      const res = await client.search(query, { limit: 8, location: "Brazil", tbs: "qdr:m" });
       const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
       for (const r of results) {
         if (!r?.url || !/youtube\.com|youtu\.be/.test(r.url)) continue;
@@ -135,7 +135,7 @@ async function collectSocial(
   let inserted = 0;
   for (const query of queries) {
     try {
-      const res = await client.search(query, { limit: 8, sources: ["web"], location: "Brazil", tbs: "qdr:w" });
+      const res = await client.search(query, { limit: 8, location: "Brazil", tbs: "qdr:w" });
       const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
       for (const r of results) {
         if (!r?.url || !opts.domainRegex.test(r.url)) continue;
@@ -183,7 +183,7 @@ export async function collectNews(admin: Admin, p: Product, extraTerms: string[]
   let inserted = 0;
   for (const query of queries) {
     try {
-      const res = await client.search(query, { limit: 10, sources: ["web"], location: "Brazil", tbs: "qdr:d" });
+      const res = await client.search(query, { limit: 10, location: "Brazil", tbs: "qdr:d" });
       const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
       for (const r of results) {
         if (!r?.url) continue;
@@ -318,7 +318,7 @@ export async function collectCoupons(admin: Admin, p: Product) {
   for (const query of queries) {
     const fullQuery = `${query} (site:promobit.com.br OR site:pelando.com.br OR site:cuponomia.com.br)`;
     try {
-      const res = await client.search(fullQuery, { limit: 10, sources: ["web"], location: "Brazil", tbs: "qdr:w" });
+      const res = await client.search(fullQuery, { limit: 10, location: "Brazil", tbs: "qdr:w" });
       const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
       for (const r of results) {
         if (!r?.url) continue;
