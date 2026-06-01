@@ -103,6 +103,33 @@ export type Database = {
           },
         ]
       }
+      keyword_snapshots: {
+        Row: {
+          captured_at: string
+          id: string
+          product_id: string
+          seed: string
+          source: string
+          suggestions: Json
+        }
+        Insert: {
+          captured_at?: string
+          id?: string
+          product_id: string
+          seed: string
+          source?: string
+          suggestions: Json
+        }
+        Update: {
+          captured_at?: string
+          id?: string
+          product_id?: string
+          seed?: string
+          source?: string
+          suggestions?: Json
+        }
+        Relationships: []
+      }
       login_sessions: {
         Row: {
           browser: string | null
@@ -449,6 +476,45 @@ export type Database = {
         }
         Relationships: []
       }
+      trends_snapshots: {
+        Row: {
+          avg_value: number | null
+          captured_at: string
+          geo: string
+          id: string
+          keyword: string
+          peak_date: string | null
+          peak_value: number | null
+          product_id: string
+          series: Json
+          timeframe: string
+        }
+        Insert: {
+          avg_value?: number | null
+          captured_at?: string
+          geo?: string
+          id?: string
+          keyword: string
+          peak_date?: string | null
+          peak_value?: number | null
+          product_id: string
+          series: Json
+          timeframe?: string
+        }
+        Update: {
+          avg_value?: number | null
+          captured_at?: string
+          geo?: string
+          id?: string
+          keyword?: string
+          peak_date?: string | null
+          peak_value?: number | null
+          product_id?: string
+          series?: Json
+          timeframe?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -502,6 +568,7 @@ export type Database = {
         | "forum"
         | "blog"
         | "other"
+        | "news"
       price_status:
         | "ok"
         | "abaixo_piso"
@@ -662,6 +729,7 @@ export const Constants = {
         "forum",
         "blog",
         "other",
+        "news",
       ],
       price_status: [
         "ok",
