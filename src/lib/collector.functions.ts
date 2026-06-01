@@ -297,7 +297,8 @@ async function runCollectionInternal(
 
   let snapshots = 0, okCount = 0, blockedCount = 0, errorCount = 0, notFoundCount = 0;
   let rediscoveredCount = 0, rediscoveryFailed = 0;
-  const errors: Array<{ url: string; error: string }> = [];
+  const errors: Array<{ url: string; error: string; retailer?: string; kind?: "blocked" | "not_found" | "error" | "rediscovery_failed" | "validation" }> = [];
+
 
 
   for (const u of urls ?? []) {
