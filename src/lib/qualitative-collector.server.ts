@@ -43,7 +43,7 @@ export async function collectReddit(admin: Admin, p: Product) {
     const res = await client.search(query, {
       limit: 10,
       sources: ["web"],
-      country: "br",
+      location: "Brazil",
       tbs: "qdr:w", // last week
     });
     const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
@@ -75,7 +75,7 @@ export async function collectYouTube(admin: Admin, p: Product) {
     const res = await client.search(query, {
       limit: 10,
       sources: ["web"],
-      country: "br",
+      location: "Brazil",
       tbs: "qdr:m", // last month
     });
     const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
@@ -107,7 +107,7 @@ export async function collectNews(admin: Admin, p: Product) {
     const res = await client.search(query, {
       limit: 15,
       sources: ["web"],
-      country: "br",
+      location: "Brazil",
       tbs: "qdr:d", // last day (refresh fast)
     });
     const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
