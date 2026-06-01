@@ -773,7 +773,7 @@ Rules:
  * Combined heuristic + AI validation. Heuristic gate is cheap and runs first;
  * AI runs only when heuristic passes (saves tokens).
  */
-async function validateCandidate(
+export async function validateCandidate(
   html: string,
   product: ProductLite,
 ): Promise<{ ok: boolean; reason: string }> {
