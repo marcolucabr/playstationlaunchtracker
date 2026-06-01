@@ -834,6 +834,37 @@ async function fetchHtml(url: string): Promise<{ status: "ok" | "blocked" | "err
   }
 }
 
+async function firecrawlSearch(query: string): Promise<Array<{ url?: string; title?: string }>> {
+  const apiKey = process.env.FIRECRAWL_API_KEY;
+  if (!apiKey) return [];
+  try {
+    const res = await fetch("https://api.firecrawl.dev/v1/search", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query, limit: 8, location: "Brazil" }),
+    });
+    if (!res.ok) return [];
+    const json = (await res.json()) as {
+      web?: Array<{ url?: string; title?: string }>;
+      data?: Array<{ url?: string; title?: string }>;
+    };
+    return json.web ?? json.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+function matchHost(url: string, origin: string): boolean {
+  try {
+    return new URL(url).hostname === new URL(origin).hostname;
+  } catch {
+    return false;
+  }
+}
+
 
 /**
  * Discovery: search by EAN then by name+platform, validate each candidate
