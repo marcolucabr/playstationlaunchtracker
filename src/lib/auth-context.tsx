@@ -46,12 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       if (event === "SIGNED_OUT") {
         setRole(null);
-        const sid = localStorage.getItem(SESSION_KEY);
-        if (sid) {
-          endSession({ data: { sessionId: sid } }).catch(() => {});
-          localStorage.removeItem(SESSION_KEY);
-        }
+        localStorage.removeItem(SESSION_KEY);
       }
+
     });
 
     supabase.auth.getSession().then(async ({ data: { session: sess } }) => {
