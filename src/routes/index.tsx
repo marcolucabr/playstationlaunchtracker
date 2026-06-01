@@ -34,10 +34,7 @@ import {
   Search,
 } from "lucide-react";
 
-import { fetchDashboard, type DashboardData } from "@/lib/dashboard-data";
-import {
-  RELEASE_DATE_ISO,
-} from "@/lib/mock-extra";
+import { fetchDashboard, type DashboardData, type RetailerCategoryKey } from "@/lib/dashboard-data";
 
 
 import {
