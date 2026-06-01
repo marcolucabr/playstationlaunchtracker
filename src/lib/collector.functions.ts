@@ -499,18 +499,8 @@ type SearchTemplate = {
   normalize?: (href: string) => string;
 };
 
+import { validateCandidate, type ProductLite } from "./collector-validation";
 export type { ProductLite } from "./collector-validation";
-import {
-  validateProductPage,
-  aiValidateProductPage,
-  validateCandidate,
-  normalizeText,
-  platformSynonyms,
-  nameTokens,
-  type ProductLite,
-} from "./collector-validation";
-// Re-suppress unused-warning by referencing in a noop (these are used below):
-void validateProductPage; void aiValidateProductPage; void normalizeText; void platformSynonyms; void nameTokens;
 
 const SEARCH_TEMPLATES: Record<string, SearchTemplate> = {
   amazon: {
