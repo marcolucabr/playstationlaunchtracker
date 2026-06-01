@@ -414,6 +414,7 @@ export const listRecentRuns = createServerFn({ method: "POST" })
 // =========== Listings (current ads view) ===========
 
 export const listListings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .handler(async () => {
     const admin = adminClient();
     const [{ data: products }, { data: retailers }, { data: snaps }] = await Promise.all([
