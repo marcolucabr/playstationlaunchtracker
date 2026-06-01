@@ -2,13 +2,13 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Trash2, Plus, Shield, User as UserIcon, RefreshCw } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, Shield, User as UserIcon, RefreshCw, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import {
   adminListUsers, adminCreateUser, adminDeleteUser, adminUpdateRole,
 } from "@/lib/admin.functions";
-import { runCollection } from "@/lib/collector.functions";
+import { runCollection, discoverUrls } from "@/lib/collector.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,6 +92,16 @@ function AdminPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const discoverFn = useServerFn(discoverUrls);
+  const discoverMut = useMutation({
+    mutationFn: (overwrite: boolean) => discoverFn({ data: { overwrite } }),
+    onSuccess: (r) => {
+      toast.success(`Descoberta: ${r.found} encontrados · ${r.blocked} bloqueados · ${r.notFound} sem resultado · ${r.skipped} pulados`);
+      qc.invalidateQueries({ queryKey: ["pru"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (loading || !isAdmin) {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">Loading…</div>;
   }
@@ -105,6 +115,14 @@ function AdminPage() {
             <h1 className="text-2xl font-bold flex items-center gap-2"><Shield className="h-6 w-6 text-blue-600" /> Admin Panel</h1>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => discoverMut.mutate(false)}
+              disabled={discoverMut.isPending}
+            >
+              <Search className={`h-4 w-4 mr-1 ${discoverMut.isPending ? "animate-pulse" : ""}`} />
+              {discoverMut.isPending ? "Descobrindo…" : "Descobrir URLs (EAN)"}
+            </Button>
             <Button
               variant="outline"
               onClick={() => collectMut.mutate()}
