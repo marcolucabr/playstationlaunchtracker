@@ -126,8 +126,24 @@ export function CollectionStatus() {
                   <p className="text-[11px] text-slate-400 mt-1.5">
                     Coletor busca cada varejista pelo EAN ativo, valida o produto e troca URLs antigas automaticamente.
                   </p>
+                  {lastDiscovery.blocked_details && lastDiscovery.blocked_details.length > 0 && (
+                    <div className="mt-2 rounded-md border border-amber-200 bg-amber-50/50 p-2">
+                      <div className="text-[11px] font-semibold text-amber-700 uppercase tracking-wide mb-1">
+                        Varejistas bloqueando descoberta ({lastDiscovery.blocked_details.length})
+                      </div>
+                      <div className="max-h-32 overflow-y-auto space-y-0.5 text-xs">
+                        {lastDiscovery.blocked_details.slice(0, 20).map((b, i) => (
+                          <div key={i} className="flex items-center justify-between gap-2">
+                            <span className="font-medium text-amber-900 shrink-0">{b.retailer}</span>
+                            <span className="text-amber-700 truncate">{b.reason}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
+
 
               {/* Qualitative sources */}
               <div>
