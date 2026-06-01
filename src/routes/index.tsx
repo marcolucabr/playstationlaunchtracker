@@ -1798,17 +1798,46 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
     data.product.srp_cents * (1 - data.product.max_discount_avista_pct / 100),
   );
 
-  const totalSellers = marketplaceMock.reduce((a, m) => a + m.total_sellers, 0);
-  const unauthorizedSellers = marketplaceMock.reduce((a, m) => a + m.unauthorized_count, 0);
+  // Sellers reais a partir das coletas (uma oferta = um seller por URL)
+  const realListings = useMarketplaceListings(data);
+  const totalSellers = realListings.length;
+  const unauthorizedSellers = realListings.filter((l) => !l.authorized).length;
   const presaleListings = latest.filter((s) => s.is_presale).length;
-  const activeCoupons = couponsMock.filter((c) => c.active);
-  const violatingCoupons = activeCoupons.filter((c) => c.triggers_map_violation);
-  const last7dCoupons = couponsMock.filter(
-    (c) => Date.now() - new Date(c.starts_at).getTime() < 7 * 24 * 3600_000,
-  );
 
-  const topTrends = [...trendsMock].sort((a, b) => b.delta_7d_pct - a.delta_7d_pct);
+  // Cupons reais
+  const now = Date.now();
+  const last7dCoupons = data.coupons.filter(
+    (c) => now - new Date(c.captured_at).getTime() < 7 * 24 * 3600_000,
+  );
+  const activeCoupons = last7dCoupons; // sem expires-at confiável, ativos = últimos 7d
+  const violatingCoupons = activeCoupons.filter((c) => {
+    const eff = c.discount_value_cents != null
+      ? Math.max(0, data.product.srp_cents - c.discount_value_cents)
+      : c.discount_pct != null
+      ? Math.round(data.product.srp_cents * (1 - Number(c.discount_pct) / 100))
+      : null;
+    return eff != null && eff < piso;
+  });
+
+  // Tendências reais a partir de trends_snapshots (Google Trends)
+  const topTrends = data.trends
+    .map((t) => {
+      const series = t.series ?? [];
+      const last = series[series.length - 1]?.value ?? 0;
+      const prev = series[Math.max(0, series.length - 8)]?.value ?? last;
+      const delta_7d_pct = prev > 0 ? ((last - prev) / prev) * 100 : 0;
+      return {
+        source: t.id,
+        source_name: t.keyword,
+        current_score: Math.round(last),
+        delta_7d_pct,
+      };
+    })
+    .sort((a, b) => b.delta_7d_pct - a.delta_7d_pct)
+    .slice(0, 5);
+
   const topMentions = data.mentions.slice(0, 3);
+
 
   return (
     <div className="space-y-6">
