@@ -31,6 +31,7 @@ import {
   Store,
   XCircle,
   Languages,
+  Search,
 } from "lucide-react";
 
 import { fetchDashboard, type DashboardData } from "@/lib/dashboard-data";
@@ -1131,7 +1132,7 @@ function MarketplacePanel() {
             </span>
           </div>
           <div className="text-muted-foreground">
-            Dados mockados — Sprint 1 conecta o robô para coleta real 2x/dia.
+            Dados mockados — coleta real por seller depende de scraping por loja (cada varejista expõe sellers de forma diferente). Os preços reais por URL aparecem na aba <strong>Anúncios</strong>.
           </div>
         </CardContent>
       </Card>
