@@ -896,6 +896,23 @@ async function discoverForProduct(
       if (v.ok) return { url, status: "ok" };
       lastReason = v.reason;
     }
+
+    const fcCandidates = await firecrawlSearch(`${q} site:${new URL(tpl.origin).hostname}`);
+    for (const candidate of fcCandidates) {
+      const url = candidate.url;
+      if (!url || !matchHost(url, tpl.origin)) continue;
+      const page = await fetchHtml(url);
+      if (page.status === "blocked") {
+        const fallback = await fetchAndParseWithFallback(url);
+        if (fallback.status === "ok") return { url, status: "ok" };
+        blockedSeen = true;
+        continue;
+      }
+      if (page.status !== "ok" || !page.html) continue;
+      const v = await validateCandidate(page.html, product);
+      if (v.ok) return { url, status: "ok" };
+      lastReason = v.reason;
+    }
   }
 
   if (blockedSeen) return { status: "blocked", error: "search or page blocked" };
