@@ -60,9 +60,9 @@ function LoginPage() {
             </div>
             <h1 className="text-2xl font-bold text-center leading-none">
               <span className="text-blue-600">Launch</span>
-              <span className="text-slate-900"> Tracking</span>
+              <span className="text-slate-900">Tracking</span>
             </h1>
-            <p className="mt-1 text-[10px] tracking-wider text-slate-500 font-mono">
+            <p className="mt-1 text-[11px] tracking-wider text-slate-500 font-mono">
               Brazil Commercial Team
             </p>
           </div>
