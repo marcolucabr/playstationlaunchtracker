@@ -329,6 +329,29 @@ async function runCollectionInternal(
       .eq("id", u.id);
   }
 
+  // === Qualitative pass (Reddit / YouTube / News / Trends / Keywords / Sentiment) ===
+  const qualitative = { reddit: 0, youtube: 0, news: 0, trends: 0, keywords: 0, sentiment: 0 };
+  try {
+    const { runQualitativeForProduct } = await import("./qualitative-collector.server");
+    let prodQuery = admin.from("products").select("id, name, platform").eq("active", true);
+    if (opts.productId) prodQuery = prodQuery.eq("id", opts.productId);
+    const { data: prods } = await prodQuery;
+    for (const p of prods ?? []) {
+      const r = await runQualitativeForProduct(admin, p);
+      qualitative.reddit += r.reddit;
+      qualitative.youtube += r.youtube;
+      qualitative.news += r.news;
+      qualitative.trends += r.trends;
+      qualitative.keywords += r.keywords;
+      qualitative.sentiment += r.sentiment;
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    errors.push({ url: "qualitative", error: msg });
+  }
+
+  const mentionsInserted = qualitative.reddit + qualitative.youtube + qualitative.news;
+
   const finalStatus: "success" | "partial" | "failed" =
     okCount > 0 && blockedCount + errorCount === 0 ? "success" : okCount > 0 ? "partial" : "failed";
   await admin
@@ -338,6 +361,7 @@ async function runCollectionInternal(
       finished_at: new Date().toISOString(),
       retailers_checked: urls?.length ?? 0,
       snapshots_inserted: snapshots,
+      mentions_inserted: mentionsInserted,
       errors: errors.length ? errors : null,
     })
     .eq("id", run.id);
@@ -350,6 +374,7 @@ async function runCollectionInternal(
     blocked: blockedCount,
     notFound: notFoundCount,
     error: errorCount,
+    qualitative,
   };
 }
 
