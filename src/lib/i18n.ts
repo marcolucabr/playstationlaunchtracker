@@ -144,6 +144,7 @@ export const dict = {
     presale_embargo: "Any active listing now = embargo violation",
     presale_start: "Starts: Tue 06/02 at 7:00pm (BRT)",
     tab_overview: "Overview",
+    tab_listings: "Listings",
     tab_marketplace: "Marketplace",
     tab_coupons: "Coupons",
     tab_trends: "Trends",
