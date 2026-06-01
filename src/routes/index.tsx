@@ -201,7 +201,7 @@ function DashboardInner({ data }: { data: DashboardData }) {
       <ThemeBackdrop />
       <Header data={data} />
       <main className="relative mx-auto w-full max-w-[1600px] space-y-6 px-6 py-6 lg:px-10">
-        <CountdownRow />
+        <CountdownRow data={data} />
         <Tabs value={tab} onValueChange={setTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-8">
             <TabsTrigger value="overview">{t("tab_overview")}</TabsTrigger>
