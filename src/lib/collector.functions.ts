@@ -626,7 +626,7 @@ function nameTokens(name: string): string[] {
  * OR contain the EAN. Rejects pages that look like books/merch when
  * the platform is missing.
  */
-function validateProductPage(html: string, product: ProductLite): { ok: boolean; reason?: string } {
+export function validateProductPage(html: string, product: ProductLite): { ok: boolean; reason?: string } {
   // Cap to first 200kb to keep matching fast
   const slice = html.slice(0, 200_000);
   const text = normalizeText(slice.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " "));
