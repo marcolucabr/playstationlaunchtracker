@@ -79,7 +79,13 @@ export const setActiveLaunch = createServerFn({ method: "POST" })
     if (deactErr) throw new Error(deactErr.message);
 
     if (existing) {
-      const patch: Record<string, unknown> = { active: true };
+      const patch: {
+        active: boolean;
+        name?: string;
+        platform?: string;
+        release_date?: string | null;
+        srp_cents?: number;
+      } = { active: true };
       if (data.name) patch.name = data.name;
       if (data.platform) patch.platform = data.platform;
       if (data.release_date !== undefined) patch.release_date = data.release_date;
