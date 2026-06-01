@@ -91,12 +91,73 @@ type Parsed = {
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36";
+const FIRECRAWL_SCRAPE_URL = "https://api.firecrawl.dev/v2/scrape";
 
 function toCents(n: number | string | undefined | null): number | undefined {
   if (n == null) return undefined;
   const num = typeof n === "string" ? parseFloat(n.replace(/[^0-9.,]/g, "").replace(/\.(?=\d{3})/g, "").replace(",", ".")) : n;
   if (!isFinite(num) || num <= 0) return undefined;
   return Math.round(num * 100);
+}
+
+function htmlToText(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function detectStock(text: string): boolean | undefined {
+  if (/(indispon[ií]vel|esgotado|sem estoque)/i.test(text)) return false;
+  if (/(em estoque|dispon[ií]vel|comprar|adicionar ao carrinho|pr[ée]-venda|pre venda|retire)/i.test(text)) return true;
+  return undefined;
+}
+
+function parseTextualPrice(html: string): Omit<Parsed, "status" | "error"> | null {
+  const text = htmlToText(html);
+
+  const contextualMatches = [
+    ...text.matchAll(/(?:à vista|a vista|no pix|pix|por|pre[cç]o(?:\s+por)?|apenas)[^r$0-9]{0,30}r\$\s*([\d.]+,\d{2})/gi),
+    ...text.matchAll(/r\$\s*([\d.]+,\d{2})[^a-z0-9]{0,20}(?:à vista|a vista|no pix|pix)/gi),
+  ]
+    .map((m) => toCents(m[1]))
+    .filter((value): value is number => typeof value === "number" && value > 500);
+
+  const installment = text.match(/(\d{1,2})\s*x\s*de\s*r\$\s*([\d.]+,\d{2})/i);
+  const installmentCount = installment ? Number(installment[1]) : undefined;
+  const installmentValue = installment ? toCents(installment[2]) : undefined;
+
+  const genericPrices = [...text.matchAll(/r\$\s*([\d.]+,\d{2})/gi)]
+    .map((m) => toCents(m[1]))
+    .filter((value): value is number => typeof value === "number" && value > 500)
+    .slice(0, 12);
+  const uniquePrices = [...new Set(genericPrices)];
+  const chosen =
+    contextualMatches[0] ??
+    (uniquePrices.length === 1
+      ? uniquePrices[0]
+      : uniquePrices.find((value) => value !== installmentValue) ?? uniquePrices[0]);
+
+  if (!chosen) return null;
+
+  return {
+    price_avista_cents: chosen,
+    price_full_cents: chosen,
+    installment_count: installmentCount,
+    installment_value_cents: installmentValue,
+    in_stock: detectStock(text),
+    raw: {
+      text_price: {
+        chosen,
+        contextual: contextualMatches[0] ?? null,
+        installment_count: installmentCount ?? null,
+        installment_value_cents: installmentValue ?? null,
+      },
+    },
+  };
 }
 
 function parseHtml(html: string): Parsed {
@@ -162,6 +223,15 @@ function parseHtml(html: string): Parsed {
       raw.microdata = { price: micro[1] };
       return { status: "ok", price_avista_cents: cents, price_full_cents: cents, raw };
     }
+  }
+
+  const textual = parseTextualPrice(html);
+  if (textual) {
+    return {
+      status: "ok",
+      ...textual,
+      raw: { ...raw, ...(textual.raw ?? {}) },
+    };
   }
 
   return { status: "not_found", error: "Nenhum preço encontrado (JSON-LD, OG, microdata)" };
