@@ -14,7 +14,9 @@ type Breakdown = {
   discovery?: {
     newly_discovered: number; blocked: number; not_found: number;
     errors: number; skipped: number; rediscovered: number; rediscovery_failed: number;
+    blocked_details?: Array<{ retailer: string; product: string; reason: string }>;
   };
+
   reddit?: number; youtube?: number; news?: number;
   twitter?: number; tiktok?: number; instagram?: number;
   trends?: number; keywords?: number; coupons?: number;
