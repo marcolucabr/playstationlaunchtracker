@@ -1652,6 +1652,8 @@ function CouponTable({ list }: { list: CouponRow[] }) {
 function TrendsPanel({ data }: { data: DashboardData }) {
   const trends = data.trends;
   const keywordSnaps = data.keywordSuggestions;
+  const manualKw = data.manualKeywords.filter((k) => k.active);
+  const productLabel = `${data.product.name}${data.product.platform ? " " + data.product.platform : ""}`;
 
   return (
     <div className="space-y-4">
@@ -1660,6 +1662,38 @@ function TrendsPanel({ data }: { data: DashboardData }) {
           Google Trends (geo Brasil, últimos 30 dias) + Google Autocomplete. Coleta automática 2× ao dia.
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Tag className="h-4 w-4" /> Palavras-chave monitoradas
+          </CardTitle>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Termos usados em todas as buscas (Reddit, YouTube, Notícias, Trends, Cupons). Edição restrita ao Admin.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">automática (nome do produto)</div>
+            <Badge className="font-normal">{productLabel}</Badge>
+          </div>
+          <div>
+            <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">
+              manuais ({manualKw.length})
+            </div>
+            {manualKw.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">Nenhuma palavra-chave manual cadastrada.</p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {manualKw.map((k) => (
+                  <Badge key={k.id} variant="secondary" className="font-normal">{k.term}</Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
 
       {trends.length === 0 ? (
         <Card>

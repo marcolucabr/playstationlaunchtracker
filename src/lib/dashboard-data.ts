@@ -88,6 +88,7 @@ export type DashboardData = {
     suggestions: Array<{ term: string; seed: string }>;
     captured_at: string;
   }>;
+  manualKeywords: Array<{ id: string; term: string; active: boolean; created_at: string }>;
   aliases: Array<{ id: string; kind: string; value: string; scope: string | null }>;
 };
 
@@ -99,7 +100,7 @@ export async function fetchDashboard(): Promise<DashboardData> {
     .maybeSingle();
   if (pErr || !product) throw new Error(pErr?.message ?? "Produto não encontrado");
 
-  const [retailers, snapshots, sellers, mentions, aliases, coupons, trends, keywordSuggestions] = await Promise.all([
+  const [retailers, snapshots, sellers, mentions, aliases, coupons, trends, keywordSuggestions, manualKeywords] = await Promise.all([
     supabase.from("retailers").select("*").order("display_order"),
     supabase
       .from("price_snapshots")
@@ -133,6 +134,11 @@ export async function fetchDashboard(): Promise<DashboardData> {
       .eq("product_id", product.id)
       .order("captured_at", { ascending: false })
       .limit(5),
+    supabase
+      .from("manual_keywords")
+      .select("id, term, active, created_at")
+      .eq("product_id", product.id)
+      .order("created_at", { ascending: false }),
   ]);
 
   return {
@@ -145,7 +151,7 @@ export async function fetchDashboard(): Promise<DashboardData> {
     coupons: (coupons.data ?? []) as unknown as DashboardData["coupons"],
     trends: (trends.data ?? []) as unknown as DashboardData["trends"],
     keywordSuggestions: (keywordSuggestions.data ?? []) as unknown as DashboardData["keywordSuggestions"],
-
+    manualKeywords: (manualKeywords.data ?? []) as DashboardData["manualKeywords"],
   } as DashboardData;
 }
 
