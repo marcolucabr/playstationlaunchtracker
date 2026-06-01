@@ -462,8 +462,17 @@ async function runCollectionInternal(
   };
 
 
+  const hasPriceSuccess = okCount > 0;
+  const hasDiscoverySuccess = discovery.found + rediscoveredCount > 0;
+  const hasQualitativeSuccess = Object.values(qualitative).some((value) => value > 0);
+  const hasUsefulOutput = hasPriceSuccess || hasDiscoverySuccess || hasQualitativeSuccess || snapshots > 0;
+  const hasAnyIssue =
+    blockedCount + errorCount + notFoundCount > 0 ||
+    discovery.blocked + discovery.notFound + discovery.errors + rediscoveryFailed > 0 ||
+    errors.length > 0;
+
   const finalStatus: "success" | "partial" | "failed" =
-    okCount > 0 && blockedCount + errorCount === 0 ? "success" : okCount > 0 ? "partial" : "failed";
+    !hasUsefulOutput ? "failed" : hasAnyIssue ? "partial" : "success";
   await admin
     .from("collection_runs")
     .update({
