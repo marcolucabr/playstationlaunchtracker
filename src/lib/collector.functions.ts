@@ -245,7 +245,7 @@ async function runCollectionInternal(
   // 1. Auto-discover URLs for products/retailers without one
   const discovery = await runDiscoveryInternal(admin, { productId: opts.productId, overwrite: false });
 
-  // 2. Load active URLs + retailer kinds + authorized sellers
+  // 2. Load active URLs + retailer kinds + authorized sellers + product info (for validation)
   let urlsQuery = admin
     .from("product_retailer_urls")
     .select("id, product_id, retailer_id, url")
@@ -253,9 +253,17 @@ async function runCollectionInternal(
   if (opts.productId) urlsQuery = urlsQuery.eq("product_id", opts.productId);
   const { data: urls } = await urlsQuery;
 
-  const { data: retailers } = await admin.from("retailers").select("id, kind");
+  const { data: retailers } = await admin.from("retailers").select("id, kind, slug");
   const retailerKind = new Map<string, string>();
-  for (const r of retailers ?? []) retailerKind.set(r.id, r.kind as string);
+  const retailerSlug = new Map<string, string>();
+  for (const r of retailers ?? []) {
+    retailerKind.set(r.id, r.kind as string);
+    retailerSlug.set(r.id, r.slug as string);
+  }
+
+  const { data: prodRows } = await admin.from("products").select("id, name, ean, platform");
+  const productById = new Map<string, ProductLite>();
+  for (const p of prodRows ?? []) productById.set(p.id, p);
 
   const { data: authSellers } = await admin
     .from("authorized_sellers")
@@ -284,7 +292,57 @@ async function runCollectionInternal(
   const errors: Array<{ url: string; error: string }> = [];
 
   for (const u of urls ?? []) {
-    const parsed = await fetchAndParse(u.url);
+    const product = productById.get(u.product_id);
+    let effectiveUrl = u.url;
+    let validationNote: string | undefined;
+
+    // Validate the saved URL still matches the product. If not, drop it and re-discover.
+    if (product) {
+      const page = await fetchHtml(u.url);
+      if (page.status === "ok" && page.html) {
+        const v = validateProductPage(page.html, product);
+        if (!v.ok) {
+          validationNote = `URL antiga descartada: ${v.reason}`;
+          const slug = retailerSlug.get(u.retailer_id);
+          const tpl = slug ? SEARCH_TEMPLATES[slug] : undefined;
+          // Delete the bad URL row
+          await admin.from("product_retailer_urls").delete().eq("id", u.id);
+          // Try to re-discover
+          if (tpl) {
+            const rediscovered = await discoverForProduct(tpl, product);
+            if (rediscovered.status === "ok" && rediscovered.url) {
+              const { data: ins } = await admin
+                .from("product_retailer_urls")
+                .upsert(
+                  {
+                    product_id: u.product_id,
+                    retailer_id: u.retailer_id,
+                    url: rediscovered.url,
+                    active: true,
+                    last_status: "rediscovered",
+                    last_checked_at: new Date().toISOString(),
+                  },
+                  { onConflict: "product_id,retailer_id" },
+                )
+                .select()
+                .single();
+              effectiveUrl = rediscovered.url;
+              u.id = ins?.id ?? u.id;
+            } else {
+              errors.push({ url: u.url, error: `rediscovery failed: ${rediscovered.error ?? rediscovered.status}` });
+              notFoundCount++;
+              continue;
+            }
+          } else {
+            errors.push({ url: u.url, error: validationNote });
+            errorCount++;
+            continue;
+          }
+        }
+      }
+    }
+
+    const parsed = await fetchAndParse(effectiveUrl);
     const kind = retailerKind.get(u.retailer_id) ?? "3p";
     let isFirstParty = false;
     if (kind === "1p") isFirstParty = true;
@@ -295,7 +353,7 @@ async function runCollectionInternal(
       retailer_id: u.retailer_id,
       is_first_party: isFirstParty,
       seller_name: parsed.seller_name ?? null,
-      product_url: u.url,
+      product_url: effectiveUrl,
       price_avista_cents: parsed.price_avista_cents ?? null,
       price_full_cents: parsed.price_full_cents ?? null,
       installment_count: parsed.installment_count ?? null,
@@ -303,14 +361,14 @@ async function runCollectionInternal(
       in_stock: parsed.in_stock ?? null,
       is_presale: false,
       status: parsed.status,
-      raw_payload: { ...(parsed.raw ?? {}), error: parsed.error ?? null },
+      raw_payload: { ...(parsed.raw ?? {}), error: parsed.error ?? null, validation: validationNote ?? null },
     });
     if (!snapErr) snapshots++;
     if (parsed.status === "ok") okCount++;
     else if (parsed.status === "blocked") blockedCount++;
     else if (parsed.status === "not_found") notFoundCount++;
     else errorCount++;
-    if (parsed.status !== "ok") errors.push({ url: u.url, error: parsed.error ?? parsed.status });
+    if (parsed.status !== "ok") errors.push({ url: effectiveUrl, error: parsed.error ?? parsed.status });
 
     await admin
       .from("product_retailer_urls")
