@@ -364,45 +364,68 @@ function CountdownCard({
   );
 }
 
-function CountdownRow() {
+function CountdownRow({ data }: { data: DashboardData }) {
   const tr = useT();
-  const groups: Array<{
-    key: "cat_pure_online" | "cat_hybrid_retail" | "cat_physical_stores" | "cat_telco" | "cat_marketplace" | "cat_regional_retailer";
-    items: Array<{ name: string; sellerNote?: string }>;
-  }> = [
-    { key: "cat_pure_online", items: [{ name: "Amazon" }, { name: "Kabum" }, { name: "Mercado Livre" }, { name: "Webfones" }] },
-    { key: "cat_hybrid_retail", items: [{ name: "Magazine Luiza" }] },
-    { key: "cat_physical_stores", items: [{ name: "Carrefour" }, { name: "Sam's Club" }, { name: "Lasa" }] },
-    { key: "cat_telco", items: [{ name: "TIM" }, { name: "Vivo" }] },
-    { key: "cat_marketplace", items: [
-      { name: "Casas Bahia", sellerNote: "Game Play Fulfillment" },
-      { name: "Shopee", sellerNote: "Webfones" },
-    ] },
-    { key: "cat_regional_retailer", items: [{ name: "Havan" }, { name: "Gazin" }, { name: "Bemol" }] },
+  const categoryLabel: Record<RetailerCategoryKey, "cat_pure_online" | "cat_hybrid_retail" | "cat_physical_stores" | "cat_telco" | "cat_marketplace" | "cat_regional_retailer"> = {
+    pure_online: "cat_pure_online",
+    hybrid_retail: "cat_hybrid_retail",
+    physical_stores: "cat_physical_stores",
+    telco: "cat_telco",
+    marketplace: "cat_marketplace",
+    regional_retailer: "cat_regional_retailer",
+  };
+  const order: RetailerCategoryKey[] = [
+    "pure_online",
+    "hybrid_retail",
+    "physical_stores",
+    "telco",
+    "marketplace",
+    "regional_retailer",
   ];
+  const grouped = order
+    .map((cat) => ({
+      cat,
+      items: data.retailers.filter((r) => r.category === cat),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  const releaseIso = data.product.release_date
+    ? new Date(data.product.release_date + "T03:00:00.000Z").toISOString()
+    : null;
+
   return (
     <div className="grid grid-cols-1 gap-3 lg:grid-cols-[45%_55%]">
-      <CountdownCard
-        targetIso={RELEASE_DATE_ISO}
-        titleKey="release_official"
-        liveKey="release_live"
-        embargoKey="release_countdown"
-        dateKey="release_date_label"
-      />
+      {releaseIso ? (
+        <CountdownCard
+          targetIso={releaseIso}
+          titleKey="release_official"
+          liveKey="release_live"
+          embargoKey="release_countdown"
+          dateKey="release_date_label"
+        />
+      ) : (
+        <Card className="border-dashed border-amber-500/40">
+          <CardContent className="p-4 text-sm text-muted-foreground">
+            Data de lançamento ainda não configurada. Configure em <code>/admin → Configurações</code>.
+          </CardContent>
+        </Card>
+      )}
       <Card className="border-sky-500/70">
         <CardHeader className="px-4 pb-1 pt-2">
           <CardTitle className="flex items-center gap-2 text-sm tracking-wider">{tr("mapped_retailers_title")}</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-x-10 gap-y-0.5 p-4 pt-0 sm:grid-cols-[60%_40%]">
-          {groups.map((g) => (
-            <div key={g.key} className="flex items-baseline gap-2 min-w-0">
+          {grouped.length === 0 ? (
+            <span className="text-xs text-muted-foreground">Nenhuma loja categorizada ainda.</span>
+          ) : grouped.map((g) => (
+            <div key={g.cat} className="flex items-baseline gap-2 min-w-0">
               <span className="w-28 shrink-0 text-xs font-medium tracking-wider text-muted-foreground">
-                {tr(g.key)}
+                {tr(categoryLabel[g.cat])}
               </span>
-              <span className="flex-1 truncate text-xs text-muted-foreground" title={g.items.map(i => i.sellerNote ? `${i.name} (${i.sellerNote})` : i.name).join(" • ")}>
+              <span className="flex-1 truncate text-xs text-muted-foreground" title={g.items.map((i) => i.name).join(" • ")}>
                 {g.items.map((it, idx) => (
-                  <span key={it.name}>
-                    {it.name}{it.sellerNote ? ` (${it.sellerNote})` : ""}
+                  <span key={it.id}>
+                    {it.name}
                     {idx < g.items.length - 1 && <span className="text-muted-foreground/50"> • </span>}
                   </span>
                 ))}
