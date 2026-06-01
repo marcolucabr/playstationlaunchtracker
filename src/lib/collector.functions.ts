@@ -340,17 +340,26 @@ async function runCollectionInternal(
               u.id = ins?.id ?? u.id;
               rediscoveredCount++;
             } else {
-              errors.push({ url: u.url, error: `rediscovery failed: ${rediscovered.error ?? rediscovered.status}` });
+              errors.push({
+                url: u.url,
+                error: `rediscovery failed: ${rediscovered.error ?? rediscovered.status}`,
+                retailer: retailerName.get(u.retailer_id),
+                kind: rediscovered.status === "blocked" ? "blocked" : "rediscovery_failed",
+              });
               rediscoveryFailed++;
               notFoundCount++;
               continue;
             }
 
           } else {
-            errors.push({ url: u.url, error: validationNote });
+            errors.push({
+              url: u.url, error: validationNote,
+              retailer: retailerName.get(u.retailer_id), kind: "validation",
+            });
             errorCount++;
             continue;
           }
+
         }
       }
     }
