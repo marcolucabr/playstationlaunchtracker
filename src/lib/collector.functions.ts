@@ -483,6 +483,30 @@ export const listRecentRuns = createServerFn({ method: "POST" })
     return data ?? [];
   });
 
+// =========== Channels dashboard (mentions aggregated by source) ===========
+
+export const listChannelsData = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const admin = adminClient();
+    const [{ data: mentions }, { data: trends }, { data: products }] = await Promise.all([
+      admin
+        .from("mentions")
+        .select("id, source, source_name, title, excerpt, url, sentiment, captured_at, posted_at, product_id")
+        .order("captured_at", { ascending: false })
+        .limit(2000),
+      admin
+        .from("trends_snapshots")
+        .select("id, keyword, series, avg_value, peak_value, peak_date, captured_at, product_id")
+        .order("captured_at", { ascending: false })
+        .limit(20),
+      admin.from("products").select("id, name").eq("active", true),
+    ]);
+    return { mentions: mentions ?? [], trends: trends ?? [], products: products ?? [] };
+  });
+
+
 // =========== Listings (current ads view) ===========
 
 export const listListings = createServerFn({ method: "POST" })
