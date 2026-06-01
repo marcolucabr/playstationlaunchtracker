@@ -142,9 +142,10 @@ export async function fetchDashboard(): Promise<DashboardData> {
     authorizedSellers: sellers.data ?? [],
     mentions: mentions.data ?? [],
     aliases: aliases.data ?? [],
-    coupons: (coupons.data ?? []) as DashboardData["coupons"],
-    trends: (trends.data ?? []) as DashboardData["trends"],
-    keywordSuggestions: (keywordSuggestions.data ?? []) as DashboardData["keywordSuggestions"],
+    coupons: (coupons.data ?? []) as unknown as DashboardData["coupons"],
+    trends: (trends.data ?? []) as unknown as DashboardData["trends"],
+    keywordSuggestions: (keywordSuggestions.data ?? []) as unknown as DashboardData["keywordSuggestions"],
+
   } as DashboardData;
 }
 
