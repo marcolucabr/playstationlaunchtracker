@@ -207,8 +207,9 @@ function DashboardInner({ data }: { data: DashboardData }) {
       <main className="relative mx-auto w-full max-w-[1600px] space-y-6 px-6 py-6 lg:px-10">
         <CountdownRow />
         <Tabs value={tab} onValueChange={setTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-7">
+          <TabsList className="grid w-full grid-cols-2 md:w-auto md:grid-cols-8">
             <TabsTrigger value="overview">{t("tab_overview")}</TabsTrigger>
+            <TabsTrigger value="listings">{t("tab_listings")}</TabsTrigger>
             <TabsTrigger value="marketplace">{t("tab_marketplace")}</TabsTrigger>
             <TabsTrigger value="coupons">{t("tab_coupons")}</TabsTrigger>
             <TabsTrigger value="trends">{t("tab_trends")}</TabsTrigger>
@@ -218,6 +219,9 @@ function DashboardInner({ data }: { data: DashboardData }) {
           </TabsList>
           <TabsContent value="overview">
             <OverviewSummary data={data} onNavigate={setTab} />
+          </TabsContent>
+          <TabsContent value="listings">
+            <ListingsPanel />
           </TabsContent>
           <TabsContent value="marketplace">
             <MarketplacePanel />
