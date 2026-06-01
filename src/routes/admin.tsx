@@ -92,6 +92,16 @@ function AdminPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const discoverFn = useServerFn(discoverUrls);
+  const discoverMut = useMutation({
+    mutationFn: (overwrite: boolean) => discoverFn({ data: { overwrite } }),
+    onSuccess: (r) => {
+      toast.success(`Descoberta: ${r.found} encontrados · ${r.blocked} bloqueados · ${r.notFound} sem resultado · ${r.skipped} pulados`);
+      qc.invalidateQueries({ queryKey: ["pru"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (loading || !isAdmin) {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">Loading…</div>;
   }
