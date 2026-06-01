@@ -2132,7 +2132,13 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                       <span className="text-xs font-bold text-muted-foreground">{i + 1}</span>
                       <div>
                         <div className="flex items-center gap-2 text-sm">
-                          <span className="font-medium">{retailer?.name ?? "?"}</span>
+                          {s.product_url ? (
+                            <a href={s.product_url} target="_blank" rel="noreferrer" className="font-medium underline-offset-2 hover:underline hover:text-primary">
+                              {retailer?.name ?? "?"}
+                            </a>
+                          ) : (
+                            <span className="font-medium">{retailer?.name ?? "?"}</span>
+                          )}
                           <span className="text-xs text-muted-foreground">
                             {s.is_first_party ? "1P" : `· ${s.seller_name ?? "?"}`}
                           </span>
@@ -2151,7 +2157,14 @@ function OverviewSummary({ data, onNavigate }: { data: DashboardData; onNavigate
                         </div>
                       </div>
                       <span className="flex flex-col items-end tabular-nums leading-tight">
-                        <span className="font-semibold">{brl(s.price_avista_cents)} <span className="text-[10px] font-normal uppercase text-muted-foreground">à vista</span></span>
+                        <span className="font-semibold">
+                          {s.product_url ? (
+                            <a href={s.product_url} target="_blank" rel="noreferrer" className="hover:underline hover:text-primary">{brl(s.price_avista_cents)}</a>
+                          ) : (
+                            brl(s.price_avista_cents)
+                          )}{" "}
+                          <span className="text-[10px] font-normal uppercase text-muted-foreground">à vista</span>
+                        </span>
                         {s.price_full_cents != null && s.price_full_cents !== s.price_avista_cents && (
                           <span className="text-xs text-muted-foreground">{brl(s.price_full_cents)} <span className="text-[10px] uppercase">a prazo</span></span>
                         )}
