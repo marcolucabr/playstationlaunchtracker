@@ -300,7 +300,7 @@ async function runCollectionInternal(
     if (product) {
       const page = await fetchHtml(u.url);
       if (page.status === "ok" && page.html) {
-        const v = validateProductPage(page.html, product);
+        const v = await validateCandidate(page.html, product);
         if (!v.ok) {
           validationNote = `URL antiga descartada: ${v.reason}`;
           const slug = retailerSlug.get(u.retailer_id);
