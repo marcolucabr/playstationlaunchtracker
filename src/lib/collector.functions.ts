@@ -390,7 +390,13 @@ async function runCollectionInternal(
     else if (parsed.status === "blocked") blockedCount++;
     else if (parsed.status === "not_found") notFoundCount++;
     else errorCount++;
-    if (parsed.status !== "ok") errors.push({ url: effectiveUrl, error: parsed.error ?? parsed.status });
+    if (parsed.status !== "ok") errors.push({
+      url: effectiveUrl,
+      error: parsed.error ?? parsed.status,
+      retailer: retailerName.get(u.retailer_id),
+      kind: parsed.status === "blocked" ? "blocked" : parsed.status === "not_found" ? "not_found" : "error",
+    });
+
 
     await admin
       .from("product_retailer_urls")
