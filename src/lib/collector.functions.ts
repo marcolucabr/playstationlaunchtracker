@@ -251,7 +251,7 @@ async function runDiscoveryInternal(admin: AdminDb, opts: { productId?: string; 
 
 async function runCollectionInternal(
   admin: AdminDb,
-  opts: { productId?: string; trigger?: "manual" | "scheduled" },
+  opts: { productId?: string; trigger?: "manual" | "cron" },
 ) {
   // 1. Auto-discover URLs for products/retailers without one
   const discovery = await runDiscoveryInternal(admin, { productId: opts.productId, overwrite: false });
@@ -356,7 +356,7 @@ async function runCollectionInternal(
 // Exported for the public cron route
 export async function runScheduledCollection() {
   const admin = adminClient();
-  return runCollectionInternal(admin, { trigger: "scheduled" });
+  return runCollectionInternal(admin, { trigger: "cron" });
 }
 
 // =========== Run collection (admin server fn) ===========
