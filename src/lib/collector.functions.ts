@@ -446,6 +446,8 @@ async function runCollectionInternal(
       skipped: discovery.skipped,
       rediscovered: rediscoveredCount,
       rediscovery_failed: rediscoveryFailed,
+      blocked_details: discovery.blockedDetails ?? [],
+
     },
     reddit: qualitative.reddit,
     youtube: qualitative.youtube,
