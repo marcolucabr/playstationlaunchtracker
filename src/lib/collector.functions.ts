@@ -701,7 +701,7 @@ async function fetchHtml(url: string): Promise<{ status: "ok" | "blocked" | "err
  * the target VIDEO GAME for the right platform. Out-of-stock / presale is OK.
  * Falls back to "ok" if the gateway is unreachable so the collector keeps working.
  */
-async function aiValidateProductPage(
+export async function aiValidateProductPage(
   html: string,
   product: ProductLite,
 ): Promise<{ ok: boolean; reason: string; kind: string }> {
