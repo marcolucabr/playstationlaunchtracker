@@ -16,7 +16,6 @@ type Admin = ReturnType<typeof createClient<Database>>;
 
 type FcSearchOpts = {
   limit?: number;
-  sources?: string[];
   location?: string;
   tbs?: string;
 };
@@ -29,12 +28,21 @@ function fc() {
   if (!apiKey) throw new Error("FIRECRAWL_API_KEY not configured");
   return {
     async search(query: string, opts: FcSearchOpts = {}): Promise<{ web?: FcResult[]; data?: FcResult[] }> {
+      // Firecrawl v1/search accepts: query, limit, location, tbs, lang, country, timeout, scrapeOptions.
+      // `sources` is NOT accepted and returns 400 ("Unrecognized key: sources").
+      const body: Record<string, unknown> = { query };
+      if (opts.limit != null) body.limit = opts.limit;
+      if (opts.location) body.location = opts.location;
+      if (opts.tbs) body.tbs = opts.tbs;
       const res = await fetch("https://api.firecrawl.dev/v1/search", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ query, ...opts }),
+        body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error(`Firecrawl search ${res.status}`);
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(`Firecrawl search ${res.status}: ${txt.slice(0, 200)}`);
+      }
       const json = (await res.json()) as { data?: FcResult[]; web?: FcResult[] };
       return json;
     },
@@ -72,7 +80,7 @@ export async function collectReddit(admin: Admin, p: Product, extraTerms: string
   let inserted = 0;
   for (const query of queries) {
     try {
-      const res = await client.search(query, { limit: 8, sources: ["web"], location: "Brazil", tbs: "qdr:w" });
+      const res = await client.search(query, { limit: 8, location: "Brazil", tbs: "qdr:w" });
       const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
       for (const r of results) {
         if (!r?.url || !/reddit\.com/.test(r.url)) continue;
@@ -98,7 +106,7 @@ export async function collectYouTube(admin: Admin, p: Product, extraTerms: strin
   let inserted = 0;
   for (const query of queries) {
     try {
-      const res = await client.search(query, { limit: 8, sources: ["web"], location: "Brazil", tbs: "qdr:m" });
+      const res = await client.search(query, { limit: 8, location: "Brazil", tbs: "qdr:m" });
       const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
       for (const r of results) {
         if (!r?.url || !/youtube\.com|youtu\.be/.test(r.url)) continue;
@@ -127,7 +135,7 @@ async function collectSocial(
   let inserted = 0;
   for (const query of queries) {
     try {
-      const res = await client.search(query, { limit: 8, sources: ["web"], location: "Brazil", tbs: "qdr:w" });
+      const res = await client.search(query, { limit: 8, location: "Brazil", tbs: "qdr:w" });
       const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
       for (const r of results) {
         if (!r?.url || !opts.domainRegex.test(r.url)) continue;
@@ -175,7 +183,7 @@ export async function collectNews(admin: Admin, p: Product, extraTerms: string[]
   let inserted = 0;
   for (const query of queries) {
     try {
-      const res = await client.search(query, { limit: 10, sources: ["web"], location: "Brazil", tbs: "qdr:d" });
+      const res = await client.search(query, { limit: 10, location: "Brazil", tbs: "qdr:d" });
       const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
       for (const r of results) {
         if (!r?.url) continue;
@@ -310,7 +318,7 @@ export async function collectCoupons(admin: Admin, p: Product) {
   for (const query of queries) {
     const fullQuery = `${query} (site:promobit.com.br OR site:pelando.com.br OR site:cuponomia.com.br)`;
     try {
-      const res = await client.search(fullQuery, { limit: 10, sources: ["web"], location: "Brazil", tbs: "qdr:w" });
+      const res = await client.search(fullQuery, { limit: 10, location: "Brazil", tbs: "qdr:w" });
       const results = ((res as any)?.web ?? (res as any)?.data ?? []) as any[];
       for (const r of results) {
         if (!r?.url) continue;
