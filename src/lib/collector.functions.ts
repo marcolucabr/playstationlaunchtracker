@@ -294,3 +294,191 @@ export const listRecentRuns = createServerFn({ method: "POST" })
       .limit(20);
     return data ?? [];
   });
+
+// =========== Discover URLs by EAN ===========
+
+type SearchTemplate = {
+  origin: string;
+  searchUrl: (q: string) => string;
+  productHrefRegex: RegExp;
+  normalize?: (href: string) => string;
+};
+
+const SEARCH_TEMPLATES: Record<string, SearchTemplate> = {
+  amazon: {
+    origin: "https://www.amazon.com.br",
+    searchUrl: (q) => `https://www.amazon.com.br/s?k=${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(\/[^"]*\/dp\/[A-Z0-9]{10}[^"]*)"/i,
+  },
+  "mercado-livre": {
+    origin: "https://www.mercadolivre.com.br",
+    searchUrl: (q) => `https://lista.mercadolivre.com.br/${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(https:\/\/(?:produto\.)?mercadolivre\.com\.br\/MLB[^"#?]+)"/i,
+  },
+  magalu: {
+    origin: "https://www.magazineluiza.com.br",
+    searchUrl: (q) => `https://www.magazineluiza.com.br/busca/${encodeURIComponent(q)}/`,
+    productHrefRegex: /href="(\/[^"]+\/p\/[^"]+)"/i,
+  },
+  americanas: {
+    origin: "https://www.americanas.com.br",
+    searchUrl: (q) => `https://www.americanas.com.br/busca/${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(\/produto\/\d+[^"]*)"/i,
+  },
+  kabum: {
+    origin: "https://www.kabum.com.br",
+    searchUrl: (q) => `https://www.kabum.com.br/busca/${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(\/produto\/\d+[^"]*)"/i,
+  },
+  carrefour: {
+    origin: "https://www.carrefour.com.br",
+    searchUrl: (q) => `https://www.carrefour.com.br/busca/${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(\/[^"]+\/p[^"]*)"/i,
+  },
+  "fast-shop": {
+    origin: "https://www.fastshop.com.br",
+    searchUrl: (q) => `https://www.fastshop.com.br/web/s/?ft=${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(\/web\/p\/[^"]+)"/i,
+  },
+  shopee: {
+    origin: "https://shopee.com.br",
+    searchUrl: (q) => `https://shopee.com.br/search?keyword=${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(\/[^"]+-i\.\d+\.\d+)"/i,
+  },
+  havan: {
+    origin: "https://www.havan.com.br",
+    searchUrl: (q) => `https://www.havan.com.br/catalogsearch/result/?q=${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(https:\/\/www\.havan\.com\.br\/[^"]+\.html)"/i,
+  },
+  gazin: {
+    origin: "https://www.gazin.com.br",
+    searchUrl: (q) => `https://www.gazin.com.br/busca?q=${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(\/produto\/[^"]+)"/i,
+  },
+  bemol: {
+    origin: "https://www.bemol.com.br",
+    searchUrl: (q) => `https://www.bemol.com.br/busca?q=${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(\/[^"]+\/p)"/i,
+  },
+  "sams-club": {
+    origin: "https://www.samsclub.com.br",
+    searchUrl: (q) => `https://www.samsclub.com.br/busca?q=${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(\/[^"]+\/p)"/i,
+  },
+  webfones: {
+    origin: "https://www.webfones.com.br",
+    searchUrl: (q) => `https://www.webfones.com.br/busca?q=${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(\/[^"]+\.html)"/i,
+  },
+};
+
+function absolutize(href: string, origin: string): string {
+  if (/^https?:\/\//i.test(href)) return href;
+  if (href.startsWith("/")) return origin + href;
+  return origin + "/" + href;
+}
+
+async function searchFirstResult(tpl: SearchTemplate, query: string): Promise<{ url?: string; status: "ok" | "blocked" | "not_found" | "error"; error?: string }> {
+  try {
+    const res = await fetch(tpl.searchUrl(query), {
+      headers: {
+        "User-Agent": UA,
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+      },
+      redirect: "follow",
+    });
+    if (res.status === 403 || res.status === 503 || res.status === 429) {
+      return { status: "blocked", error: `HTTP ${res.status}` };
+    }
+    if (!res.ok) return { status: "error", error: `HTTP ${res.status}` };
+    const html = await res.text();
+    const lower = html.slice(0, 5000).toLowerCase();
+    if (/captcha|access denied|cf-browser-verification|robot check|are you a human/.test(lower)) {
+      return { status: "blocked", error: "Anti-bot / captcha" };
+    }
+    const m = html.match(tpl.productHrefRegex);
+    if (!m) return { status: "not_found" };
+    let href = m[1].replace(/&amp;/g, "&");
+    href = absolutize(href, tpl.origin);
+    return { status: "ok", url: href };
+  } catch (e) {
+    return { status: "error", error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+export const discoverUrls = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { productId?: string; overwrite?: boolean }) => d)
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const admin = adminClient();
+
+    let prodQ = admin.from("products").select("id, name, ean, platform").eq("active", true);
+    if (data.productId) prodQ = prodQ.eq("id", data.productId);
+    const { data: products, error: pErr } = await prodQ;
+    if (pErr) throw new Error(pErr.message);
+
+    const { data: retailers, error: rErr } = await admin
+      .from("retailers")
+      .select("id, slug, name")
+      .eq("active", true);
+    if (rErr) throw new Error(rErr.message);
+
+    const { data: existing } = await admin
+      .from("product_retailer_urls")
+      .select("product_id, retailer_id, url");
+    const existingMap = new Map<string, string>();
+    for (const e of existing ?? []) existingMap.set(`${e.product_id}|${e.retailer_id}`, e.url);
+
+    let found = 0;
+    let blocked = 0;
+    let notFound = 0;
+    let skipped = 0;
+    let errors = 0;
+    const overwrite = data.overwrite ?? false;
+
+    for (const p of products ?? []) {
+      const queries: string[] = [];
+      if (p.ean) queries.push(p.ean);
+      const nameQuery = [p.name, p.platform].filter(Boolean).join(" ").trim();
+      if (nameQuery) queries.push(nameQuery);
+
+      for (const r of retailers ?? []) {
+        const tpl = SEARCH_TEMPLATES[r.slug];
+        if (!tpl) { skipped++; continue; }
+        const key = `${p.id}|${r.id}`;
+        if (!overwrite && existingMap.has(key)) { skipped++; continue; }
+
+        let result: Awaited<ReturnType<typeof searchFirstResult>> | null = null;
+        for (const q of queries) {
+          result = await searchFirstResult(tpl, q);
+          if (result.status === "ok" || result.status === "blocked") break;
+        }
+        if (!result) { skipped++; continue; }
+
+        if (result.status === "ok" && result.url) {
+          await admin.from("product_retailer_urls").upsert(
+            {
+              product_id: p.id,
+              retailer_id: r.id,
+              url: result.url,
+              active: true,
+              last_status: "discovered",
+              last_checked_at: new Date().toISOString(),
+            },
+            { onConflict: "product_id,retailer_id" },
+          );
+          found++;
+        } else if (result.status === "blocked") {
+          blocked++;
+        } else if (result.status === "not_found") {
+          notFound++;
+        } else {
+          errors++;
+        }
+      }
+    }
+
+    return { found, blocked, notFound, skipped, errors };
+  });
