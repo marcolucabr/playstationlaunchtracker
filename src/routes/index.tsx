@@ -1070,11 +1070,8 @@ function SellersPanel({ data }: { data: DashboardData }) {
 }
 
 // ===================== Marketplace =====================
-function is1P(sellerName: string, retailerName: string): boolean {
-  if (/\(1P\)/i.test(sellerName)) return true;
-  if (retailerName === "Amazon" && /^Amazon/i.test(sellerName)) return true;
-  return false;
-}
+
+
 
 type MarketplaceListing = {
   id: string;
