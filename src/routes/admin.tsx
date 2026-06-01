@@ -2,13 +2,13 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Trash2, Plus, Shield, User as UserIcon, RefreshCw, Search } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, Shield, User as UserIcon, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import {
   adminListUsers, adminCreateUser, adminDeleteUser, adminUpdateRole,
 } from "@/lib/admin.functions";
-import { runCollection, discoverUrls } from "@/lib/collector.functions";
+import { runCollection } from "@/lib/collector.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ import {
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { UrlsManager } from "@/components/admin/UrlsManager";
 import { RecentRuns } from "@/components/admin/RecentRuns";
+import { ListingsPanel } from "@/components/admin/ListingsPanel";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Panel" }] }),
@@ -92,16 +93,6 @@ function AdminPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const discoverFn = useServerFn(discoverUrls);
-  const discoverMut = useMutation({
-    mutationFn: (overwrite: boolean) => discoverFn({ data: { overwrite } }),
-    onSuccess: (r) => {
-      toast.success(`Descoberta: ${r.found} encontrados · ${r.blocked} bloqueados · ${r.notFound} sem resultado · ${r.skipped} pulados`);
-      qc.invalidateQueries({ queryKey: ["pru"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   if (loading || !isAdmin) {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">Loading…</div>;
   }
@@ -115,14 +106,6 @@ function AdminPage() {
             <h1 className="text-2xl font-bold flex items-center gap-2"><Shield className="h-6 w-6 text-blue-600" /> Admin Panel</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => discoverMut.mutate(false)}
-              disabled={discoverMut.isPending}
-            >
-              <Search className={`h-4 w-4 mr-1 ${discoverMut.isPending ? "animate-pulse" : ""}`} />
-              {discoverMut.isPending ? "Descobrindo…" : "Descobrir URLs (EAN)"}
-            </Button>
             <Button
               variant="outline"
               onClick={() => collectMut.mutate()}
@@ -163,13 +146,14 @@ function AdminPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-          <strong>Atenção:</strong> o coletor atual usa <code>fetch</code> puro. Lojas que renderizam preço via JavaScript ou usam anti-bot (Amazon, Mercado Livre, Magalu, Americanas) provavelmente vão retornar <strong>bloqueado</strong>. Para essas, conecte o Firecrawl depois.
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+          A coleta roda automaticamente <strong>2× ao dia</strong> (03:00 e 15:00 BRT). Cada execução já <strong>descobre novas URLs por EAN</strong> antes de coletar preços. O botão "Coletar agora" força uma execução manual. Lojas com anti-bot forte (Amazon, ML, Magalu) ainda podem retornar <strong>bloqueado</strong> — depois conectamos Firecrawl como fallback.
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-4">
           <TabsList>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="listings">Anúncios</TabsTrigger>
             <TabsTrigger value="urls">URLs por loja</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
           </TabsList>
@@ -177,6 +161,10 @@ function AdminPage() {
           <TabsContent value="dashboard" className="space-y-4">
             <AdminDashboard users={users} />
             <RecentRuns />
+          </TabsContent>
+
+          <TabsContent value="listings">
+            <ListingsPanel />
           </TabsContent>
 
           <TabsContent value="urls">
