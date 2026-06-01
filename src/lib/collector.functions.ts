@@ -300,7 +300,7 @@ async function runCollectionInternal(
     if (product) {
       const page = await fetchHtml(u.url);
       if (page.status === "ok" && page.html) {
-        const v = validateProductPage(page.html, product);
+        const v = await validateCandidate(page.html, product);
         if (!v.ok) {
           validationNote = `URL antiga descartada: ${v.reason}`;
           const slug = retailerSlug.get(u.retailer_id);
@@ -697,8 +697,96 @@ async function fetchHtml(url: string): Promise<{ status: "ok" | "blocked" | "err
 }
 
 /**
+ * AI validation via Lovable AI Gateway. Confirms the page is actually selling
+ * the target VIDEO GAME for the right platform. Out-of-stock / presale is OK.
+ * Falls back to "ok" if the gateway is unreachable so the collector keeps working.
+ */
+async function aiValidateProductPage(
+  html: string,
+  product: ProductLite,
+): Promise<{ ok: boolean; reason: string; kind: string }> {
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) return { ok: true, reason: "AI disabled (no LOVABLE_API_KEY)", kind: "unknown" };
+
+  const stripped = html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ");
+  const text = normalizeText(stripped).slice(0, 3500);
+  const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  const title = (titleMatch?.[1] ?? "").replace(/\s+/g, " ").trim().slice(0, 300);
+
+  const system =
+    "You validate whether an e-commerce product page is selling a specific VIDEO GAME for a specific console. Reply with JSON only.";
+  const user = `Target product:
+- Name: ${product.name}
+- Platform: ${product.platform ?? "unknown"}
+- EAN: ${product.ean ?? "n/a"}
+
+Page <title>: ${title}
+Page text (truncated): ${text}
+
+Return strict JSON:
+{"match": boolean, "kind": "game"|"book"|"guide"|"merch"|"accessory"|"funko"|"other", "reason": "short reason in pt-BR"}
+
+Rules:
+- "match" is TRUE only when the page sells the actual VIDEO GAME (physical or digital) for the given platform.
+- A page that is out-of-stock, indisponível, pré-venda, or "sem previsão" is STILL a match if it is the correct game.
+- A page for a book, guide, art book, poster, funko, apparel, controller, headset or any non-game item is NEVER a match, even if it shares the name.
+- If the platform on the page does not match the target platform, "match" must be false.`;
+
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Lovable-API-Key": apiKey,
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        response_format: { type: "json_object" },
+      }),
+    });
+    if (!res.ok) {
+      return { ok: true, reason: `AI gateway ${res.status} (fallback accept)`, kind: "unknown" };
+    }
+    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+    const content = json.choices?.[0]?.message?.content ?? "{}";
+    const parsed = JSON.parse(content) as { match?: boolean; kind?: string; reason?: string };
+    const kind = String(parsed.kind ?? "unknown");
+    const ok = parsed.match === true && (kind === "game" || kind === "unknown");
+    return { ok, reason: parsed.reason ?? (ok ? "ok" : "rejected by AI"), kind };
+  } catch (e) {
+    return {
+      ok: true,
+      reason: `AI exception: ${e instanceof Error ? e.message : String(e)} (fallback accept)`,
+      kind: "unknown",
+    };
+  }
+}
+
+/**
+ * Combined heuristic + AI validation. Heuristic gate is cheap and runs first;
+ * AI runs only when heuristic passes (saves tokens).
+ */
+async function validateCandidate(
+  html: string,
+  product: ProductLite,
+): Promise<{ ok: boolean; reason: string }> {
+  const h = validateProductPage(html, product);
+  if (!h.ok) return { ok: false, reason: `heuristic: ${h.reason}` };
+  const ai = await aiValidateProductPage(html, product);
+  if (!ai.ok) return { ok: false, reason: `AI(${ai.kind}): ${ai.reason}` };
+  return { ok: true, reason: `AI(${ai.kind}): ${ai.reason}` };
+}
+
+/**
  * Discovery: search by EAN then by name+platform, validate each candidate
- * against the actual product page, return first match.
+ * with heuristic + AI, return first match.
  */
 async function discoverForProduct(
   tpl: SearchTemplate,
@@ -722,9 +810,9 @@ async function discoverForProduct(
       const page = await fetchHtml(url);
       if (page.status === "blocked") { blockedSeen = true; continue; }
       if (page.status !== "ok" || !page.html) continue;
-      const v = validateProductPage(page.html, product);
+      const v = await validateCandidate(page.html, product);
       if (v.ok) return { url, status: "ok" };
-      lastReason = v.reason ?? lastReason;
+      lastReason = v.reason;
     }
   }
 
