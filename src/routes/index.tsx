@@ -31,6 +31,7 @@ import {
   Store,
   XCircle,
   Languages,
+  Search,
 } from "lucide-react";
 
 import { fetchDashboard, type DashboardData } from "@/lib/dashboard-data";
@@ -229,10 +230,10 @@ function DashboardInner({ data }: { data: DashboardData }) {
             <MarketplacePanel />
           </TabsContent>
           <TabsContent value="coupons">
-            <CouponsPanel />
+            <CouponsPanel data={data} />
           </TabsContent>
           <TabsContent value="trends">
-            <TrendsPanel />
+            <TrendsPanel data={data} />
           </TabsContent>
           <TabsContent value="social">
             <SocialFeed data={data} />
@@ -1131,7 +1132,7 @@ function MarketplacePanel() {
             </span>
           </div>
           <div className="text-muted-foreground">
-            Dados mockados — Sprint 1 conecta o robô para coleta real 2x/dia.
+            Dados mockados — coleta real por seller depende de scraping por loja (cada varejista expõe sellers de forma diferente). Os preços reais por URL aparecem na aba <strong>Anúncios</strong>.
           </div>
         </CardContent>
       </Card>
@@ -1506,72 +1507,82 @@ function StockBadge({ stock }: { stock: MarketplaceSeller["stock"] }) {
 }
 
 // ===================== Cupom =====================
-function CouponsPanel() {
-  const active = couponsMock.filter((c) => c.active);
-  const inactive = couponsMock.filter((c) => !c.active);
-  const violating = active.filter((c) => c.triggers_map_violation);
+function CouponsPanel({ data }: { data: DashboardData }) {
+  const coupons = data.coupons;
+  const srpCents = data.product.srp_cents;
+  const minAvistaCents = Math.round(srpCents * (1 - data.product.max_discount_avista_pct / 100));
+
+  const enriched = coupons.map((c) => {
+    const effective = c.discount_value_cents != null
+      ? Math.max(0, srpCents - c.discount_value_cents)
+      : c.discount_pct != null
+      ? Math.round(srpCents * (1 - Number(c.discount_pct) / 100))
+      : null;
+    const violatesMap = effective != null && effective < minAvistaCents;
+    return { ...c, effective_price_cents: effective, violates_map: violatesMap };
+  });
+
+  const violating = enriched.filter((c) => c.violates_map);
+  const retailers = new Set(enriched.map((c) => c.retailer_name).filter(Boolean));
+  const sources = new Set(enriched.map((c) => c.source));
+  const lastCapture = enriched[0]?.captured_at;
+  const fmtDateTime = (iso?: string) =>
+    iso ? new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—";
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiCard
           icon={<Ticket className="h-4 w-4" />}
-          label="Cupons ativos"
-          value={String(active.length)}
-          hint="aplicáveis ao Wolverine"
+          label="Cupons coletados"
+          value={String(enriched.length)}
+          hint={lastCapture ? `última coleta: ${fmtDateTime(lastCapture)}` : "aguardando coleta"}
         />
         <KpiCard
           icon={<AlertTriangle className="h-4 w-4 text-rose-500" />}
-          label="Geram violação MAP"
+          label="Violam MAP"
           value={String(violating.length)}
-          hint="preço efetivo abaixo do piso"
+          hint={`preço efetivo < ${brl(minAvistaCents)}`}
         />
         <KpiCard
           icon={<Store className="h-4 w-4" />}
-          label="Varejistas com cupom"
-          value={String(new Set(active.map((c) => c.retailer_id)).size)}
+          label="Varejistas mencionados"
+          value={String(retailers.size)}
         />
         <KpiCard
-          icon={<Clock className="h-4 w-4" />}
-          label="Encerram em 48h"
-          value={String(
-            active.filter(
-              (c) =>
-                new Date(c.expires_at).getTime() - Date.now() < 48 * 3600_000,
-            ).length,
-          )}
+          icon={<Flame className="h-4 w-4" />}
+          label="Fontes"
+          value={String(sources.size)}
+          hint={[...sources].join(" · ") || "—"}
         />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"> Cupons ativos agora
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Ticket className="h-4 w-4" /> Cupons agregados (Promobit · Pelando · Cuponomia)
           </CardTitle>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Coleta automática 2× ao dia (08:00 e 13:00 BRT). Foco Brasil.
+          </p>
         </CardHeader>
         <CardContent>
-          <CouponTable list={active} />
+          {enriched.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic">
+              Sem cupons ainda — aguardando próxima coleta automática ou clique em "Coletar agora" no Admin.
+            </p>
+          ) : (
+            <CouponTable list={enriched} />
+          )}
         </CardContent>
       </Card>
-
-      {inactive.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base text-muted-foreground">Encerrados (histórico)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CouponTable list={inactive} />
-          </CardContent>
-        </Card>
-      ) : null}
     </div>
   );
 }
 
-function CouponTable({ list }: { list: typeof couponsMock }) {
-  if (list.length === 0)
-    return <p className="text-sm text-muted-foreground">Nenhum cupom no momento.</p>;
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+type CouponRow = DashboardData["coupons"][number] & { effective_price_cents: number | null; violates_map: boolean };
+
+function CouponTable({ list }: { list: CouponRow[] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -1581,8 +1592,7 @@ function CouponTable({ list }: { list: typeof couponsMock }) {
             <th className="py-2 pr-3">Código</th>
             <th className="py-2 pr-3">Descrição</th>
             <th className="py-2 pr-3">Desconto</th>
-            <th className="py-2 pr-3">Vigência</th>
-            <th className="py-2 pr-3">Onde aparece</th>
+            <th className="py-2 pr-3">Fonte</th>
             <th className="py-2 pr-3">Preço efetivo</th>
             <th className="py-2 pr-3">MAP</th>
           </tr>
@@ -1590,27 +1600,37 @@ function CouponTable({ list }: { list: typeof couponsMock }) {
         <tbody>
           {list.map((c) => (
             <tr key={c.id} className="border-t">
-              <td className="py-2 pr-3 font-medium">{c.retailer_name}</td>
+              <td className="py-2 pr-3 font-medium">{c.retailer_name ?? "—"}</td>
               <td className="py-2 pr-3">
-                <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{c.code}</code>
+                {c.code ? (
+                  <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{c.code}</code>
+                ) : (
+                  <span className="text-xs text-muted-foreground italic">sem código</span>
+                )}
               </td>
-              <td className="py-2 pr-3 text-muted-foreground">{c.description}</td>
+              <td className="py-2 pr-3 text-muted-foreground max-w-[28ch] truncate" title={c.description ?? c.title}>
+                {c.description ?? c.title}
+              </td>
               <td className="py-2 pr-3 tabular-nums">
-                {c.discount_pct ? `${c.discount_pct}%` : brl(c.discount_cents ?? 0)}
-              </td>
-              <td className="py-2 pr-3 text-muted-foreground">
-                {fmt(c.starts_at)} → {fmt(c.expires_at)}
+                {c.discount_pct ? `${Number(c.discount_pct).toFixed(0)}%` :
+                 c.discount_value_cents ? brl(c.discount_value_cents) : "—"}
               </td>
               <td className="py-2 pr-3">
-                <Badge variant="outline" className="text-[10px] uppercase">
-                  {c.source}
-                </Badge>
+                {c.source_url ? (
+                  <a href={c.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                    {c.source} <ExternalLink className="h-3 w-3" />
+                  </a>
+                ) : (
+                  <Badge variant="outline" className="text-[10px] uppercase">{c.source}</Badge>
+                )}
               </td>
               <td className="py-2 pr-3 tabular-nums font-semibold">
-                {brl(c.effective_price_cents)}
+                {c.effective_price_cents != null ? brl(c.effective_price_cents) : "—"}
               </td>
               <td className="py-2 pr-3">
-                {c.triggers_map_violation ? (
+                {c.effective_price_cents == null ? (
+                  <span className="text-xs text-muted-foreground">—</span>
+                ) : c.violates_map ? (
                   <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30">
                     <AlertTriangle className="mr-1 h-3 w-3" /> viola
                   </Badge>
@@ -1629,86 +1649,113 @@ function CouponTable({ list }: { list: typeof couponsMock }) {
 }
 
 // ===================== Tendências =====================
-function TrendsPanel() {
+function TrendsPanel({ data }: { data: DashboardData }) {
+  const trends = data.trends;
+  const keywordSnaps = data.keywordSuggestions;
+
   return (
     <div className="space-y-4">
       <Card>
         <CardContent className="p-4 text-sm text-muted-foreground">
-          Placeholder com dados mockados. Sprint 2 conecta Google Trends, YouTube Data API e Reddit
-          API (todas gratuitas).
+          Google Trends (geo Brasil, últimos 30 dias) + Google Autocomplete. Coleta automática 2× ao dia.
         </CardContent>
       </Card>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {trendsMock.map((t) => (
-          <TrendCard key={t.source} t={t} />
-        ))}
-      </div>
+
+      {trends.length === 0 ? (
+        <Card>
+          <CardContent className="p-6 text-sm text-muted-foreground italic">
+            Sem dados de tendências ainda — aguardando próxima coleta.
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {trends.map((t) => (
+            <TrendCardReal key={t.id} t={t} />
+          ))}
+        </div>
+      )}
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Search className="h-4 w-4" /> Sugestões do Google Autocomplete (BR)
+          </CardTitle>
+          <p className="mt-1 text-xs text-muted-foreground">
+            O que pessoas no Brasil estão digitando depois do nome do produto.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {keywordSnaps.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic">Sem sugestões ainda — aguardando coleta.</p>
+          ) : (
+            <div className="space-y-3">
+              {keywordSnaps.map((k) => (
+                <div key={k.id}>
+                  <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">
+                    seed: <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">{k.seed}</code>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {k.suggestions.slice(0, 12).map((s, i) => (
+                      <Badge key={i} variant="secondary" className="font-normal">{s.term}</Badge>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-function TrendCard({ t }: { t: (typeof trendsMock)[number] }) {
-  const up = t.delta_7d_pct >= 0;
+function TrendCardReal({ t }: { t: DashboardData["trends"][number] }) {
+  const series = (t.series ?? []).map((p) => ({
+    date: p.date,
+    value: typeof p.value === "number" ? p.value : Number(p.value) || 0,
+  }));
+  const peak = t.peak_value ?? (series.length ? Math.max(...series.map((p) => p.value)) : 0);
+  const avg = t.avg_value ?? (series.length ? series.reduce((a, p) => a + p.value, 0) / series.length : 0);
+  const last = series[series.length - 1]?.value ?? 0;
+  const prev = series[Math.max(0, series.length - 8)]?.value ?? last;
+  const delta = prev > 0 ? ((last - prev) / prev) * 100 : 0;
+  const up = delta >= 0;
+
   return (
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-base">
           <span className="flex items-center gap-2">
             <Flame className="h-4 w-4 text-orange-500" />
-            {t.source_name}
+            {t.keyword}
+            <Badge variant="outline" className="text-[10px] uppercase">{t.geo}</Badge>
           </span>
           <Badge
-            className={
-              up
-                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
-                : "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30"
-            }
+            className={up
+              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+              : "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30"}
           >
-            {up ? "▲" : "▼"} {t.delta_7d_pct.toFixed(1)}% / 7d
+            {up ? "▲" : "▼"} {Math.abs(delta).toFixed(1)}% / 7d
           </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex items-baseline gap-2">
-          <div className="text-3xl font-bold">{t.current_score}</div>
-          <div className="text-xs text-muted-foreground">índice 0–100</div>
+        <div className="flex items-baseline gap-3">
+          <div className="text-3xl font-bold tabular-nums">{Math.round(Number(last))}</div>
+          <div className="text-xs text-muted-foreground">
+            índice 0–100 · pico {Math.round(Number(peak))} · média {Math.round(Number(avg))}
+          </div>
         </div>
         <div className="h-24">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={t.series}>
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="var(--primary)"
-                strokeWidth={2}
-                dot={false}
-              />
+            <LineChart data={series}>
+              <Line type="monotone" dataKey="value" stroke="var(--primary)" strokeWidth={2} dot={false} />
               <XAxis dataKey="date" hide />
-              <YAxis hide />
+              <YAxis hide domain={[0, 100]} />
               <Tooltip />
             </LineChart>
           </ResponsiveContainer>
         </div>
-        {t.top_items ? (
-          <div>
-            <div className="mb-1 text-xs font-medium uppercase text-muted-foreground">
-              Em destaque
-            </div>
-            <ul className="space-y-1.5 text-sm">
-              {t.top_items.map((it, i) => (
-                <li key={i} className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="truncate font-medium">{it.title}</div>
-                    <div className="text-xs text-muted-foreground">{it.author}</div>
-                  </div>
-                  <div className="whitespace-nowrap text-xs text-muted-foreground">
-                    {it.metric}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
       </CardContent>
     </Card>
   );
