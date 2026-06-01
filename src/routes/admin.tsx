@@ -117,6 +117,14 @@ function AdminPage() {
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
+              onClick={() => discoverMut.mutate(false)}
+              disabled={discoverMut.isPending}
+            >
+              <Search className={`h-4 w-4 mr-1 ${discoverMut.isPending ? "animate-pulse" : ""}`} />
+              {discoverMut.isPending ? "Descobrindo…" : "Descobrir URLs (EAN)"}
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => collectMut.mutate()}
               disabled={collectMut.isPending}
             >
