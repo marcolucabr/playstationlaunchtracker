@@ -229,10 +229,10 @@ function DashboardInner({ data }: { data: DashboardData }) {
             <MarketplacePanel />
           </TabsContent>
           <TabsContent value="coupons">
-            <CouponsPanel />
+            <CouponsPanel data={data} />
           </TabsContent>
           <TabsContent value="trends">
-            <TrendsPanel />
+            <TrendsPanel data={data} />
           </TabsContent>
           <TabsContent value="social">
             <SocialFeed data={data} />
