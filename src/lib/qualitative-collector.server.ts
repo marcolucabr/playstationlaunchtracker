@@ -7,7 +7,6 @@
  *
  * Honors manual_keywords for expanded searches.
  */
-import Firecrawl from "@mendable/firecrawl-js";
 // @ts-expect-error -- no types ship with this package
 import googleTrends from "google-trends-api";
 import { createClient } from "@supabase/supabase-js";
@@ -15,10 +14,31 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Admin = ReturnType<typeof createClient<Database>>;
 
+type FcSearchOpts = {
+  limit?: number;
+  sources?: string[];
+  location?: string;
+  tbs?: string;
+};
+type FcResult = { url?: string; title?: string; description?: string; markdown?: string };
+
+// Lightweight Firecrawl HTTP client (avoids @mendable/firecrawl-js SDK which
+// pulls Node EventEmitter and breaks the Worker bundle).
 function fc() {
   const apiKey = process.env.FIRECRAWL_API_KEY;
   if (!apiKey) throw new Error("FIRECRAWL_API_KEY not configured");
-  return new Firecrawl({ apiKey });
+  return {
+    async search(query: string, opts: FcSearchOpts = {}): Promise<{ web?: FcResult[]; data?: FcResult[] }> {
+      const res = await fetch("https://api.firecrawl.dev/v1/search", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ query, ...opts }),
+      });
+      if (!res.ok) throw new Error(`Firecrawl search ${res.status}`);
+      const json = (await res.json()) as { data?: FcResult[]; web?: FcResult[] };
+      return json;
+    },
+  };
 }
 
 type Product = { id: string; name: string; platform: string | null };
