@@ -208,6 +208,7 @@ async function runDiscoveryInternal(admin: AdminDb, opts: { productId?: string; 
   for (const e of existing ?? []) existingMap.set(`${e.product_id}|${e.retailer_id}`, e.url);
 
   let found = 0, blocked = 0, notFound = 0, skipped = 0, errors = 0;
+  const blockedDetails: Array<{ retailer: string; product: string; reason: string }> = [];
 
   for (const p of products ?? []) {
     for (const r of retailers ?? []) {
@@ -230,13 +231,16 @@ async function runDiscoveryInternal(admin: AdminDb, opts: { productId?: string; 
           { onConflict: "product_id,retailer_id" },
         );
         found++;
-      } else if (result.status === "blocked") blocked++;
-      else if (result.status === "not_found") notFound++;
+      } else if (result.status === "blocked") {
+        blocked++;
+        blockedDetails.push({ retailer: r.name, product: p.name, reason: result.error ?? "blocked" });
+      } else if (result.status === "not_found") notFound++;
       else errors++;
     }
   }
-  return { found, blocked, notFound, skipped, errors };
+  return { found, blocked, notFound, skipped, errors, blockedDetails };
 }
+
 
 async function runCollectionInternal(
   admin: AdminDb,
