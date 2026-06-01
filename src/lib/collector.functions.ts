@@ -208,6 +208,7 @@ async function runDiscoveryInternal(admin: AdminDb, opts: { productId?: string; 
   for (const e of existing ?? []) existingMap.set(`${e.product_id}|${e.retailer_id}`, e.url);
 
   let found = 0, blocked = 0, notFound = 0, skipped = 0, errors = 0;
+  const blockedDetails: Array<{ retailer: string; product: string; reason: string }> = [];
 
   for (const p of products ?? []) {
     for (const r of retailers ?? []) {
@@ -230,13 +231,16 @@ async function runDiscoveryInternal(admin: AdminDb, opts: { productId?: string; 
           { onConflict: "product_id,retailer_id" },
         );
         found++;
-      } else if (result.status === "blocked") blocked++;
-      else if (result.status === "not_found") notFound++;
+      } else if (result.status === "blocked") {
+        blocked++;
+        blockedDetails.push({ retailer: r.name, product: p.name, reason: result.error ?? "blocked" });
+      } else if (result.status === "not_found") notFound++;
       else errors++;
     }
   }
-  return { found, blocked, notFound, skipped, errors };
+  return { found, blocked, notFound, skipped, errors, blockedDetails };
 }
+
 
 async function runCollectionInternal(
   admin: AdminDb,
@@ -253,13 +257,16 @@ async function runCollectionInternal(
   if (opts.productId) urlsQuery = urlsQuery.eq("product_id", opts.productId);
   const { data: urls } = await urlsQuery;
 
-  const { data: retailers } = await admin.from("retailers").select("id, kind, slug");
+  const { data: retailers } = await admin.from("retailers").select("id, kind, slug, name");
   const retailerKind = new Map<string, string>();
   const retailerSlug = new Map<string, string>();
+  const retailerName = new Map<string, string>();
   for (const r of retailers ?? []) {
     retailerKind.set(r.id, r.kind as string);
     retailerSlug.set(r.id, r.slug as string);
+    retailerName.set(r.id, r.name as string);
   }
+
 
   const { data: prodRows } = await admin.from("products").select("id, name, ean, platform");
   const productById = new Map<string, ProductLite>();
@@ -290,7 +297,8 @@ async function runCollectionInternal(
 
   let snapshots = 0, okCount = 0, blockedCount = 0, errorCount = 0, notFoundCount = 0;
   let rediscoveredCount = 0, rediscoveryFailed = 0;
-  const errors: Array<{ url: string; error: string }> = [];
+  const errors: Array<{ url: string; error: string; retailer?: string; kind?: "blocked" | "not_found" | "error" | "rediscovery_failed" | "validation" }> = [];
+
 
 
   for (const u of urls ?? []) {
@@ -332,17 +340,26 @@ async function runCollectionInternal(
               u.id = ins?.id ?? u.id;
               rediscoveredCount++;
             } else {
-              errors.push({ url: u.url, error: `rediscovery failed: ${rediscovered.error ?? rediscovered.status}` });
+              errors.push({
+                url: u.url,
+                error: `rediscovery failed: ${rediscovered.error ?? rediscovered.status}`,
+                retailer: retailerName.get(u.retailer_id),
+                kind: rediscovered.status === "blocked" ? "blocked" : "rediscovery_failed",
+              });
               rediscoveryFailed++;
               notFoundCount++;
               continue;
             }
 
           } else {
-            errors.push({ url: u.url, error: validationNote });
+            errors.push({
+              url: u.url, error: validationNote,
+              retailer: retailerName.get(u.retailer_id), kind: "validation",
+            });
             errorCount++;
             continue;
           }
+
         }
       }
     }
@@ -373,7 +390,13 @@ async function runCollectionInternal(
     else if (parsed.status === "blocked") blockedCount++;
     else if (parsed.status === "not_found") notFoundCount++;
     else errorCount++;
-    if (parsed.status !== "ok") errors.push({ url: effectiveUrl, error: parsed.error ?? parsed.status });
+    if (parsed.status !== "ok") errors.push({
+      url: effectiveUrl,
+      error: parsed.error ?? parsed.status,
+      retailer: retailerName.get(u.retailer_id),
+      kind: parsed.status === "blocked" ? "blocked" : parsed.status === "not_found" ? "not_found" : "error",
+    });
+
 
     await admin
       .from("product_retailer_urls")
@@ -423,6 +446,8 @@ async function runCollectionInternal(
       skipped: discovery.skipped,
       rediscovered: rediscoveredCount,
       rediscovery_failed: rediscoveryFailed,
+      blocked_details: discovery.blockedDetails ?? [],
+
     },
     reddit: qualitative.reddit,
     youtube: qualitative.youtube,

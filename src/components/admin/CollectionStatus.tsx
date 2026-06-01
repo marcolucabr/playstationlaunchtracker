@@ -14,7 +14,9 @@ type Breakdown = {
   discovery?: {
     newly_discovered: number; blocked: number; not_found: number;
     errors: number; skipped: number; rediscovered: number; rediscovery_failed: number;
+    blocked_details?: Array<{ retailer: string; product: string; reason: string }>;
   };
+
   reddit?: number; youtube?: number; news?: number;
   twitter?: number; tiktok?: number; instagram?: number;
   trends?: number; keywords?: number; coupons?: number;
@@ -124,8 +126,24 @@ export function CollectionStatus() {
                   <p className="text-[11px] text-slate-400 mt-1.5">
                     Coletor busca cada varejista pelo EAN ativo, valida o produto e troca URLs antigas automaticamente.
                   </p>
+                  {lastDiscovery.blocked_details && lastDiscovery.blocked_details.length > 0 && (
+                    <div className="mt-2 rounded-md border border-amber-200 bg-amber-50/50 p-2">
+                      <div className="text-[11px] font-semibold text-amber-700 uppercase tracking-wide mb-1">
+                        Varejistas bloqueando descoberta ({lastDiscovery.blocked_details.length})
+                      </div>
+                      <div className="max-h-32 overflow-y-auto space-y-0.5 text-xs">
+                        {lastDiscovery.blocked_details.slice(0, 20).map((b, i) => (
+                          <div key={i} className="flex items-center justify-between gap-2">
+                            <span className="font-medium text-amber-900 shrink-0">{b.retailer}</span>
+                            <span className="text-amber-700 truncate">{b.reason}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
+
 
               {/* Qualitative sources */}
               <div>
@@ -147,22 +165,54 @@ export function CollectionStatus() {
                 </div>
               </div>
 
-              {/* Errors */}
-              {Array.isArray(last.errors) && last.errors.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                    <AlertCircle className="h-3.5 w-3.5" /> Erros ({last.errors.length})
-                  </h4>
-                  <div className="max-h-40 overflow-y-auto space-y-1 text-xs">
-                    {(last.errors as Array<{ url: string; error: string }>).slice(0, 10).map((e, i) => (
-                      <div key={i} className="border-l-2 border-red-300 pl-2 py-0.5">
-                        <div className="font-mono text-slate-700 truncate">{e.url}</div>
-                        <div className="text-red-600 truncate">{e.error}</div>
+              {/* Errors — split blocked from real errors */}
+              {Array.isArray(last.errors) && last.errors.length > 0 && (() => {
+                type ErrRow = { url: string; error: string; retailer?: string; kind?: string };
+                const all = last.errors as ErrRow[];
+                const blockedRows = all.filter((e) => e.kind === "blocked");
+                const otherRows = all.filter((e) => e.kind !== "blocked");
+                return (
+                  <div className="mt-4 space-y-3">
+                    {blockedRows.length > 0 && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                          <AlertCircle className="h-3.5 w-3.5" /> URLs bloqueadas ({blockedRows.length})
+                        </h4>
+                        <div className="max-h-40 overflow-y-auto space-y-1 text-xs">
+                          {blockedRows.slice(0, 20).map((e, i) => (
+                            <div key={i} className="border-l-2 border-amber-300 pl-2 py-0.5">
+                              <div className="flex items-center gap-2">
+                                {e.retailer && <span className="font-semibold text-amber-800">{e.retailer}</span>}
+                                <span className="text-amber-700">{e.error}</span>
+                              </div>
+                              <div className="font-mono text-slate-500 truncate text-[11px]">{e.url}</div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ))}
+                    )}
+                    {otherRows.length > 0 && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                          <AlertCircle className="h-3.5 w-3.5" /> Erros ({otherRows.length})
+                        </h4>
+                        <div className="max-h-40 overflow-y-auto space-y-1 text-xs">
+                          {otherRows.slice(0, 10).map((e, i) => (
+                            <div key={i} className="border-l-2 border-red-300 pl-2 py-0.5">
+                              <div className="flex items-center gap-2">
+                                {e.retailer && <span className="font-semibold text-slate-700">{e.retailer}</span>}
+                                <span className="text-red-600">{e.error}</span>
+                              </div>
+                              <div className="font-mono text-slate-500 truncate text-[11px]">{e.url}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                );
+              })()}
+
             </>
           )}
         </CardContent>
