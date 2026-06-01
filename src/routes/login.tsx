@@ -60,7 +60,7 @@ function LoginPage() {
             </div>
             <h1 className="text-2xl font-bold text-center leading-none">
               <div className="text-blue-600">PlayStation</div>
-              <div className="text-slate-900">Launch Tracking</div>
+              <div className="text-slate-900 text-lg">Launch Tracking</div>
             </h1>
             <p className="mt-1 text-xs tracking-wider text-slate-500 font-mono">
               Brazil Commercial Team
