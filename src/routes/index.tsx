@@ -227,7 +227,7 @@ function DashboardInner({ data }: { data: DashboardData }) {
             <ListingsPanel />
           </TabsContent>
           <TabsContent value="marketplace">
-            <MarketplacePanel />
+            <MarketplacePanel data={data} />
           </TabsContent>
           <TabsContent value="coupons">
             <CouponsPanel data={data} />
