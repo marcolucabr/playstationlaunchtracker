@@ -34,10 +34,44 @@ export function SettingsManager() {
   const listFn = useServerFn(listSettings);
   const updProd = useServerFn(updateProductDates);
   const updCat = useServerFn(updateRetailerCategory);
+  const setLaunchFn = useServerFn(setActiveLaunch);
 
   const { data, isLoading } = useQuery({
     queryKey: ["settings"],
     queryFn: () => listFn({}),
+  });
+
+  const [launch, setLaunch] = useState({ ean: "", name: "", platform: "PS5", release_date: "", srp: "" });
+  const activeProduct = data?.products.find((p) => p.active);
+
+  useEffect(() => {
+    if (!activeProduct) return;
+    setLaunch({
+      ean: activeProduct.ean ?? "",
+      name: activeProduct.name ?? "",
+      platform: activeProduct.platform ?? "PS5",
+      release_date: activeProduct.release_date ?? "",
+      srp: activeProduct.srp_cents ? (activeProduct.srp_cents / 100).toFixed(2) : "",
+    });
+  }, [activeProduct?.id]);
+
+  const setLaunchMut = useMutation({
+    mutationFn: () =>
+      setLaunchFn({
+        data: {
+          ean: launch.ean,
+          name: launch.name || undefined,
+          platform: launch.platform || undefined,
+          release_date: launch.release_date || null,
+          srp_cents: launch.srp ? Math.round(parseFloat(launch.srp.replace(",", ".")) * 100) : null,
+        },
+      }),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ["settings"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success(r.created ? "Novo lançamento criado e ativado" : "Lançamento ativo atualizado");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const [prodForms, setProdForms] = useState<Record<string, { release_date: string; presale_starts_at: string }>>({});
