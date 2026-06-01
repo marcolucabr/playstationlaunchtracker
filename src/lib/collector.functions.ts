@@ -289,7 +289,9 @@ async function runCollectionInternal(
   if (runErr) throw new Error(runErr.message);
 
   let snapshots = 0, okCount = 0, blockedCount = 0, errorCount = 0, notFoundCount = 0;
+  let rediscoveredCount = 0, rediscoveryFailed = 0;
   const errors: Array<{ url: string; error: string }> = [];
+
 
   for (const u of urls ?? []) {
     const product = productById.get(u.product_id);
