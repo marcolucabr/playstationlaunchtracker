@@ -321,6 +321,7 @@ export type Database = {
       price_snapshots: {
         Row: {
           captured_at: string
+          collection_status: string | null
           id: string
           in_stock: boolean | null
           installment_count: number | null
@@ -339,6 +340,7 @@ export type Database = {
         }
         Insert: {
           captured_at?: string
+          collection_status?: string | null
           id?: string
           in_stock?: boolean | null
           installment_count?: number | null
@@ -357,6 +359,7 @@ export type Database = {
         }
         Update: {
           captured_at?: string
+          collection_status?: string | null
           id?: string
           in_stock?: boolean | null
           installment_count?: number | null
