@@ -4,12 +4,12 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
-import { Resend } from "resend";
+
 import type { Database } from "@/integrations/supabase/types";
 
 type Admin = ReturnType<typeof createClient<Database>>;
 
-const ALERT_EMAIL = "marco.luca@sony.com";
+const ALERT_EMAIL = "marcoluca_@hotmail.com"; // temp — trocar para marco.luca@sony.com após verificar domínio
 
 export type ScannedListing = {
   source: string;
@@ -93,7 +93,6 @@ function isAuthorized(
 async function sendAlert(violations: ScannedListing[], productName: string, ean: string) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey || !violations.length) return;
-  const resend = new Resend(apiKey);
 
   const rows = violations.map((v) => {
     const price = v.price_cents ? `R$ ${(v.price_cents / 100).toFixed(2).replace(".", ",")}` : "—";
@@ -101,12 +100,28 @@ async function sendAlert(violations: ScannedListing[], productName: string, ean:
     return `<tr><td style="padding:8px;border-bottom:1px solid #eee">${v.source}</td><td style="padding:8px;border-bottom:1px solid #eee">${v.seller_name ?? "?"}</td><td style="padding:8px;border-bottom:1px solid #eee">${price}</td><td style="padding:8px;border-bottom:1px solid #eee">${tag}</td><td style="padding:8px;border-bottom:1px solid #eee"><a href="${v.url}">ver</a></td></tr>`;
   }).join("");
 
-  await resend.emails.send({
-    from: "Launch Tracker <alerts@useclinicaone.com>",
-    to: ALERT_EMAIL,
-    subject: `⚠️ [Launch Tracker] ${violations.length} violação(ões) — ${productName}`,
-    html: `<div style="font-family:sans-serif;max-width:700px"><h2 style="color:#003087">⚠️ Alerta de Violação</h2><p><b>Produto:</b> ${productName} (EAN: ${ean})</p><p><b>Data:</b> ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</p><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#003087;color:white"><th style="padding:8px;text-align:left">Canal</th><th style="padding:8px;text-align:left">Seller</th><th style="padding:8px;text-align:left">Preço</th><th style="padding:8px;text-align:left">Violação</th><th style="padding:8px;text-align:left">Link</th></tr></thead><tbody>${rows}</tbody></table></div>`,
-  }).catch((e) => console.error("[market-scanner] email error:", e));
+  const html = `<div style="font-family:sans-serif;max-width:700px"><h2 style="color:#003087">⚠️ Alerta de Violação</h2><p><b>Produto:</b> ${productName} (EAN: ${ean})</p><p><b>Data:</b> ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</p><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#003087;color:white"><th style="padding:8px;text-align:left">Canal</th><th style="padding:8px;text-align:left">Seller</th><th style="padding:8px;text-align:left">Preço</th><th style="padding:8px;text-align:left">Violação</th><th style="padding:8px;text-align:left">Link</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Launch Tracker <alerts@useclinicaone.com>",
+        to: [ALERT_EMAIL],
+        subject: `⚠️ [Launch Tracker] ${violations.length} violação(ões) — ${productName}`,
+        html,
+      }),
+    });
+    const json = await res.json();
+    if (!res.ok) console.error("[market-scanner] resend error:", JSON.stringify(json));
+    else console.log("[market-scanner] email sent, id:", (json as any).id);
+  } catch (e) {
+    console.error("[market-scanner] email error:", e);
+  }
 }
 
 // ─── Save results ─────────────────────────────────────────────────────────────
