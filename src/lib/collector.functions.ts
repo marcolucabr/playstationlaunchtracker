@@ -621,7 +621,15 @@ async function runCollectionInternal(
 // Exported for the public cron route
 export async function runScheduledCollection() {
   const admin = adminClient();
-  return runCollectionInternal(admin, { trigger: "cron" });
+  // Run price collection
+  const collectionResult = await runCollectionInternal(admin, { trigger: "cron" });
+  // Run market scan (broad seller discovery + alerts) in background
+  import("@/lib/market-scanner.server").then(({ runMarketScan }) =>
+    runMarketScan(admin).catch((e) =>
+      console.error("[market-scanner] cron error:", e)
+    )
+  );
+  return collectionResult;
 }
 
 // =========== Run collection (admin server fn) ===========
@@ -632,6 +640,17 @@ export const runCollection = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     return runCollectionInternal(adminClient(), { productId: data.productId, trigger: "manual" });
+  });
+
+// =========== Run market scan (admin server fn) ===========
+
+export const runMarketScanFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { productId?: string }) => d)
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { runMarketScan } = await import("@/lib/market-scanner.server");
+    return runMarketScan(adminClient(), data.productId);
   });
 
 // =========== Recent runs ===========
