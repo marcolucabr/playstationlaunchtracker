@@ -102,7 +102,7 @@ async function sendAlert(violations: ScannedListing[], productName: string, ean:
   }).join("");
 
   await resend.emails.send({
-    from: "Launch Tracker <alerts@launchtracker.live>",
+    from: "Launch Tracker <onboarding@resend.dev>",
     to: ALERT_EMAIL,
     subject: `⚠️ [Launch Tracker] ${violations.length} violação(ões) — ${productName}`,
     html: `<div style="font-family:sans-serif;max-width:700px"><h2 style="color:#003087">⚠️ Alerta de Violação</h2><p><b>Produto:</b> ${productName} (EAN: ${ean})</p><p><b>Data:</b> ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</p><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#003087;color:white"><th style="padding:8px;text-align:left">Canal</th><th style="padding:8px;text-align:left">Seller</th><th style="padding:8px;text-align:left">Preço</th><th style="padding:8px;text-align:left">Violação</th><th style="padding:8px;text-align:left">Link</th></tr></thead><tbody>${rows}</tbody></table></div>`,
@@ -153,8 +153,8 @@ export async function runMarketScan(
 
     // Busca focada nos principais marketplaces BR
     const results = await fcSearch(
-      `${ean} Wolverine PS5 comprar Brasil -youtube -reddit -instagram`,
-      15
+      `"${ean}" Wolverine PS5`,
+      10
     );
 
     const listings: ScannedListing[] = [];
@@ -177,6 +177,13 @@ export async function runMarketScan(
       else if (url.includes("magazineluiza") || url.includes("magalu")) source = "Magazine Luiza";
       else if (url.includes("carrefour")) source = "Carrefour";
       else if (url.includes("vivo")) source = "Vivo";
+
+      // Skip results clearly not about this product
+      const titleLower = (r.title ?? "").toLowerCase();
+      const descLower = (r.description ?? "").toLowerCase();
+      const combined = titleLower + " " + descLower;
+      const isRelevant = combined.includes("wolverine") || combined.includes(ean) || combined.includes("711719028116");
+      if (!isRelevant) continue;
 
       const text = [r.title ?? "", r.description ?? ""].join(" ");
       const priceCents = extractPrice(text);
