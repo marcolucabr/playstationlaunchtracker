@@ -4,6 +4,7 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import nodemailer from "nodemailer";
 
 import type { Database } from "@/integrations/supabase/types";
 
@@ -91,8 +92,7 @@ function isAuthorized(
 // ─── Email ────────────────────────────────────────────────────────────────────
 
 async function sendAlert(violations: ScannedListing[], productName: string, ean: string) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey || !violations.length) return;
+  if (!violations.length) return;
 
   const rows = violations.map((v) => {
     const price = v.price_cents ? `R$ ${(v.price_cents / 100).toFixed(2).replace(".", ",")}` : "—";
@@ -103,22 +103,21 @@ async function sendAlert(violations: ScannedListing[], productName: string, ean:
   const html = `<div style="font-family:sans-serif;max-width:700px"><h2 style="color:#003087">⚠️ Alerta de Violação</h2><p><b>Produto:</b> ${productName} (EAN: ${ean})</p><p><b>Data:</b> ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</p><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#003087;color:white"><th style="padding:8px;text-align:left">Canal</th><th style="padding:8px;text-align:left">Seller</th><th style="padding:8px;text-align:left">Preço</th><th style="padding:8px;text-align:left">Violação</th><th style="padding:8px;text-align:left">Link</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 
   try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
       },
-      body: JSON.stringify({
-        from: "Launch Tracker <alerts@useclinicaone.com>",
-        to: [ALERT_EMAIL],
-        subject: `⚠️ [Launch Tracker] ${violations.length} violação(ões) — ${productName}`,
-        html,
-      }),
     });
-    const json = await res.json();
-    if (!res.ok) console.error("[market-scanner] resend error:", JSON.stringify(json));
-    else console.log("[market-scanner] email sent, id:", (json as any).id);
+
+    await transporter.sendMail({
+      from: `"Launch Tracker" <${process.env.GMAIL_USER}>`,
+      to: ALERT_EMAIL,
+      subject: `⚠️ [Launch Tracker] ${violations.length} violação(ões) — ${productName}`,
+      html,
+    });
+    console.log("[market-scanner] email sent via Gmail");
   } catch (e) {
     console.error("[market-scanner] email error:", e);
   }
