@@ -102,7 +102,7 @@ async function sendAlert(violations: ScannedListing[], productName: string, ean:
   }).join("");
 
   await resend.emails.send({
-    from: "Launch Tracker <onboarding@resend.dev>",
+    from: "Launch Tracker <alerts@useclinicaone.com>",
     to: ALERT_EMAIL,
     subject: `⚠️ [Launch Tracker] ${violations.length} violação(ões) — ${productName}`,
     html: `<div style="font-family:sans-serif;max-width:700px"><h2 style="color:#003087">⚠️ Alerta de Violação</h2><p><b>Produto:</b> ${productName} (EAN: ${ean})</p><p><b>Data:</b> ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</p><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#003087;color:white"><th style="padding:8px;text-align:left">Canal</th><th style="padding:8px;text-align:left">Seller</th><th style="padding:8px;text-align:left">Preço</th><th style="padding:8px;text-align:left">Violação</th><th style="padding:8px;text-align:left">Link</th></tr></thead><tbody>${rows}</tbody></table></div>`,
