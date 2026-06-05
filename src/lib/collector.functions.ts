@@ -749,7 +749,7 @@ export const listListings = createServerFn({ method: "POST" })
       admin.from("retailers").select("id, name, slug, kind").eq("active", true),
       admin
         .from("price_snapshots")
-        .select("product_id, retailer_id, seller_name, product_url, price_avista_cents, in_stock, collection_status, is_first_party, captured_at")
+        .select("product_id, retailer_id, seller_name, product_url, price_avista_cents, price_full_cents, in_stock, collection_status, is_first_party, captured_at")
         .eq("collection_status", "ok")
         .order("captured_at", { ascending: false })
         .limit(2000),
