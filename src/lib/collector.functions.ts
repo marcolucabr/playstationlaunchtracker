@@ -751,10 +751,10 @@ const SEARCH_TEMPLATES: Record<string, SearchTemplate> = {
     searchUrl: (q) => `https://www.mercadolivre.com.br/busca?q=${encodeURIComponent(q)}`,
     productHrefRegex: /href="(https:\/\/(?:produto\.)?mercadolivre\.com\.br\/MLB[^"#?]+)"/i,
   },
-  submarino: {
-    origin: "https://www.submarino.com.br",
-    searchUrl: (q) => `https://www.submarino.com.br/busca/${encodeURIComponent(q)}`,
-    productHrefRegex: /href="(\/produto\/\d+[^"]*)"/i,
+  "gamer-hut": {
+    origin: "https://www.gamerhut.com.br",
+    searchUrl: (q) => `https://www.gamerhut.com.br/buscar?q=${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(https:\/\/www\.gamerhut\.com\.br\/[a-z0-9-]*(?:midia-fisica|ps5|ps4)[a-z0-9-]*)"/i,
   },
   "gamer-hut": {
     origin: "https://www.gamerhut.com.br",
