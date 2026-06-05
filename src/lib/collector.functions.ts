@@ -160,11 +160,54 @@ function parseTextualPrice(html: string): Omit<Parsed, "status" | "error"> | nul
   };
 }
 
-function parseHtml(html: string): Parsed {
+function parseAmazonPrice(html: string): Omit<Parsed, "status" | "error"> | null {
+  // Amazon BR: pick the price from #corePriceDisplay_desktop_feature_div / #apex_desktop / #corePrice_*
+  // Inside, the canonical price is in <span class="a-offscreen">R$ 1.234,56</span> (preferred)
+  // or split across <span class="a-price-whole">…</span><span class="a-price-fraction">…</span>.
+  const blockRe = /<div[^>]+id=["'](?:corePriceDisplay_desktop_feature_div|apex_desktop|corePrice_feature_div|corePrice_desktop)["'][\s\S]*?<\/div>\s*<\/div>/i;
+  const m = html.match(blockRe);
+  const scope = m ? m[0] : null;
+  if (!scope) return null;
+
+  let cents: number | undefined;
+  const priceToPay = scope.match(/class=["'][^"']*priceToPay[^"']*["'][\s\S]{0,400}?<span class=["']a-offscreen["']>([^<]+)<\/span>/i);
+  const offscreen = priceToPay ?? scope.match(/<span class=["']a-offscreen["']>([^<]+)<\/span>/i);
+  if (offscreen) cents = toCents(offscreen[1]);
+
+  if (!cents) {
+    const whole = scope.match(/<span class=["']a-price-whole["']>([\d.,]+)<\/span>/i);
+    const frac = scope.match(/<span class=["']a-price-fraction["']>(\d{2})<\/span>/i);
+    if (whole) {
+      const w = whole[1].replace(/[^\d]/g, "");
+      const f = frac ? frac[1] : "00";
+      cents = toCents(`${w},${f}`);
+    }
+  }
+  if (!cents) return null;
+
+  const inst = scope.match(/(\d{1,2})\s*x\s*de\s*R\$\s*([\d.]+,\d{2})/i);
+  return {
+    price_avista_cents: cents,
+    price_full_cents: cents,
+    installment_count: inst ? Number(inst[1]) : undefined,
+    installment_value_cents: inst ? toCents(inst[2]) : undefined,
+    in_stock: detectStock(htmlToText(scope)),
+    raw: { amazon: { source: "corePriceDisplay", price_cents: cents } },
+  };
+}
+
+function parseHtml(html: string, url?: string): Parsed {
   // Blocked detection
   const lower = html.slice(0, 5000).toLowerCase();
   if (/captcha|access denied|cf-browser-verification|cloudflare|robot check|are you a human/.test(lower)) {
     return { status: "blocked", error: "Anti-bot / captcha detected" };
+  }
+
+  // 0. Host-specific extractors run first so retailer DOM beats stray prices (e.g. Amazon insurance add-on)
+  const host = url ? (() => { try { return new URL(url).hostname.toLowerCase(); } catch { return ""; } })() : "";
+  if (host.endsWith("amazon.com.br")) {
+    const amz = parseAmazonPrice(html);
+    if (amz?.price_avista_cents) return { status: "ok", ...amz };
   }
 
   const raw: Record<string, unknown> = {};
@@ -252,7 +295,7 @@ async function fetchAndParse(url: string): Promise<Parsed> {
     }
     if (!res.ok) return { status: "error", error: `HTTP ${res.status}` };
     const html = await res.text();
-    return parseHtml(html);
+    return parseHtml(html, url);
   } catch (e) {
     return { status: "error", error: e instanceof Error ? e.message : String(e) };
   }
@@ -284,7 +327,7 @@ async function fetchAndParseWithFallback(url: string): Promise<Parsed> {
       };
       const html = json.data?.html ?? json.html ?? json.data?.markdown ?? json.markdown;
       if (!html) return direct;
-      const parsed = parseHtml(html);
+      const parsed = parseHtml(html, url);
       if (parsed.status === "ok") {
         return {
           ...parsed,
@@ -861,6 +904,32 @@ async function fetchHtml(url: string): Promise<{ status: "ok" | "blocked" | "err
   }
 }
 
+async function firecrawlScrapeHtml(url: string): Promise<string | null> {
+  const apiKey = process.env.FIRECRAWL_API_KEY;
+  if (!apiKey) return null;
+  try {
+    const res = await fetch(FIRECRAWL_SCRAPE_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ url, formats: ["html"] }),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { data?: { html?: string }; html?: string };
+    return json.data?.html ?? json.html ?? null;
+  } catch { return null; }
+}
+
+async function fetchHtmlWithFallback(url: string): Promise<{ status: "ok" | "blocked" | "error"; html?: string; error?: string }> {
+  const direct = await fetchHtml(url);
+  if (direct.status === "ok") return direct;
+  if (direct.status === "blocked") {
+    const html = await firecrawlScrapeHtml(url);
+    if (html) return { status: "ok", html };
+  }
+  return direct;
+}
+
+
 async function firecrawlSearch(query: string): Promise<Array<{ url?: string; title?: string }>> {
   const apiKey = process.env.FIRECRAWL_API_KEY;
   if (!apiKey) return [];
@@ -910,13 +979,13 @@ async function discoverForProduct(
   let blockedSeen = false;
 
   for (const q of queries) {
-    const search = await fetchHtml(tpl.searchUrl(q));
+    const search = await fetchHtmlWithFallback(tpl.searchUrl(q));
     if (search.status === "blocked") { blockedSeen = true; continue; }
     if (search.status !== "ok" || !search.html) continue;
 
     const candidates = extractCandidates(search.html, tpl);
     for (const url of candidates) {
-      const page = await fetchHtml(url);
+      const page = await fetchHtmlWithFallback(url);
       if (page.status === "blocked") { blockedSeen = true; continue; }
       if (page.status !== "ok" || !page.html) continue;
       const v = await validateCandidate(page.html, product);
