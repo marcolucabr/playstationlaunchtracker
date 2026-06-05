@@ -295,7 +295,7 @@ async function fetchAndParse(url: string): Promise<Parsed> {
     }
     if (!res.ok) return { status: "error", error: `HTTP ${res.status}` };
     const html = await res.text();
-    return parseHtml(html);
+    return parseHtml(html, url);
   } catch (e) {
     return { status: "error", error: e instanceof Error ? e.message : String(e) };
   }
