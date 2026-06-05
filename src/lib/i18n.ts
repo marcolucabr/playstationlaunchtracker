@@ -105,9 +105,9 @@ export const dict = {
     // extras
     presale_start_date: "Início: terça 02/06 às 19h00 (BRT)",
     release_official: "Lançamento oficial",
-    release_live: "Jogo disponível — monitorar preço de varejo",
+    release_live: "",
     release_countdown: "Contagem regressiva ao lançamento",
-    release_date_label: "Lançamento: terça 15/09 às 00h00 (BRT)",
+    release_date_label: "Lançamento: terça 15/09/2026 às 00h00 (BRT)",
     monitored: "monitoradas",
     pressure_low: "Menor preço (pressão)",
     click_for_details: "clique para detalhes",
