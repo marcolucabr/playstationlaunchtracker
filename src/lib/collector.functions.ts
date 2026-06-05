@@ -904,6 +904,32 @@ async function fetchHtml(url: string): Promise<{ status: "ok" | "blocked" | "err
   }
 }
 
+async function firecrawlScrapeHtml(url: string): Promise<string | null> {
+  const apiKey = process.env.FIRECRAWL_API_KEY;
+  if (!apiKey) return null;
+  try {
+    const res = await fetch(FIRECRAWL_SCRAPE_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ url, formats: ["html"] }),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { data?: { html?: string }; html?: string };
+    return json.data?.html ?? json.html ?? null;
+  } catch { return null; }
+}
+
+async function fetchHtmlWithFallback(url: string): Promise<{ status: "ok" | "blocked" | "error"; html?: string; error?: string }> {
+  const direct = await fetchHtml(url);
+  if (direct.status === "ok") return direct;
+  if (direct.status === "blocked") {
+    const html = await firecrawlScrapeHtml(url);
+    if (html) return { status: "ok", html };
+  }
+  return direct;
+}
+
+
 async function firecrawlSearch(query: string): Promise<Array<{ url?: string; title?: string }>> {
   const apiKey = process.env.FIRECRAWL_API_KEY;
   if (!apiKey) return [];
