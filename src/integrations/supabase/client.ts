@@ -2,7 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-function createSupabaseClient() {
+function createSupabaseClientV2() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "https://txvbzxhoeshzkxjsuvkj.supabase.co";
@@ -33,9 +33,9 @@ let _supabase: ReturnType<typeof createSupabaseClient> | undefined;
 // import { supabase } from "@/integrations/supabase/client";
 export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>, {
   get(_, prop, receiver) {
-    if (!_supabase) _supabase = createSupabaseClient();
+    if (!_supabase) _supabase = createSupabaseClientV2();
     return Reflect.get(_supabase, prop, receiver);
   },
 });
 
-// build: 1780626361
+// deploy: 1780664719
