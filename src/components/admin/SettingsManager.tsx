@@ -17,8 +17,10 @@ import {
   updateProductDates,
   updateRetailerCategory,
   setActiveLaunch,
+  deleteProduct,
   type RetailerCategory,
 } from "@/lib/settings.functions";
+import { Trash2 } from "lucide-react";
 
 const CATEGORY_LABELS: Record<RetailerCategory, string> = {
   pure_online: "Puro online",
@@ -35,6 +37,7 @@ export function SettingsManager() {
   const updProd = useServerFn(updateProductDates);
   const updCat = useServerFn(updateRetailerCategory);
   const setLaunchFn = useServerFn(setActiveLaunch);
+  const delProdFn = useServerFn(deleteProduct);
 
   const { data, isLoading } = useQuery({
     queryKey: ["settings"],
@@ -95,6 +98,16 @@ export function SettingsManager() {
       qc.invalidateQueries({ queryKey: ["settings"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Datas atualizadas");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const delProdMut = useMutation({
+    mutationFn: (productId: string) => delProdFn({ data: { productId } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["settings"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Produto deletado");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -191,7 +204,7 @@ export function SettingsManager() {
           {data?.products.map((p) => {
             const f = prodForms[p.id] ?? { release_date: "", presale_starts_at: "" };
             return (
-              <div key={p.id} className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_auto_auto] md:items-end border-b pb-4 last:border-0">
+              <div key={p.id} className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_auto_auto_auto] md:items-end border-b pb-4 last:border-0">
                 <div>
                   <div className="font-medium">{p.name}</div>
                   <div className="text-xs text-muted-foreground">EAN: {p.ean ?? "—"}</div>
@@ -226,6 +239,19 @@ export function SettingsManager() {
                   disabled={saveProd.isPending}
                 >
                   Salvar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => {
+                    if (confirm(`Deletar "${p.name}" (EAN ${p.ean ?? "—"})?\n\nIsso remove o produto e todos os dados coletados (preços, menções, trends, cupons, URLs, palavras-chave). Esta ação não pode ser desfeita.`)) {
+                      delProdMut.mutate(p.id);
+                    }
+                  }}
+                  disabled={delProdMut.isPending}
+                >
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             );

@@ -265,6 +265,51 @@ export type Database = {
         }
         Relationships: []
       }
+      market_scan_alerts: {
+        Row: {
+          alerted_at: string
+          id: string
+          is_authorized: boolean
+          notes: string | null
+          price_cents: number | null
+          product_id: string
+          product_url: string
+          raw_payload: Json | null
+          resolved_at: string | null
+          seller_name: string | null
+          source: string
+          violation: string
+        }
+        Insert: {
+          alerted_at?: string
+          id?: string
+          is_authorized?: boolean
+          notes?: string | null
+          price_cents?: number | null
+          product_id: string
+          product_url: string
+          raw_payload?: Json | null
+          resolved_at?: string | null
+          seller_name?: string | null
+          source: string
+          violation: string
+        }
+        Update: {
+          alerted_at?: string
+          id?: string
+          is_authorized?: boolean
+          notes?: string | null
+          price_cents?: number | null
+          product_id?: string
+          product_url?: string
+          raw_payload?: Json | null
+          resolved_at?: string | null
+          seller_name?: string | null
+          source?: string
+          violation?: string
+        }
+        Relationships: []
+      }
       mentions: {
         Row: {
           author: string | null

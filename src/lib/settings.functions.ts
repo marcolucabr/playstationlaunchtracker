@@ -145,3 +145,27 @@ export const updateRetailerCategory = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const deleteProduct = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { productId: string }) => d)
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const admin = adminClient();
+    const pid = data.productId;
+    // Remove dependent rows first (no FKs declared, so we clean manually)
+    await admin.from("price_snapshots").delete().eq("product_id", pid);
+    await admin.from("coupon_snapshots").delete().eq("product_id", pid);
+    await admin.from("keyword_snapshots").delete().eq("product_id", pid);
+    await admin.from("trends_snapshots").delete().eq("product_id", pid);
+    await admin.from("mentions").delete().eq("product_id", pid);
+    await admin.from("product_retailer_urls").delete().eq("product_id", pid);
+    await admin.from("manual_keywords").delete().eq("product_id", pid);
+    await admin.from("product_aliases").delete().eq("product_id", pid);
+    await admin.from("authorized_sellers").delete().eq("product_id", pid);
+    await admin.from("market_scan_alerts").delete().eq("product_id", pid);
+    await admin.from("collection_runs").delete().eq("product_id", pid);
+    const { error } = await admin.from("products").delete().eq("id", pid);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
