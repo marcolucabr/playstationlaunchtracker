@@ -748,8 +748,13 @@ const SEARCH_TEMPLATES: Record<string, SearchTemplate> = {
   },
   "mercado-livre": {
     origin: "https://www.mercadolivre.com.br",
-    searchUrl: (q) => `https://lista.mercadolivre.com.br/${encodeURIComponent(q)}`,
+    searchUrl: (q) => `https://www.mercadolivre.com.br/busca?q=${encodeURIComponent(q)}`,
     productHrefRegex: /href="(https:\/\/(?:produto\.)?mercadolivre\.com\.br\/MLB[^"#?]+)"/i,
+  },
+  submarino: {
+    origin: "https://www.submarino.com.br",
+    searchUrl: (q) => `https://www.submarino.com.br/busca/${encodeURIComponent(q)}`,
+    productHrefRegex: /href="(\/produto\/\d+[^"]*)"/i,
   },
   magalu: {
     origin: "https://www.magazineluiza.com.br",
