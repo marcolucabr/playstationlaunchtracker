@@ -38,3 +38,4 @@ export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>,
   },
 });
 
+// build: 1780626361
