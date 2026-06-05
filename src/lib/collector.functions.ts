@@ -327,7 +327,7 @@ async function fetchAndParseWithFallback(url: string): Promise<Parsed> {
       };
       const html = json.data?.html ?? json.html ?? json.data?.markdown ?? json.markdown;
       if (!html) return direct;
-      const parsed = parseHtml(html);
+      const parsed = parseHtml(html, url);
       if (parsed.status === "ok") {
         return {
           ...parsed,
