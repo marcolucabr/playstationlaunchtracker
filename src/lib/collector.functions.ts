@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { runMarketScan } from "@/lib/market-scanner.server";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -623,7 +622,10 @@ async function runCollectionInternal(
 export async function runScheduledCollection() {
   const admin = adminClient();
   const collectionResult = await runCollectionInternal(admin, { trigger: "cron" });
-  try { await runMarketScan(admin); } catch (e) { console.error("[market-scanner] cron error:", e); }
+  try {
+    const { runMarketScan } = await import("@/lib/market-scanner.server");
+    await runMarketScan(admin);
+  } catch (e) { console.error("[market-scanner] cron error:", e); }
   return collectionResult;
 }
 
@@ -636,7 +638,10 @@ export const runCollection = createServerFn({ method: "POST" })
     await assertAdmin(context.supabase, context.userId);
     const admin = adminClient();
     const result = await runCollectionInternal(admin, { productId: data.productId, trigger: "manual" });
-    try { await runMarketScan(admin, data.productId); } catch (e) { console.error("[market-scanner] manual error:", e); }
+    try {
+      const { runMarketScan } = await import("@/lib/market-scanner.server");
+      await runMarketScan(admin, data.productId);
+    } catch (e) { console.error("[market-scanner] manual error:", e); }
     return result;
   });
 
@@ -647,6 +652,7 @@ export const runMarketScanFn = createServerFn({ method: "POST" })
   .inputValidator((d: { productId?: string }) => d)
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
+    const { runMarketScan } = await import("@/lib/market-scanner.server");
     return runMarketScan(adminClient(), data.productId);
   });
 
