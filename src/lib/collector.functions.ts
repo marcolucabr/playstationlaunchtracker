@@ -979,13 +979,13 @@ async function discoverForProduct(
   let blockedSeen = false;
 
   for (const q of queries) {
-    const search = await fetchHtml(tpl.searchUrl(q));
+    const search = await fetchHtmlWithFallback(tpl.searchUrl(q));
     if (search.status === "blocked") { blockedSeen = true; continue; }
     if (search.status !== "ok" || !search.html) continue;
 
     const candidates = extractCandidates(search.html, tpl);
     for (const url of candidates) {
-      const page = await fetchHtml(url);
+      const page = await fetchHtmlWithFallback(url);
       if (page.status === "blocked") { blockedSeen = true; continue; }
       if (page.status !== "ok" || !page.html) continue;
       const v = await validateCandidate(page.html, product);
