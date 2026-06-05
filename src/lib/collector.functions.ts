@@ -756,11 +756,6 @@ const SEARCH_TEMPLATES: Record<string, SearchTemplate> = {
     searchUrl: (q) => `https://www.gamerhut.com.br/buscar?q=${encodeURIComponent(q)}`,
     productHrefRegex: /href="(https:\/\/www\.gamerhut\.com\.br\/[a-z0-9-]*(?:midia-fisica|ps5|ps4)[a-z0-9-]*)"/i,
   },
-  "gamer-hut": {
-    origin: "https://www.gamerhut.com.br",
-    searchUrl: (q) => `https://www.gamerhut.com.br/buscar?q=${encodeURIComponent(q)}`,
-    productHrefRegex: /href="(https:\/\/www\.gamerhut\.com\.br\/[a-z0-9-]*(?:midia-fisica|ps5|ps4)[a-z0-9-]*)"/i,
-  },
   magalu: {
     origin: "https://www.magazineluiza.com.br",
     searchUrl: (q) => `https://www.magazineluiza.com.br/busca/${encodeURIComponent(q)}/`,
