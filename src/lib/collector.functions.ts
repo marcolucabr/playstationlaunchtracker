@@ -160,11 +160,54 @@ function parseTextualPrice(html: string): Omit<Parsed, "status" | "error"> | nul
   };
 }
 
-function parseHtml(html: string): Parsed {
+function parseAmazonPrice(html: string): Omit<Parsed, "status" | "error"> | null {
+  // Amazon BR: pick the price from #corePriceDisplay_desktop_feature_div / #apex_desktop / #corePrice_*
+  // Inside, the canonical price is in <span class="a-offscreen">R$ 1.234,56</span> (preferred)
+  // or split across <span class="a-price-whole">…</span><span class="a-price-fraction">…</span>.
+  const blockRe = /<div[^>]+id=["'](?:corePriceDisplay_desktop_feature_div|apex_desktop|corePrice_feature_div|corePrice_desktop)["'][\s\S]*?<\/div>\s*<\/div>/i;
+  const m = html.match(blockRe);
+  const scope = m ? m[0] : null;
+  if (!scope) return null;
+
+  let cents: number | undefined;
+  const priceToPay = scope.match(/class=["'][^"']*priceToPay[^"']*["'][\s\S]{0,400}?<span class=["']a-offscreen["']>([^<]+)<\/span>/i);
+  const offscreen = priceToPay ?? scope.match(/<span class=["']a-offscreen["']>([^<]+)<\/span>/i);
+  if (offscreen) cents = toCents(offscreen[1]);
+
+  if (!cents) {
+    const whole = scope.match(/<span class=["']a-price-whole["']>([\d.,]+)<\/span>/i);
+    const frac = scope.match(/<span class=["']a-price-fraction["']>(\d{2})<\/span>/i);
+    if (whole) {
+      const w = whole[1].replace(/[^\d]/g, "");
+      const f = frac ? frac[1] : "00";
+      cents = toCents(`${w},${f}`);
+    }
+  }
+  if (!cents) return null;
+
+  const inst = scope.match(/(\d{1,2})\s*x\s*de\s*R\$\s*([\d.]+,\d{2})/i);
+  return {
+    price_avista_cents: cents,
+    price_full_cents: cents,
+    installment_count: inst ? Number(inst[1]) : undefined,
+    installment_value_cents: inst ? toCents(inst[2]) : undefined,
+    in_stock: detectStock(htmlToText(scope)),
+    raw: { amazon: { source: "corePriceDisplay", price_cents: cents } },
+  };
+}
+
+function parseHtml(html: string, url?: string): Parsed {
   // Blocked detection
   const lower = html.slice(0, 5000).toLowerCase();
   if (/captcha|access denied|cf-browser-verification|cloudflare|robot check|are you a human/.test(lower)) {
     return { status: "blocked", error: "Anti-bot / captcha detected" };
+  }
+
+  // 0. Host-specific extractors run first so retailer DOM beats stray prices (e.g. Amazon insurance add-on)
+  const host = url ? (() => { try { return new URL(url).hostname.toLowerCase(); } catch { return ""; } })() : "";
+  if (host.endsWith("amazon.com.br")) {
+    const amz = parseAmazonPrice(html);
+    if (amz?.price_avista_cents) return { status: "ok", ...amz };
   }
 
   const raw: Record<string, unknown> = {};
