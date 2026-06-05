@@ -93,7 +93,12 @@ export function ListingsPanel() {
                               {l.in_stock === false && <Badge variant="outline" className="text-xs">sem estoque</Badge>}
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="font-mono text-sm">{fmtBRL(l.price_avista_cents)}</span>
+                              <div className="flex flex-col items-end leading-tight">
+                                <span className="font-mono text-sm">{fmtBRL(l.price_avista_cents)} <span className="text-[10px] font-normal text-slate-500">à vista</span></span>
+                                {l.price_full_cents != null && l.price_full_cents !== l.price_avista_cents && (
+                                  <span className="font-mono text-xs text-slate-500">{fmtBRL(l.price_full_cents)} <span className="text-[10px]">a prazo</span></span>
+                                )}
+                              </div>
                               {l.product_url && (
                                 <a href={l.product_url} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-slate-700">
                                   <ExternalLink className="h-3.5 w-3.5" />
